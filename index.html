@@ -1300,8 +1300,8 @@ dom.canvasWrap.addEventListener('click',function(e){
         '<div class="h-row"><span class="h-label">Позиция</span><span class="h-value">'+(col+1)+'×'+(row+1)+'</span></div>'+
         '<div class="h-row"><span class="h-label">Поворот</span><span class="h-value">'+(rotated?'180°':'—')+'</span></div>'+
         '<div class="h-row"><span class="h-label">Pitch</span><span class="h-value">'+ss.pixelPitch+' мм</span></div>';
-      tip.style.left=Math.min(e.clientX+14,document.body.clientWidth-280)+'px';
-      tip.style.top=Math.max(8,Math.min(e.clientY-100,window.innerHeight-200))+'px';
+      tip.style.left=Math.min(e.clientX-130,document.body.clientWidth-270)+'px';
+      tip.style.top=Math.max(4,Math.min(e.clientY-12,window.innerHeight-170))+'px';
       tip.classList.add('visible');
       var ttHint=setTimeout(function(){tip.classList.remove('visible')},2500);
       tip._hideTimer=ttHint;
