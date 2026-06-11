@@ -520,6 +520,13 @@ input::placeholder{color:var(--text-muted);font-size:12px}
       <!-- Actions -->
       <div class="card">
         <div class="card-body actions">
+          <div class="toggle-wrap" style="margin-bottom:4px">
+            <label class="toggle-label"><i class="fa-regular fa-ruler-combined"></i> Линейка</label>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label class="toggle"><input type="checkbox" id="rulerMode"><span class="toggle-slider"></span></label>
+              <button class="btn btn-sm btn-outline" id="clearRuler" style="display:none" title="Очистить"><i class="fa-regular fa-eraser"></i></button>
+            </div>
+          </div>
           <button class="btn btn-primary" id="btnRefresh"><i class="fa-regular fa-rotate"></i> Обновить</button>
           <div class="btn-row">
             <button class="btn btn-secondary btn-sm" id="btnDownload"><i class="fa-regular fa-download"></i> PNG</button>
@@ -574,7 +581,8 @@ const DEFAULTS = {
   chessColor1:'#ffffff', chessColor2:'#555555',
   sizeLock:true,
   screenName:'', showInfoLabel:true,
-  screenNameColor:'#ffffff', screenNameBg:'#000000', screenNameOpacity:50
+  screenNameColor:'#ffffff', screenNameBg:'#000000', screenNameOpacity:50,
+  rulerMode:false, measurements:[]
 };
 
 let state = {};
@@ -658,6 +666,8 @@ function cacheDOM(){
   dom.screenNameBgSwatch = $('#screenNameBgSwatch');
   dom.screenNameOpacity = $('#screenNameOpacity');
   dom.showInfoLabel = $('#showInfoLabel');
+  dom.rulerMode = $('#rulerMode');
+  dom.clearRuler = $('#clearRuler');
   dom.canvasWrap = $('#canvas-wrap');
 }
 cacheDOM();
@@ -740,6 +750,9 @@ function syncInputs(){
   dom.screenNameBgSwatch.style.background = state.screenNameBg;
   dom.screenNameOpacity.value = state.screenNameOpacity;
   dom.showInfoLabel.checked = state.showInfoLabel;
+  dom.rulerMode.checked = state.rulerMode;
+  dom.clearRuler.style.display = state.measurements.length > 0 ? '' : 'none';
+  dom.canvasWrap.style.cursor = state.rulerMode ? 'crosshair' : '';
   dom.lockBtn.classList.toggle('locked', state.sizeLock);
   dom.lockBtn.innerHTML = state.sizeLock ? '<i class="fa-solid fa-link"></i>' : '<i class="fa-solid fa-link-slash"></i>';
   dom.moduleW.disabled = state.sizeLock;
@@ -790,6 +803,8 @@ function readInputs(){
   dom.screenNameSwatch.style.background = state.screenNameColor;
   state.screenNameOpacity = parseInt(dom.screenNameOpacity.value, 10) || 50;
   state.showInfoLabel = dom.showInfoLabel.checked;
+  state.rulerMode = dom.rulerMode.checked;
+  dom.canvasWrap.style.cursor = state.rulerMode ? 'crosshair' : '';
 }
 
 /* ====== CANVAS RENDERING ====== */
@@ -997,6 +1012,9 @@ function drawCanvas(){
     });
   }
 
+  // Ruler measurements
+  drawRulers(ctx, s, dims, cw, ch);
+
   // Overlay info
   dom.canvasSizeInfo.textContent = `${dims.totalPxW}×${dims.totalPxH} px | ${dims.cols}×${dims.rows} модулей`;
 }
@@ -1046,6 +1064,69 @@ function drawPattern(ctx, x, y, w, h, r, c, rows, cols){
       break;
     }
   }
+}
+
+/* ====== RULER ====== */
+let _rulerStart = null;
+let _rulerEnd = null;
+let _rulerDragging = false;
+
+function toWallCoords(e){
+  const rect = dom.canvas.getBoundingClientRect();
+  const dims = getWallDims();
+  const scale = getCanvasScale(dims);
+  const dx = (e.clientX - rect.left) * (dom.canvas.width / rect.width);
+  const dy = (e.clientY - rect.top) * (dom.canvas.height / rect.height);
+  return { x: dx / scale, y: dy / scale };
+}
+
+function drawRulers(ctx, s, dims, cw, ch){
+  const mmPerPx = dims.totalMmW / dims.totalPxW;
+  const all = [...state.measurements];
+  if(_rulerStart && _rulerEnd && _rulerDragging){
+    all.push({ x1: _rulerStart.x, y1: _rulerStart.y, x2: _rulerEnd.x, y2: _rulerEnd.y, _active: true });
+  }
+  all.forEach(m => {
+    const x1 = m.x1 * s, y1 = m.y1 * s;
+    const x2 = m.x2 * s, y2 = m.y2 * s;
+    const color = m._active ? 'rgba(255,221,0,0.5)' : '#ffdd00';
+    const dx = x2 - x1, dy = y2 - y1;
+    const distPx = Math.sqrt(dx * dx + dy * dy);
+    const distMm = distPx * mmPerPx;
+    const lineW = Math.max(1, Math.round(1.5 * s));
+    const r = Math.max(3, 4 * s);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineW;
+    ctx.setLineDash(m._active ? [4 * s, 4 * s] : []);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x1, y1, r, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x2, y2, r, 0, Math.PI * 2); ctx.fill();
+
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const label = `${distPx.toFixed(0)} px` + (distMm >= 1000
+      ? ` | ${(distMm / 1000).toFixed(2)} м`
+      : ` | ${distMm.toFixed(1)} мм`);
+    const fs = Math.max(10, Math.min(cw, ch) * 0.02);
+    ctx.font = `600 ${fs}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    const tw = ctx.measureText(label).width;
+    const pad = 5;
+    const lx = mx - tw / 2 - pad;
+    const ly = my - 8 - fs;
+    const lw = tw + pad * 2;
+    const lh = fs + pad * 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.beginPath(); ctx.roundRect(lx, ly, lw, lh, 4); ctx.fill();
+    ctx.fillStyle = color;
+    ctx.fillText(label, mx, ly + lh - pad);
+    ctx.restore();
+  });
 }
 
 /* ====== INFO PANEL ====== */
@@ -1229,6 +1310,9 @@ function downloadPNG(){
       ctx.fillText(l, bx + pad * 1.5, by + textH - pad - (lines.length - 1 - i) * lh);
     });
   }
+
+  // Ruler measurements (download)
+  drawRulers(ctx, s, dims, w, h);
 
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -1416,6 +1500,56 @@ dom.modalOverlay.addEventListener('click', function(e){
 // Keyboard shortcut: Escape to close modal
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeResetDialog();
+});
+
+/* ====== RULER EVENTS ====== */
+dom.canvasWrap.addEventListener('mousedown', function(e){
+  if(!state.rulerMode) return;
+  const coords = toWallCoords(e);
+  _rulerStart = coords;
+  _rulerEnd = coords;
+  _rulerDragging = true;
+  dom.canvas.style.cursor = 'crosshair';
+});
+
+dom.canvasWrap.addEventListener('mousemove', function(e){
+  if(!_rulerDragging) return;
+  _rulerEnd = toWallCoords(e);
+  queueRender();
+});
+
+document.addEventListener('mouseup', function(e){
+  if(!_rulerDragging) return;
+  _rulerDragging = false;
+  dom.canvas.style.cursor = state.rulerMode ? 'crosshair' : '';
+  if(_rulerStart && _rulerEnd){
+    const dx = _rulerEnd.x - _rulerStart.x;
+    const dy = _rulerEnd.y - _rulerStart.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if(dist > 3){
+      state.measurements.push({
+        x1: _rulerStart.x, y1: _rulerStart.y,
+        x2: _rulerEnd.x, y2: _rulerEnd.y
+      });
+      saveState();
+      dom.clearRuler.style.display = '';
+    }
+  }
+  _rulerStart = null;
+  _rulerEnd = null;
+  queueRender();
+});
+
+// Clear ruler button
+dom.clearRuler.addEventListener('click', function(){
+  state.measurements = [];
+  _rulerStart = null;
+  _rulerEnd = null;
+  _rulerDragging = false;
+  dom.clearRuler.style.display = 'none';
+  saveState();
+  render();
+  toast('Линейки очищены', 'info');
 });
 
 /* ====== RESPONSIVE CANVAS RESIZE ====== */
