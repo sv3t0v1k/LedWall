@@ -317,6 +317,10 @@ input::placeholder{color:var(--text-muted);font-size:12px}
               </div>
             </label>
           </div>
+          <div class="form-group" id="rotationGroup" style="display:none">
+            <label class="form-label"><i class="fa-regular fa-rotate-right"></i> Поворот экрана (°)</label>
+            <input type="number" id="screenRotation" value="0" min="-360" max="360" step="0.5" style="padding:4px 6px;font-size:12px">
+          </div>
         </div>
       </div>
 
@@ -385,7 +389,11 @@ input::placeholder{color:var(--text-muted);font-size:12px}
           <button class="btn btn-primary" id="btnRefresh"><i class="fa-regular fa-rotate"></i> Обновить</button>
           <div class="btn-row" id="proActionsRow">
             <button class="btn btn-secondary btn-sm" id="btnBOM"><i class="fa-regular fa-clipboard-list"></i> BOM</button>
-            <button class="btn btn-secondary btn-sm" id="btnToggleRotate"><i class="fa-regular fa-rotate-right"></i> Поворот</button>
+            <button class="btn btn-secondary btn-sm" id="btnToggleRotate"><i class="fa-regular fa-rotate-right"></i> Модуль</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-sm" id="btnMoveScreen"><i class="fa-regular fa-up-down-left-right"></i> Сдвиг</button>
+            <button class="btn btn-secondary btn-sm" id="btnResetScreenPos"><i class="fa-regular fa-arrow-to-top"></i> Сброс</button>
           </div>
           <div class="btn-row">
             <button class="btn btn-secondary btn-sm" id="btnDownload"><i class="fa-regular fa-download"></i> PNG</button>
@@ -463,7 +471,8 @@ const SCREEN_DEFAULTS = {
   markerColor:'#ff3344',
   screenName:'', screenNameColor:'#ffffff', screenNameBg:'#000000',
   screenNameOpacity:50, showInfoLabel:true,
-  rotatedModules:{}, zones:{}
+  rotatedModules:{}, zones:{},
+  rotation:0, offsetX:0, offsetY:0
 };
 
 const LAYER_DEFAULTS = {grid:true, modules:true, markers:true, ids:true, screenNames:true, infoLabels:true, rulers:true, annotations:true};
@@ -477,7 +486,8 @@ const DEFAULTS = {
   professionalMode:false,
   layers:Object.assign({}, LAYER_DEFAULTS),
   zoom:1, panX:0, panY:0,
-  rotateMode:false
+  rotateMode:false,
+  moveMode:false
 };
 
 let state = {};
@@ -582,6 +592,8 @@ function cacheDOM(){
   dom.modeToggle=$('#modeToggle');dom.proModeHint=$('#proModeHint');
   dom.layersCard=$('#layersCard');dom.layersContainer=$('#layersContainer');
   dom.btnBOM=$('#btnBOM');dom.btnToggleRotate=$('#btnToggleRotate');
+  dom.btnMoveScreen=$('#btnMoveScreen');dom.btnResetScreenPos=$('#btnResetScreenPos');
+  dom.screenRotation=$('#screenRotation');dom.rotationGroup=$('#rotationGroup');
   dom.zoomIn=$('#zoomIn');dom.zoomOut=$('#zoomOut');dom.zoomReset=$('#zoomReset');dom.zoomLevel=$('#zoomLevel');
   dom.hotspotTooltip=$('#hotspot-tooltip');
 }
@@ -690,6 +702,9 @@ function updateModeUI(){
   dom.modeToggle.title=pro?'Переключить в простой режим':'Переключить в профессиональный режим';
   dom.btnBOM.style.display=pro?'':'none';
   dom.btnToggleRotate.style.display=pro?'':'none';
+  dom.btnMoveScreen.style.display=pro?'':'none';
+  dom.btnResetScreenPos.style.display=pro?'':'none';
+  dom.rotationGroup.style.display=pro?'':'none';
   renderLayers();
 }
 
@@ -711,12 +726,14 @@ function syncInputs(){
   dom.borderColor.value=s.borderColor;
   dom.borderSwatch.style.background=s.borderColor;
   dom.colorPicker.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el.dataset.color===s.markerColor)});
+  dom.screenRotation.value=s.rotation||0;
+  dom.rotationGroup.style.display=state.professionalMode?'':'none';
   dom.screenName.value=s.screenName||s.name||'';dom.screenNameColor.value=s.screenNameColor;dom.screenNameBg.value=s.screenNameBg;
   dom.screenNameSwatch.style.background=s.screenNameColor;dom.screenNameBgSwatch.style.background=s.screenNameBg;
   dom.screenNameOpacity.value=s.screenNameOpacity;dom.showInfoLabel.checked=s.showInfoLabel;
   dom.rulerMode.checked=state.rulerMode;
   dom.clearRuler.style.display=state.measurements.length>0?'':'none';
-  dom.canvasWrap.style.cursor=state.rulerMode?'crosshair':(state.rotateMode?'copy':'');
+  dom.canvasWrap.style.cursor=state.rulerMode?'crosshair':(state.rotateMode?'copy':(state.moveMode?'move':''));
   dom.lockBtn.classList.toggle('locked',state.sizeLock);
   dom.lockBtn.innerHTML=state.sizeLock?'<i class="fa-solid fa-link"></i>':'<i class="fa-solid fa-link-slash"></i>';
   dom.moduleW.disabled=state.sizeLock;dom.moduleH.disabled=state.sizeLock;
@@ -756,8 +773,9 @@ function readInputs(){
   if(s.screenName)s.name=s.screenName;
   dom.screenNameBgSwatch.style.background=s.screenNameBg;dom.screenNameSwatch.style.background=s.screenNameColor;
   s.screenNameOpacity=parseInt(dom.screenNameOpacity.value,10)||50;s.showInfoLabel=dom.showInfoLabel.checked;
+  s.rotation=parseFloat(dom.screenRotation.value)||0;
   state.rulerMode=dom.rulerMode.checked;
-  dom.canvasWrap.style.cursor=state.rulerMode?'crosshair':(state.rotateMode?'copy':'');
+  dom.canvasWrap.style.cursor=state.rulerMode?'crosshair':(state.rotateMode?'copy':(state.moveMode?'move':''));
   state.gapX=parseInt(dom.gapX.value,10)||0;state.gapY=parseInt(dom.gapY.value,10)||0;
 }
 
@@ -815,6 +833,18 @@ function getModuleId(r,c,dims,identification,startId){
 function drawOneScreen(ctx,s,dims,ox,scrState){
   var cols=dims.cols,rows=dims.rows,mw=dims.mw,mh=dims.mh;
   var sh=dims.totalPxH*s;
+  var rot=scrState.rotation*(Math.PI/180)||0;
+  var offX=(scrState.offsetX||0)*s;
+  var offY=(scrState.offsetY||0)*s;
+  var cx=ox+dims.totalPxW*s/2+offX;
+  var cy=sh/2+offY;
+
+  if(rot){
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(rot);
+    ctx.translate(-cx,-cy);
+  }
 
   if(state.layers.grid){
     ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=1;
@@ -924,6 +954,7 @@ function drawOneScreen(ctx,s,dims,ox,scrState){
     ctx.fillStyle='rgba(255,255,255,0.65)';
     for(var li=0;li<lines.length;li++){ctx.fillText(lines[li],bx2+pad*1.5,by2+textH-pad-(lines.length-1-li)*lh);}
   }
+  if(rot)ctx.restore();
 }
 
 function drawGapLabels(ctx,s,combined,dimsArr){
@@ -1252,7 +1283,7 @@ document.querySelectorAll('#sidebar input, #sidebar select').forEach(function(el
 
 // Mode toggle
 dom.modeToggle.addEventListener('click',function(){
-  state.professionalMode=!state.professionalMode;updateModeUI();saveState();
+  state.professionalMode=!state.professionalMode;updateModeUI();queueRender();saveState();
 });
 
 // Screens
@@ -1277,7 +1308,7 @@ dom.canvasWrap.addEventListener('wheel',function(e){
 },{passive:false});
 
 dom.canvasWrap.addEventListener('mousedown',function(e){
-  if(e.button!==0||state.rulerMode||state.rotateMode)return;
+  if(e.button!==0||state.rulerMode||state.rotateMode||state.moveMode)return;
   _isPanning=true;_panStartX=e.clientX;_panStartY=e.clientY;
   _panOrigX=state.panX;_panOrigY=state.panY;
   dom.canvasWrap.classList.add('panning');
@@ -1393,7 +1424,7 @@ dom.btnToggleRotate.addEventListener('click',function(){
   state.rotateMode=!state.rotateMode;
   this.classList.toggle('btn-primary',state.rotateMode);
   this.classList.toggle('btn-secondary',!state.rotateMode);
-  dom.canvasWrap.style.cursor=state.rotateMode?'copy':(state.rulerMode?'crosshair':'');
+  dom.canvasWrap.style.cursor=state.rotateMode?'copy':(state.rulerMode?'crosshair':(state.moveMode?'move':''));
   toast(state.rotateMode?'Режим поворота: кликните по модулю':'Режим поворота выключен','info');
 });
 
@@ -1415,6 +1446,66 @@ dom.canvasWrap.addEventListener('click',function(e){
     ox+=sw+gapX;
   }
 },{capture:true});
+
+// Move mode toggle
+var _moveScreenIdx=-1,_moveStartX=0,_moveStartY=0,_moveOrigX=0,_moveOrigY=0;
+dom.btnMoveScreen.addEventListener('click',function(){
+  state.moveMode=!state.moveMode;
+  this.classList.toggle('btn-primary',state.moveMode);
+  this.classList.toggle('btn-secondary',!state.moveMode);
+  dom.canvasWrap.style.cursor=state.moveMode?'move':(state.rotateMode?'copy':(state.rulerMode?'crosshair':''));
+  toast(state.moveMode?'Режим сдвига: перетащите экран':'Режим сдвига выключен','info');
+});
+
+dom.btnResetScreenPos.addEventListener('click',function(){
+  pushUndo();
+  state.screens.forEach(function(s){s.offsetX=0;s.offsetY=0;});
+  dom.gapX.value=0;dom.gapY.value=0;state.gapX=0;state.gapY=0;
+  syncInputs();render();saveState();
+  toast('Позиции экранов сброшены','info');
+});
+
+// Move screen by dragging (in move mode)
+dom.canvasWrap.addEventListener('mousedown',function(e){
+  if(!state.moveMode||e.button!==0)return;
+  var coords=toWallCoords(e);var dimsArr=state.screens.map(getScreenDims);var combined=getCombinedDims();
+  var gapX=combined.gapPx;var ox=0;
+  for(var i=0;i<state.screens.length;i++){
+    var d=dimsArr[i],sw=d.totalPxW;
+    var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
+    if(col>=0&&col<d.cols&&row>=0&&row<d.rows){
+      _moveScreenIdx=i;_moveStartX=coords.x;_moveStartY=coords.y;
+      _moveOrigX=state.gapX;_moveOrigY=state.gapY;
+      dom.canvasWrap.style.cursor='grabbing';
+      return;
+    }
+    ox+=sw+gapX;
+  }
+});
+
+document.addEventListener('mousemove',function(e){
+  if(_moveScreenIdx<0)return;
+  var coords=toWallCoords(e);
+  var dx=coords.x-_moveStartX;var dy=coords.y-_moveStartY;
+  // For first screen, adjust offsetX/offsetY of the screen itself
+  // For others, adjust gapX/gapY (which affects all screens to the right)
+  if(_moveScreenIdx===0){
+    state.screens[0].offsetX=dx;
+    state.screens[0].offsetY=dy;
+  }else{
+    state.gapX=Math.max(0,_moveOrigX+dx);
+    state.gapY=Math.max(0,_moveOrigY+dy);
+    dom.gapX.value=Math.round(state.gapX);dom.gapY.value=Math.round(state.gapY);
+  }
+  drawCanvas();
+});
+
+document.addEventListener('mouseup',function(e){
+  if(_moveScreenIdx<0)return;
+  _moveScreenIdx=-1;
+  dom.canvasWrap.style.cursor=state.moveMode?'move':(state.rulerMode?'crosshair':(state.rotateMode?'copy':''));
+  saveState();
+});
 
 // Ruler events
 dom.canvasWrap.addEventListener('mousedown',function(e){
