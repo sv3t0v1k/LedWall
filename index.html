@@ -117,7 +117,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 .zoom-btn{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);color:var(--text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .zoom-btn:hover{background:rgba(0,212,255,0.15);color:var(--accent-cyan);border-color:var(--accent-cyan)}
 .zoom-level{font-size:10px;color:var(--text-muted);text-align:center;padding:2px 0}
-#hotspot-tooltip{position:absolute;z-index:20;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border-glass);border-radius:var(--radius-md);padding:10px 14px;font-size:12px;color:var(--text-primary);pointer-events:none;opacity:0;transition:opacity .15s;max-width:260px;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,0.6)}
+#hotspot-tooltip{position:fixed;z-index:9999;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border-glass);border-radius:var(--radius-md);padding:10px 14px;font-size:12px;color:var(--text-primary);pointer-events:none;opacity:0;transition:opacity .15s;max-width:260px;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,0.6)}
 #hotspot-tooltip.visible{opacity:1}
 #hotspot-tooltip .h-label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
 #hotspot-tooltip .h-value{color:var(--text-primary);font-weight:600}
@@ -1300,8 +1300,8 @@ dom.canvasWrap.addEventListener('click',function(e){
         '<div class="h-row"><span class="h-label">Позиция</span><span class="h-value">'+(col+1)+'×'+(row+1)+'</span></div>'+
         '<div class="h-row"><span class="h-label">Поворот</span><span class="h-value">'+(rotated?'180°':'—')+'</span></div>'+
         '<div class="h-row"><span class="h-label">Pitch</span><span class="h-value">'+ss.pixelPitch+' мм</span></div>';
-      tip.style.left=Math.min(e.clientX+12,document.body.clientWidth-280)+'px';
-      tip.style.top=Math.max(10,e.clientY-120)+'px';
+      tip.style.left=Math.min(e.clientX+14,document.body.clientWidth-280)+'px';
+      tip.style.top=Math.max(8,Math.min(e.clientY-100,window.innerHeight-200))+'px';
       tip.classList.add('visible');
       var ttHint=setTimeout(function(){tip.classList.remove('visible')},2500);
       tip._hideTimer=ttHint;
