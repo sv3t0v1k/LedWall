@@ -34,8 +34,6 @@ body{
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2)}
 #app{display:flex;height:100vh;width:100vw}
-
-/* SIDEBAR */
 #sidebar{
   width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;overflow-y:auto;overflow-x:hidden;
   background:var(--bg-secondary);border-right:1px solid var(--border-glass);
@@ -52,8 +50,6 @@ body{
 .sidebar-header h1 span{background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .sidebar-scroll{padding:16px 16px 24px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
 .sidebar-scroll::-webkit-scrollbar{width:4px}
-
-/* CARDS */
 .card{
   background:var(--bg-card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border:1px solid var(--border-glass);border-radius:var(--radius-lg);
@@ -67,8 +63,6 @@ body{
 }
 .card-header i{font-size:12px;color:var(--accent-cyan)}
 .card-body{padding:12px 16px 16px}
-
-/* FORM ELEMENTS */
 .form-group{margin-bottom:10px}
 .form-group:last-child{margin-bottom:0}
 .form-label{
@@ -92,8 +86,6 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;b
 select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a8aa0'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
 select option{background:#14141f;color:var(--text-primary)}
 input::placeholder{color:var(--text-muted);font-size:12px}
-
-/* CHECKBOX TOGGLE */
 .checkbox-group{display:flex;gap:12px;flex-wrap:wrap}
 .checkbox-label{
   display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);
@@ -110,8 +102,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 }
 .checkbox-label:hover .checkbox-custom{border-color:rgba(255,255,255,0.3)}
 .checkbox-label input:checked+.checkbox-custom::after{content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;font-size:9px}
-
-/* TOGGLE SWITCH */
 .toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
 .toggle-label{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;cursor:pointer}
 .toggle-label i{font-size:10px;color:var(--accent-cyan);width:14px}
@@ -127,8 +117,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 }
 .toggle input:checked+.toggle-slider{background:rgba(0,212,255,0.2);border-color:var(--accent-cyan)}
 .toggle input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--accent-cyan);box-shadow:0 0 8px rgba(0,212,255,0.4)}
-
-/* COLOR SELECT */
 .color-picker-wrap{display:flex;gap:6px;flex-wrap:wrap}
 .color-opt{
   width:26px;height:26px;border-radius:50%;border:2px solid transparent;
@@ -136,8 +124,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 }
 .color-opt:hover{transform:scale(1.15)}
 .color-opt.active{border-color:var(--text-primary);box-shadow:0 0 0 2px var(--bg-primary),0 0 0 4px currentColor}
-
-/* CHESSBOARD COLOR PICKERS */
 .chess-color-label{display:flex;flex-direction:column;gap:3px}
 .chess-color-wrap{position:relative;border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;border:1px solid var(--border-glass);height:32px}
 .chess-color-wrap input[type="color"]{
@@ -147,8 +133,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
   display:block;width:100%;height:100%;border-radius:var(--radius-sm);transition:all var(--transition)
 }
 .chess-color-wrap:hover{box-shadow:0 0 0 2px rgba(0,212,255,0.2);border-color:var(--accent-cyan)}
-
-/* INFO PANEL */
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .info-item{
   background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);
@@ -159,8 +143,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 .info-item .info-label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}
 .info-item .info-value{font-size:13px;font-weight:600;color:var(--text-primary)}
 .info-item .info-value .unit{font-size:10px;font-weight:400;color:var(--text-muted);margin-left:2px}
-
-/* BUTTONS */
 .actions{display:flex;flex-direction:column;gap:6px}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:7px;
@@ -197,12 +179,8 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 }
 .lock-btn:hover{border-color:var(--accent-cyan);color:var(--accent-cyan)}
 .lock-btn.locked{background:rgba(0,212,255,0.1);border-color:var(--accent-cyan);color:var(--accent-cyan)}
-
-/* RIPPLE */
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);transform:scale(0);animation:rippleAnim 0.6s ease-out;pointer-events:none}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
-
-/* MAIN AREA */
 #main{flex:1;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
 #canvas-container{
   flex:1;display:flex;align-items:center;justify-content:center;
@@ -221,8 +199,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
   border:1px solid rgba(255,255,255,0.05);white-space:nowrap;pointer-events:none
 }
 .canvas-info-overlay i{margin-right:4px;color:var(--accent-cyan)}
-
-/* TOAST */
 #toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{
   pointer-events:auto;padding:10px 16px;border-radius:var(--radius-md);
@@ -239,8 +215,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 .toast i{font-size:16px}
 .toast .toast-close{margin-left:auto;cursor:pointer;opacity:0.5;font-size:12px;background:none;border:none;color:inherit;padding:0 4px}
 .toast .toast-close:hover{opacity:1}
-
-/* MODAL */
 #modal-overlay{
   display:none;position:fixed;inset:0;z-index:9998;
   background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
@@ -257,8 +231,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 #modal p{font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5}
 #modal .btn-row{display:flex;gap:8px;justify-content:flex-end}
 #modal .btn-row .btn{min-width:80px}
-
-/* TOOLTIP */
 .tooltip-wrap{position:relative;display:inline-flex}
 .tooltip-wrap .tooltip-text{
   position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%) scale(0.95);
@@ -268,16 +240,12 @@ input::placeholder{color:var(--text-muted);font-size:12px}
   opacity:0;transition:all 0.15s ease;box-shadow:0 4px 12px rgba(0,0,0,0.4)
 }
 .tooltip-wrap:hover .tooltip-text{opacity:1;transform:translateX(-50%) scale(1)}
-
-/* ANIMATIONS */
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 .pulse{animation:pulse 1.5s ease-in-out infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .fa-spin{animation:spin 1s linear infinite}
-
-/* RESPONSIVE */
 @media(max-width:900px){
   #sidebar{width:300px;min-width:300px}
   #canvas-container{padding:12px}
@@ -312,9 +280,35 @@ input::placeholder{color:var(--text-muted);font-size:12px}
     </div>
     <div class="sidebar-scroll">
 
-      <!-- Parameters -->
+      <!-- Screens -->
       <div class="card">
-        <div class="card-header"><i class="fa-solid fa-gear"></i> Параметры</div>
+        <div class="card-header"><i class="fa-solid fa-display"></i> Экраны</div>
+        <div class="card-body">
+          <div id="screenTabs" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"></div>
+          <div class="row-2" style="margin-bottom:8px">
+            <button class="btn btn-secondary btn-sm" id="btnAddScreen"><i class="fa-regular fa-plus"></i> Добавить</button>
+            <button class="btn btn-danger btn-sm" id="btnRemoveScreen"><i class="fa-regular fa-minus"></i></button>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-arrows-left-right"></i> Отступ между экранами (мм)</label>
+            <div class="row-2">
+              <input type="number" id="gapX" value="0" min="0" max="10000" step="1" placeholder="X">
+              <input type="number" id="gapY" value="0" min="0" max="10000" step="1" placeholder="Y">
+            </div>
+          </div>
+          <div class="toggle-wrap">
+            <label class="toggle-label"><i class="fa-regular fa-ruler-combined"></i> Линейка</label>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label class="toggle"><input type="checkbox" id="rulerMode"><span class="toggle-slider"></span></label>
+              <button class="btn btn-sm btn-outline" id="clearRuler" style="display:none" title="Очистить"><i class="fa-regular fa-eraser"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameters (active screen) -->
+      <div class="card">
+        <div class="card-header"><i class="fa-solid fa-gear"></i> Параметры экрана <span id="screenParamsLabel" style="color:var(--accent-cyan);text-transform:none">#1</span></div>
         <div class="card-body">
           <div class="form-group">
             <label class="form-label tooltip-wrap">
@@ -472,7 +466,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 
       <!-- Screen Name -->
       <div class="card">
-        <div class="card-header"><i class="fa-regular fa-heading"></i> Название экрана</div>
+        <div class="card-header"><i class="fa-regular fa-heading"></i> Название экрана <span id="screenNameLabel" style="color:var(--accent-cyan);text-transform:none">#1</span></div>
         <div class="card-body">
           <div class="form-group">
             <input type="text" id="screenName" value="" placeholder="Например: Главный фасад, Сцена, Левый экран…" style="width:100%">
@@ -520,17 +514,14 @@ input::placeholder{color:var(--text-muted);font-size:12px}
       <!-- Actions -->
       <div class="card">
         <div class="card-body actions">
-          <div class="toggle-wrap" style="margin-bottom:4px">
-            <label class="toggle-label"><i class="fa-regular fa-ruler-combined"></i> Линейка</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <label class="toggle"><input type="checkbox" id="rulerMode"><span class="toggle-slider"></span></label>
-              <button class="btn btn-sm btn-outline" id="clearRuler" style="display:none" title="Очистить"><i class="fa-regular fa-eraser"></i></button>
-            </div>
-          </div>
           <button class="btn btn-primary" id="btnRefresh"><i class="fa-regular fa-rotate"></i> Обновить</button>
           <div class="btn-row">
             <button class="btn btn-secondary btn-sm" id="btnDownload"><i class="fa-regular fa-download"></i> PNG</button>
-            <button class="btn btn-secondary btn-sm" id="btnExport"><i class="fa-regular fa-file-export"></i> Экспорт</button>
+            <button class="btn btn-secondary btn-sm" id="btnExportConfig"><i class="fa-regular fa-file-export"></i> JSON</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-sm" id="btnExportSVG"><i class="fa-regular fa-file-lines"></i> SVG</button>
+            <button class="btn btn-secondary btn-sm" id="btnExportPDF"><i class="fa-regular fa-file-pdf"></i> PDF</button>
           </div>
           <div class="btn-row">
             <button class="btn btn-secondary btn-sm" id="btnImport"><i class="fa-regular fa-file-import"></i> Импорт</button>
@@ -572,103 +563,120 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 'use strict';
 
 /* ====== STATE ====== */
-const DEFAULTS = {
-  pixelPitch:2.6, moduleW:128, moduleH:128, moduleWmm:320, moduleHmm:320,
-  gridCols:4, gridRows:3, markerColor:'#ff3344',
+const SCREEN_DEFAULTS = {
+  name:'Экран', pixelPitch:2.6, moduleW:128, moduleH:128,
+  moduleWmm:320, moduleHmm:320, gridCols:4, gridRows:3,
   markers:{cross:true, plus:false, circle:false, diagTLBR:false, diagTRBL:false, fullCircle:false},
   identification:'alpha-numeric', startId:'top-left',
-  testPattern:'none', moduleBorder:true,
-  chessColor1:'#ffffff', chessColor2:'#555555',
-  sizeLock:true,
-  screenName:'', showInfoLabel:true,
-  screenNameColor:'#ffffff', screenNameBg:'#000000', screenNameOpacity:50,
-  rulerMode:false, measurements:[]
+  testPattern:'none', chessColor1:'#ffffff', chessColor2:'#555555',
+  moduleBorder:true,
+  screenName:'', screenNameColor:'#ffffff', screenNameBg:'#000000',
+  screenNameOpacity:50, showInfoLabel:true
+};
+
+const DEFAULTS = {
+  markerColor:'#ff3344', sizeLock:true,
+  gapX:0, gapY:0,
+  rulerMode:false, measurements:[],
+  screens:[Object.assign({}, SCREEN_DEFAULTS)],
+  activeScreen:0
 };
 
 let state = {};
 
 function deepClone(o){return JSON.parse(JSON.stringify(o))}
 
+function scr(){ return state.screens[state.activeScreen] }
+
 function loadState(){
   try{
     const raw = localStorage.getItem('ledwall_pro_state');
     if(raw){
       const saved = JSON.parse(raw);
-      state = Object.assign(deepClone(DEFAULTS), saved);
-      return;
+      if(saved.screens && Array.isArray(saved.screens)){
+        state = Object.assign(deepClone(DEFAULTS), saved);
+        state.screens = saved.screens.map(s => Object.assign({}, deepClone(SCREEN_DEFAULTS), s));
+        return;
+      }else{
+        // migrate old flat format
+        const screen = Object.assign({}, deepClone(SCREEN_DEFAULTS), {
+          pixelPitch:saved.pixelPitch, moduleW:saved.moduleW, moduleH:saved.moduleH,
+          moduleWmm:saved.moduleWmm, moduleHmm:saved.moduleHmm,
+          gridCols:saved.gridCols, gridRows:saved.gridRows,
+          markers:saved.markers, identification:saved.identification,
+          startId:saved.startId, testPattern:saved.testPattern,
+          chessColor1:saved.chessColor1, chessColor2:saved.chessColor2,
+          moduleBorder:saved.moduleBorder, screenName:saved.screenName,
+          screenNameColor:saved.screenNameColor, screenNameBg:saved.screenNameBg,
+          screenNameOpacity:saved.screenNameOpacity, showInfoLabel:saved.showInfoLabel
+        });
+        state = {
+          markerColor:saved.markerColor||DEFAULTS.markerColor,
+          sizeLock:saved.sizeLock!==undefined?saved.sizeLock:DEFAULTS.sizeLock,
+          gapX:DEFAULTS.gapX, gapY:DEFAULTS.gapY,
+          rulerMode:saved.rulerMode||DEFAULTS.rulerMode,
+          measurements:saved.measurements||DEFAULTS.measurements,
+          screens:[screen], activeScreen:0
+        };
+        return;
+      }
     }
-  }catch(e){/* ignore */}
+  }catch(e){/*ignore*/}
   state = deepClone(DEFAULTS);
 }
 
 function saveState(){
-  try{
-    localStorage.setItem('ledwall_pro_state', JSON.stringify(state));
-  }catch(e){/* ignore */}
+  try{ localStorage.setItem('ledwall_pro_state', JSON.stringify(state)); }
+  catch(e){/*ignore*/}
 }
 
 loadState();
 
 /* ====== DOM REFS ====== */
 const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
-
 const dom = {};
 function cacheDOM(){
   dom.pixelPitch = $('#pixelPitch');
-  dom.moduleW = $('#moduleW');
-  dom.moduleH = $('#moduleH');
-  dom.moduleWmm = $('#moduleWmm');
-  dom.moduleHmm = $('#moduleHmm');
+  dom.moduleW = $('#moduleW'); dom.moduleH = $('#moduleH');
+  dom.moduleWmm = $('#moduleWmm'); dom.moduleHmm = $('#moduleHmm');
   dom.lockBtn = $('#lockBtn');
-  dom.wallW = $('#wallW');
-  dom.wallH = $('#wallH');
-  dom.btnCalcWall = $('#btnCalcWall');
-  dom.wallCalcResult = $('#wallCalcResult');
-  dom.gridCols = $('#gridCols');
-  dom.gridRows = $('#gridRows');
+  dom.wallW = $('#wallW'); dom.wallH = $('#wallH');
+  dom.btnCalcWall = $('#btnCalcWall'); dom.wallCalcResult = $('#wallCalcResult');
+  dom.gridCols = $('#gridCols'); dom.gridRows = $('#gridRows');
   dom.colorPicker = $('#colorPicker');
-  dom.markerCross = $('#markerCross');
-  dom.markerPlus = $('#markerPlus');
+  dom.markerCross = $('#markerCross'); dom.markerPlus = $('#markerPlus');
   dom.markerCircle = $('#markerCircle');
-  dom.markerDiagTLBR = $('#markerDiagTLBR');
-  dom.markerDiagTRBL = $('#markerDiagTRBL');
+  dom.markerDiagTLBR = $('#markerDiagTLBR'); dom.markerDiagTRBL = $('#markerDiagTRBL');
   dom.markerFullCircle = $('#markerFullCircle');
-  dom.identification = $('#identification');
-  dom.startId = $('#startId');
+  dom.identification = $('#identification'); dom.startId = $('#startId');
   dom.testPattern = $('#testPattern');
   dom.chessColors = $('#chessColors');
-  dom.chessColor1 = $('#chessColor1');
-  dom.chessColor2 = $('#chessColor2');
-  dom.chessSwatch1 = $('#chessSwatch1');
-  dom.chessSwatch2 = $('#chessSwatch2');
+  dom.chessColor1 = $('#chessColor1'); dom.chessColor2 = $('#chessColor2');
+  dom.chessSwatch1 = $('#chessSwatch1'); dom.chessSwatch2 = $('#chessSwatch2');
   dom.moduleBorder = $('#moduleBorder');
-  dom.canvas = $('#canvas');
-  dom.canvasSizeInfo = $('#canvasSizeInfo');
-  dom.infoDensity = $('#infoDensity');
-  dom.infoDistance = $('#infoDistance');
-  dom.infoPhysical = $('#infoPhysical');
-  dom.infoResolution = $('#infoResolution');
-  dom.btnRefresh = $('#btnRefresh');
-  dom.btnDownload = $('#btnDownload');
-  dom.btnExport = $('#btnExport');
-  dom.btnImport = $('#btnImport');
-  dom.btnReset = $('#btnReset');
+  dom.canvas = $('#canvas'); dom.canvasSizeInfo = $('#canvasSizeInfo');
+  dom.canvasWrap = $('#canvas-wrap');
+  dom.infoDensity = $('#infoDensity'); dom.infoDistance = $('#infoDistance');
+  dom.infoPhysical = $('#infoPhysical'); dom.infoResolution = $('#infoResolution');
+  dom.btnRefresh = $('#btnRefresh'); dom.btnDownload = $('#btnDownload');
+  dom.btnExportConfig = $('#btnExportConfig');
+  dom.btnExportSVG = $('#btnExportSVG'); dom.btnExportPDF = $('#btnExportPDF');
+  dom.btnImport = $('#btnImport'); dom.btnReset = $('#btnReset');
   dom.importInput = $('#import-input');
-  dom.modalOverlay = $('#modal-overlay');
-  dom.modalCancel = $('#modalCancel');
+  dom.modalOverlay = $('#modal-overlay'); dom.modalCancel = $('#modalCancel');
   dom.modalConfirm = $('#modalConfirm');
   dom.toastContainer = $('#toast-container');
-  dom.screenName = $('#screenName');
-  dom.screenNameColor = $('#screenNameColor');
+  dom.screenName = $('#screenName'); dom.screenNameColor = $('#screenNameColor');
   dom.screenNameBg = $('#screenNameBg');
   dom.screenNameSwatch = $('#screenNameSwatch');
   dom.screenNameBgSwatch = $('#screenNameBgSwatch');
-  dom.screenNameOpacity = $('#screenNameOpacity');
-  dom.showInfoLabel = $('#showInfoLabel');
-  dom.rulerMode = $('#rulerMode');
-  dom.clearRuler = $('#clearRuler');
-  dom.canvasWrap = $('#canvas-wrap');
+  dom.screenNameOpacity = $('#screenNameOpacity'); dom.showInfoLabel = $('#showInfoLabel');
+  dom.rulerMode = $('#rulerMode'); dom.clearRuler = $('#clearRuler');
+  dom.screenTabs = $('#screenTabs');
+  dom.btnAddScreen = $('#btnAddScreen'); dom.btnRemoveScreen = $('#btnRemoveScreen');
+  dom.gapX = $('#gapX'); dom.gapY = $('#gapY');
+  dom.screenParamsLabel = $('#screenParamsLabel');
+  dom.screenNameLabel = $('#screenNameLabel');
 }
 cacheDOM();
 
@@ -712,44 +720,98 @@ document.querySelectorAll('.btn').forEach(b => {
   b.addEventListener('click', function(e){ ripple(e, this); });
 });
 
+/* ====== SCREEN TABS ====== */
+function renderScreenTabs(){
+  dom.screenTabs.innerHTML = '';
+  state.screens.forEach((s, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'btn btn-sm' + (i === state.activeScreen ? ' btn-primary' : ' btn-outline');
+    tab.textContent = s.name || 'Экран ' + (i+1);
+    tab.style.fontSize = '10px';
+    tab.style.padding = '4px 8px';
+    tab.addEventListener('click', () => switchScreen(i));
+    dom.screenTabs.appendChild(tab);
+  });
+  dom.screenParamsLabel.textContent = '#' + (state.activeScreen+1);
+  dom.screenNameLabel.textContent = '#' + (state.activeScreen+1);
+  dom.btnRemoveScreen.disabled = state.screens.length <= 1;
+  dom.btnRemoveScreen.style.opacity = state.screens.length <= 1 ? '0.4' : '';
+}
 
+function switchScreen(idx){
+  if(idx === state.activeScreen) return;
+  readInputs(); // save current
+  state.activeScreen = idx;
+  renderScreenTabs();
+  syncInputs();
+  render();
+}
 
+function addScreen(){
+  readInputs();
+  state.screens.push(deepClone(SCREEN_DEFAULTS));
+  state.activeScreen = state.screens.length - 1;
+  renderScreenTabs();
+  syncInputs();
+  render();
+  saveState();
+  toast('Экран добавлен', 'success');
+}
 
+function removeScreen(){
+  if(state.screens.length <= 1){
+    toast('Должен быть хотя бы один экран', 'error');
+    return;
+  }
+  if(state.screens.length === 2){
+    const s = state.screens[state.activeScreen === 0 ? 1 : 0];
+    Object.assign(state.screens[0], s);
+    state.screens = [deepClone(SCREEN_DEFAULTS)];
+    Object.assign(state.screens[0], s);
+    state.activeScreen = 0;
+  } else {
+    state.screens.splice(state.activeScreen, 1);
+    state.activeScreen = Math.min(state.activeScreen, state.screens.length - 1);
+  }
+  renderScreenTabs();
+  syncInputs();
+  render();
+  saveState();
+  toast('Экран удалён', 'info');
+}
 
 /* ====== SYNC INPUTS <-> STATE ====== */
 function syncInputs(){
-  dom.pixelPitch.value = state.pixelPitch;
-  dom.moduleW.value = state.moduleW;
-  dom.moduleH.value = state.moduleH;
-  dom.moduleWmm.value = state.moduleWmm;
-  dom.moduleHmm.value = state.moduleHmm;
-  dom.gridCols.value = state.gridCols;
-  dom.gridRows.value = state.gridRows;
-  dom.markerCross.checked = state.markers.cross;
-  dom.markerPlus.checked = state.markers.plus;
-  dom.markerCircle.checked = state.markers.circle;
-  dom.markerDiagTLBR.checked = state.markers.diagTLBR;
-  dom.markerDiagTRBL.checked = state.markers.diagTRBL;
-  dom.markerFullCircle.checked = state.markers.fullCircle;
-  dom.identification.value = state.identification;
-  dom.startId.value = state.startId;
-  dom.testPattern.value = state.testPattern;
-  dom.chessColor1.value = state.chessColor1;
-  dom.chessColor2.value = state.chessColor2;
-  dom.chessSwatch1.style.background = state.chessColor1;
-  dom.chessSwatch2.style.background = state.chessColor2;
-  dom.chessColors.style.display = state.testPattern === 'checkerboard' ? '' : 'none';
-  dom.moduleBorder.checked = state.moduleBorder;
+  const s = scr();
+  dom.pixelPitch.value = s.pixelPitch;
+  dom.moduleW.value = s.moduleW; dom.moduleH.value = s.moduleH;
+  dom.moduleWmm.value = s.moduleWmm; dom.moduleHmm.value = s.moduleHmm;
+  dom.gridCols.value = s.gridCols; dom.gridRows.value = s.gridRows;
+  dom.markerCross.checked = s.markers.cross;
+  dom.markerPlus.checked = s.markers.plus;
+  dom.markerCircle.checked = s.markers.circle;
+  dom.markerDiagTLBR.checked = s.markers.diagTLBR;
+  dom.markerDiagTRBL.checked = s.markers.diagTRBL;
+  dom.markerFullCircle.checked = s.markers.fullCircle;
+  dom.identification.value = s.identification;
+  dom.startId.value = s.startId;
+  dom.testPattern.value = s.testPattern;
+  dom.chessColor1.value = s.chessColor1;
+  dom.chessColor2.value = s.chessColor2;
+  dom.chessSwatch1.style.background = s.chessColor1;
+  dom.chessSwatch2.style.background = s.chessColor2;
+  dom.chessColors.style.display = s.testPattern === 'checkerboard' ? '' : 'none';
+  dom.moduleBorder.checked = s.moduleBorder;
   dom.colorPicker.querySelectorAll('.color-opt').forEach(el => {
     el.classList.toggle('active', el.dataset.color === state.markerColor);
   });
-  dom.screenName.value = state.screenName;
-  dom.screenNameColor.value = state.screenNameColor;
-  dom.screenNameBg.value = state.screenNameBg;
-  dom.screenNameSwatch.style.background = state.screenNameColor;
-  dom.screenNameBgSwatch.style.background = state.screenNameBg;
-  dom.screenNameOpacity.value = state.screenNameOpacity;
-  dom.showInfoLabel.checked = state.showInfoLabel;
+  dom.screenName.value = s.screenName;
+  dom.screenNameColor.value = s.screenNameColor;
+  dom.screenNameBg.value = s.screenNameBg;
+  dom.screenNameSwatch.style.background = s.screenNameColor;
+  dom.screenNameBgSwatch.style.background = s.screenNameBg;
+  dom.screenNameOpacity.value = s.screenNameOpacity;
+  dom.showInfoLabel.checked = s.showInfoLabel;
   dom.rulerMode.checked = state.rulerMode;
   dom.clearRuler.style.display = state.measurements.length > 0 ? '' : 'none';
   dom.canvasWrap.style.cursor = state.rulerMode ? 'crosshair' : '';
@@ -757,73 +819,100 @@ function syncInputs(){
   dom.lockBtn.innerHTML = state.sizeLock ? '<i class="fa-solid fa-link"></i>' : '<i class="fa-solid fa-link-slash"></i>';
   dom.moduleW.disabled = state.sizeLock;
   dom.moduleH.disabled = state.sizeLock;
+  dom.gapX.value = state.gapX;
+  dom.gapY.value = state.gapY;
+  renderScreenTabs();
 }
 
 function recalcModulePx(){
-  if(state.sizeLock && state.pixelPitch > 0){
-    state.moduleW = Math.max(16, Math.min(512, Math.round(state.moduleWmm / state.pixelPitch)));
-    state.moduleH = Math.max(16, Math.min(512, Math.round(state.moduleHmm / state.pixelPitch)));
-    dom.moduleW.value = state.moduleW;
-    dom.moduleH.value = state.moduleH;
+  const s = scr();
+  if(state.sizeLock && s.pixelPitch > 0){
+    s.moduleW = Math.max(16, Math.min(512, Math.round(s.moduleWmm / s.pixelPitch)));
+    s.moduleH = Math.max(16, Math.min(512, Math.round(s.moduleHmm / s.pixelPitch)));
+    dom.moduleW.value = s.moduleW;
+    dom.moduleH.value = s.moduleH;
   }
 }
 
 function readInputs(){
+  const s = scr();
   state.sizeLock = dom.lockBtn.classList.contains('locked');
-  state.pixelPitch = parseFloat(dom.pixelPitch.value) || DEFAULTS.pixelPitch;
-  state.moduleWmm = parseInt(dom.moduleWmm.value,10) || DEFAULTS.moduleWmm;
-  state.moduleHmm = parseInt(dom.moduleHmm.value,10) || DEFAULTS.moduleHmm;
+  s.pixelPitch = parseFloat(dom.pixelPitch.value) || SCREEN_DEFAULTS.pixelPitch;
+  s.moduleWmm = parseInt(dom.moduleWmm.value,10) || SCREEN_DEFAULTS.moduleWmm;
+  s.moduleHmm = parseInt(dom.moduleHmm.value,10) || SCREEN_DEFAULTS.moduleHmm;
   if(state.sizeLock){
     recalcModulePx();
   } else {
-    state.moduleW = parseInt(dom.moduleW.value,10) || DEFAULTS.moduleW;
-    state.moduleH = parseInt(dom.moduleH.value,10) || DEFAULTS.moduleH;
+    s.moduleW = parseInt(dom.moduleW.value,10) || SCREEN_DEFAULTS.moduleW;
+    s.moduleH = parseInt(dom.moduleH.value,10) || SCREEN_DEFAULTS.moduleH;
   }
-  state.gridCols = parseInt(dom.gridCols.value,10) || DEFAULTS.gridCols;
-  state.gridRows = parseInt(dom.gridRows.value,10) || DEFAULTS.gridRows;
-  state.markers.cross = dom.markerCross.checked;
-  state.markers.plus = dom.markerPlus.checked;
-  state.markers.circle = dom.markerCircle.checked;
-  state.markers.diagTLBR = dom.markerDiagTLBR.checked;
-  state.markers.diagTRBL = dom.markerDiagTRBL.checked;
-  state.markers.fullCircle = dom.markerFullCircle.checked;
-  state.identification = dom.identification.value;
-  state.startId = dom.startId.value;
-  state.testPattern = dom.testPattern.value;
-  state.chessColor1 = dom.chessColor1.value;
-  state.chessColor2 = dom.chessColor2.value;
-  dom.chessSwatch1.style.background = state.chessColor1;
-  dom.chessSwatch2.style.background = state.chessColor2;
-  dom.chessColors.style.display = state.testPattern === 'checkerboard' ? '' : 'none';
-  state.moduleBorder = dom.moduleBorder.checked;
-  state.screenName = dom.screenName.value.trim();
-  state.screenNameColor = dom.screenNameColor.value;
-  state.screenNameBg = dom.screenNameBg.value;
-  dom.screenNameBgSwatch.style.background = state.screenNameBg;
-  dom.screenNameSwatch.style.background = state.screenNameColor;
-  state.screenNameOpacity = parseInt(dom.screenNameOpacity.value, 10) || 50;
-  state.showInfoLabel = dom.showInfoLabel.checked;
+  s.gridCols = parseInt(dom.gridCols.value,10) || SCREEN_DEFAULTS.gridCols;
+  s.gridRows = parseInt(dom.gridRows.value,10) || SCREEN_DEFAULTS.gridRows;
+  s.markers.cross = dom.markerCross.checked;
+  s.markers.plus = dom.markerPlus.checked;
+  s.markers.circle = dom.markerCircle.checked;
+  s.markers.diagTLBR = dom.markerDiagTLBR.checked;
+  s.markers.diagTRBL = dom.markerDiagTRBL.checked;
+  s.markers.fullCircle = dom.markerFullCircle.checked;
+  s.identification = dom.identification.value;
+  s.startId = dom.startId.value;
+  s.testPattern = dom.testPattern.value;
+  s.chessColor1 = dom.chessColor1.value;
+  s.chessColor2 = dom.chessColor2.value;
+  dom.chessSwatch1.style.background = s.chessColor1;
+  dom.chessSwatch2.style.background = s.chessColor2;
+  dom.chessColors.style.display = s.testPattern === 'checkerboard' ? '' : 'none';
+  s.moduleBorder = dom.moduleBorder.checked;
+  s.screenName = dom.screenName.value.trim();
+  s.screenNameColor = dom.screenNameColor.value;
+  s.screenNameBg = dom.screenNameBg.value;
+  dom.screenNameBgSwatch.style.background = s.screenNameBg;
+  dom.screenNameSwatch.style.background = s.screenNameColor;
+  s.screenNameOpacity = parseInt(dom.screenNameOpacity.value, 10) || 50;
+  s.showInfoLabel = dom.showInfoLabel.checked;
   state.rulerMode = dom.rulerMode.checked;
   dom.canvasWrap.style.cursor = state.rulerMode ? 'crosshair' : '';
+  state.gapX = parseInt(dom.gapX.value,10) || 0;
+  state.gapY = parseInt(dom.gapY.value,10) || 0;
 }
 
 /* ====== CANVAS RENDERING ====== */
 const MAX_CANVAS = 4096;
 
-function getWallDims(){
-  const cols = Math.max(1, Math.min(500, state.gridCols));
-  const rows = Math.max(1, Math.min(500, state.gridRows));
-  const mw = Math.max(16, Math.min(512, state.moduleW));
-  const mh = Math.max(16, Math.min(512, state.moduleH));
-  const mmw = Math.max(1, state.moduleWmm);
-  const mmh = Math.max(1, state.moduleHmm);
-  const pitch = Math.max(0.01, state.pixelPitch);
+function getScreenDims(s){
+  const cols = Math.max(1, Math.min(500, s.gridCols));
+  const rows = Math.max(1, Math.min(500, s.gridRows));
+  const mw = Math.max(16, Math.min(512, s.moduleW));
+  const mh = Math.max(16, Math.min(512, s.moduleH));
+  const mmw = Math.max(1, s.moduleWmm);
+  const mmh = Math.max(1, s.moduleHmm);
+  const pitch = Math.max(0.01, s.pixelPitch);
   return { cols, rows, mw, mh, mmw, mmh, pitch,
     totalPxW: cols * mw, totalPxH: rows * mh,
     totalMmW: cols * mmw, totalMmH: rows * mmh };
 }
 
+function getCombinedDims(){
+  const screens = state.screens;
+  if(screens.length === 0) return { totalPxW: 0, totalPxH: 0 };
+  const dims = screens.map(getScreenDims);
+  let totalPxW = 0, totalPxH = 0;
+  let maxH = 0, maxW = 0;
+  for(const d of dims){
+    totalPxW += d.totalPxW;
+    maxH = Math.max(maxH, d.totalPxH);
+    maxW = Math.max(maxW, d.totalPxW);
+  }
+  // Arrange horizontally with gaps
+  const gapPx = state.gapX / (dims[0]?.pitch || 1);
+  const gapPy = state.gapY / (dims[0]?.pitch || 1);
+  const w = totalPxW + gapPx * (screens.length - 1);
+  const h = maxH;
+  return { totalPxW: w, totalPxH: h, screens: dims, gapPx, gapPy };
+}
+
 function getCanvasScale(dims){
+  if(dims.totalPxW === 0 || dims.totalPxH === 0) return 1;
   let s = Math.min(MAX_CANVAS / dims.totalPxW, MAX_CANVAS / dims.totalPxH, 1);
   return Math.max(s, 0.05);
 }
@@ -836,97 +925,74 @@ function toAlpha(num){
   }
   return s;
 }
-function getModuleId(row, col, dims){
-  if(state.identification === 'none') return '';
+
+function getModuleId(row, col, dims, identification, startId){
+  if(identification === 'none') return '';
   const rows = dims.rows, cols = dims.cols;
   let r = row, c = col;
-  switch(state.startId){
+  switch(startId){
     case 'top-right': c = cols - 1 - col; break;
     case 'bottom-left': r = rows - 1 - row; break;
     case 'bottom-right': r = rows - 1 - row; c = cols - 1 - col; break;
   }
-  if(state.identification === 'numeric'){
-    return String(r * cols + c + 1);
-  }
+  if(identification === 'numeric') return String(r * cols + c + 1);
   return toAlpha(r) + (c + 1);
 }
 
-function drawCanvas(){
-  const canvas = dom.canvas;
-  const ctx = canvas.getContext('2d');
-  const dims = getWallDims();
-  const scale = getCanvasScale(dims);
-  const cw = Math.round(dims.totalPxW * scale);
-  const ch = Math.round(dims.totalPxH * scale);
-
-  canvas.width = cw;
-  canvas.height = ch;
-  ctx.imageSmoothingEnabled = false;
-
-  const s = scale;
+function drawOneScreen(ctx, s, dims, offsetX, offsetY, scrState){
+  const ox = offsetX, oy = offsetY;
   const cols = dims.cols, rows = dims.rows;
   const mw = dims.mw, mh = dims.mh;
 
-  // Background
-  ctx.fillStyle = '#0a0a0f';
-  ctx.fillRect(0, 0, cw, ch);
-
-  // Grid background lines (subtle)
+  // Grid background lines
   ctx.strokeStyle = 'rgba(255,255,255,0.03)';
   ctx.lineWidth = 1;
   for(let c = 0; c <= cols; c++){
-    const x = Math.round(c * mw * s);
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ch); ctx.stroke();
+    const x = ox + Math.round(c * mw * s);
+    ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + dims.totalPxH * s); ctx.stroke();
   }
   for(let r = 0; r <= rows; r++){
-    const y = Math.round(r * mh * s);
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke();
+    const y = oy + Math.round(r * mh * s);
+    ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + dims.totalPxW * s, y); ctx.stroke();
   }
 
-  // Draw each module
   for(let r = 0; r < rows; r++){
     for(let c = 0; c < cols; c++){
-      const x = Math.round(c * mw * s);
-      const y = Math.round(r * mh * s);
+      const x = ox + Math.round(c * mw * s);
+      const y = oy + Math.round(r * mh * s);
       const w = Math.round(mw * s);
       const h = Math.round(mh * s);
 
-      // Test pattern
-      drawPattern(ctx, x, y, w, h, r, c, rows, cols);
+      drawPattern(ctx, x, y, w, h, r, c, rows, cols, scrState);
 
-      // Module border
-      if(state.moduleBorder){
+      if(scrState.moduleBorder){
         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 1;
         ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
       }
 
-      // Center
-      const cx = x + w / 2;
-      const cy = y + h / 2;
+      const cx = x + w / 2, cy = y + h / 2;
       const color = state.markerColor;
 
-      // Markers
-      if(state.markers.cross){
+      if(scrState.markers.cross){
         ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, Math.round(2 * s));
         const len = Math.min(w, h) * 0.3;
         ctx.beginPath(); ctx.moveTo(cx - len, cy); ctx.lineTo(cx + len, cy); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(cx, cy - len); ctx.lineTo(cx, cy + len); ctx.stroke();
       }
-      if(state.markers.plus){
+      if(scrState.markers.plus){
         ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, Math.round(2 * s));
         const len = Math.min(w, h) * 0.2;
         ctx.beginPath(); ctx.moveTo(cx - len, cy); ctx.lineTo(cx + len, cy); ctx.stroke();
       }
-      if(state.markers.circle){
+      if(scrState.markers.circle){
         ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, Math.round(2 * s));
         const rad = Math.min(w, h) * 0.15;
         ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.stroke();
       }
 
-      // ID
-      if(state.identification !== 'none'){
-        const id = getModuleId(r, c, dims);
+      if(scrState.identification !== 'none'){
+        const id = getModuleId(r, c, dims, scrState.identification, scrState.startId);
         if(id){
           const fontSize = Math.max(8, Math.min(w, h) * 0.12);
           ctx.font = `${fontSize}px Inter, -apple-system, sans-serif`;
@@ -939,57 +1005,56 @@ function drawCanvas(){
     }
   }
 
-  // Full-wall markers (diagonals, circle)
+  // Full-wall markers
+  const cw = dims.totalPxW * s, ch = dims.totalPxH * s;
   const fwColor = state.markerColor;
   const fwLw = Math.max(1, Math.round(3 * s));
   ctx.strokeStyle = fwColor;
   ctx.lineWidth = fwLw;
   ctx.setLineDash([]);
   ctx.globalAlpha = 0.5;
-  if(state.markers.diagTLBR){
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(cw, ch); ctx.stroke();
+  if(scrState.markers.diagTLBR){
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + cw, oy + ch); ctx.stroke();
   }
-  if(state.markers.diagTRBL){
-    ctx.beginPath(); ctx.moveTo(cw, 0); ctx.lineTo(0, ch); ctx.stroke();
+  if(scrState.markers.diagTRBL){
+    ctx.beginPath(); ctx.moveTo(ox + cw, oy); ctx.lineTo(ox, oy + ch); ctx.stroke();
   }
-  if(state.markers.fullCircle){
+  if(scrState.markers.fullCircle){
     const r = Math.min(cw, ch) / 2;
-    ctx.beginPath(); ctx.arc(cw / 2, ch / 2, r * 0.96, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(ox + cw / 2, oy + ch / 2, r * 0.96, 0, Math.PI * 2); ctx.stroke();
   }
   ctx.globalAlpha = 1;
 
-  // Screen name (center)
-  if(state.screenName){
+  // Screen name
+  if(scrState.screenName){
     const fontSize = Math.max(14, Math.min(cw, ch) * 0.035);
     ctx.font = `700 ${fontSize}px Inter, -apple-system, sans-serif`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
     const padX = Math.max(12, Math.min(cw, ch) * 0.025);
     const padY = Math.max(6, Math.min(cw, ch) * 0.012);
-    const tw = ctx.measureText(state.screenName).width;
+    const tw = ctx.measureText(scrState.screenName).width;
     const bh = fontSize + padY * 2;
     const bw = tw + padX * 2;
-    const bx = (cw - bw) / 2;
-    const by = (ch - bh) / 2;
-    ctx.fillStyle = hexToRgba(state.screenNameBg, state.screenNameOpacity / 100);
+    const bx = ox + (cw - bw) / 2;
+    const by = oy + (ch - bh) / 2;
+    ctx.fillStyle = hexToRgba(scrState.screenNameBg, scrState.screenNameOpacity / 100);
     ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.roundRect(bx, by, bw, bh, 6);
-    ctx.fill();
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     ctx.lineWidth = 1;
     ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-    ctx.fillStyle = state.screenNameColor;
-    ctx.fillText(state.screenName, cw / 2, by + bh / 2);
+    ctx.fillStyle = scrState.screenNameColor;
+    ctx.fillText(scrState.screenName, ox + cw / 2, by + bh / 2);
   }
 
-  // Info label (bottom-left)
-  if(state.showInfoLabel){
+  // Info label
+  if(scrState.showInfoLabel){
     const physW = (dims.totalMmW / 1000).toFixed(2);
     const physH = (dims.totalMmH / 1000).toFixed(2);
     const lines = [
       `${physW}×${physH} м | ${dims.totalPxW}×${dims.totalPxH} px`,
-      `${dims.cols}×${dims.rows} модулей | ${state.pixelPitch} мм`
+      `${dims.cols}×${dims.rows} модулей | ${scrState.pixelPitch} мм`
     ];
     const fs = Math.max(10, Math.min(cw, ch) * 0.018);
     ctx.font = `500 ${fs}px Inter, -apple-system, sans-serif`;
@@ -999,26 +1064,125 @@ function drawCanvas(){
     const lh = fs * 1.5;
     const textH = lines.length * lh + pad * 2;
     const textW = lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0) + pad * 3;
-    const bx = pad;
-    const by = ch - pad - textH;
+    const bx = ox + pad;
+    const by = oy + ch - pad - textH;
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.roundRect(bx, by, textW, textH, 6);
-    ctx.fill();
+    ctx.beginPath(); ctx.roundRect(bx, by, textW, textH, 6); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.65)';
     lines.forEach((l, i) => {
       ctx.fillText(l, bx + pad * 1.5, by + textH - pad - (lines.length - 1 - i) * lh);
     });
   }
-
-  // Ruler measurements
-  drawRulers(ctx, s, dims, cw, ch);
-
-  // Overlay info
-  dom.canvasSizeInfo.textContent = `${dims.totalPxW}×${dims.totalPxH} px | ${dims.cols}×${dims.rows} модулей`;
 }
 
+function drawGapLabels(ctx, s, combined, screens, dimsArr){
+  if(screens.length < 2) return;
+  const gapX = combined.gapPx * s;
+  const gapY = combined.gapPy * s;
+  if(gapX < 10 && gapY < 10) return;
+  let ox = 0;
+  const fs = Math.max(9, combined.totalPxH * s * 0.015);
+  ctx.font = `600 ${fs}px Inter, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for(let i = 0; i < screens.length; i++){
+    const d = dimsArr[i];
+    if(i > 0){
+      const labelX = ox + gapX / 2;
+      const labelY = combined.totalPxH * s / 2;
+      const labelW = gapX;
+      const labelH = fs * 1.8;
+      const label = `${state.gapX} мм`;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.beginPath();
+      ctx.roundRect(labelX - labelW/2 - 4, labelY - labelH/2, labelW + 8, labelH, 4);
+      ctx.fill();
+      ctx.fillStyle = '#8a8aa0';
+      ctx.fillText(label, labelX, labelY);
+      // vertical line indicators
+      ctx.strokeStyle = 'rgba(138,138,160,0.3)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,3]);
+      const gapEdge = ox;
+      ctx.beginPath(); ctx.moveTo(gapEdge, labelY - labelH); ctx.lineTo(gapEdge, labelY + labelH); ctx.stroke();
+    }
+    ox += d.totalPxW * s + gapX;
+  }
+  ctx.setLineDash([]);
+}
+
+function drawCanvas(){
+  const canvas = dom.canvas;
+  const ctx = canvas.getContext('2d');
+  const screens = state.screens;
+  if(screens.length === 0) return;
+
+  const dimsArr = screens.map(getScreenDims);
+  const combined = getCombinedDims();
+  const scale = getCanvasScale(combined);
+  const cw = Math.round(combined.totalPxW * scale);
+  const ch = Math.round(combined.totalPxH * scale);
+
+  canvas.width = cw;
+  canvas.height = ch;
+  ctx.imageSmoothingEnabled = false;
+
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, cw, ch);
+
+  // Draw gap highlights
+  const gapPx = combined.gapPx * scale;
+  const gapPy = combined.gapPy * scale;
+  let ox = 0;
+  for(let i = 0; i < screens.length; i++){
+    const ss = screens[i];
+    const d = dimsArr[i];
+    const sw = d.totalPxW * scale;
+    if(i > 0){
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      ctx.fillRect(ox, 0, gapPx, ch);
+    }
+    drawOneScreen(ctx, scale, d, ox, 0, ss);
+    ox += sw + gapPx;
+  }
+
+  drawGapLabels(ctx, scale, combined, screens, dimsArr);
+
+  // Full-wall markers (global)
+  const fwColor = state.markerColor;
+  const fwLw = Math.max(1, Math.round(3 * scale));
+  ctx.strokeStyle = fwColor;
+  ctx.lineWidth = fwLw;
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 0.3;
+  // Only draw global diagonals if at least one screen has them
+  const anyDiag = screens.some(s => s.markers.diagTLBR || s.markers.diagTRBL || s.markers.fullCircle);
+  if(anyDiag){
+    const anyTLBR = screens.some(s => s.markers.diagTLBR);
+    const anyTRBL = screens.some(s => s.markers.diagTRBL);
+    const anyCircle = screens.some(s => s.markers.fullCircle);
+    if(anyTLBR){ ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(cw, ch); ctx.stroke(); }
+    if(anyTRBL){ ctx.beginPath(); ctx.moveTo(cw, 0); ctx.lineTo(0, ch); ctx.stroke(); }
+    if(anyCircle){
+      const r = Math.min(cw, ch) / 2;
+      ctx.beginPath(); ctx.arc(cw / 2, ch / 2, r * 0.96, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Ruler measurements (in combined coords)
+  drawRulers(ctx, scale, combined, cw, ch);
+
+  // Overlay info
+  const totalStr = screens.map((s, i) => {
+    const d = dimsArr[i];
+    return `${d.totalPxW}×${d.totalPxH}`;
+  }).join(' + ');
+  dom.canvasSizeInfo.textContent = `${combined.totalPxW.toFixed(0)}×${combined.totalPxH.toFixed(0)} px | ${screens.length} экран(ов)`;
+}
+
+/* ====== HEX HELPERS ====== */
 function hexToRgb(hex){
   const v = parseInt(hex.replace('#',''), 16);
   return { r:(v>>16)&255, g:(v>>8)&255, b:v&255 };
@@ -1035,25 +1199,21 @@ function darkenColor(hex, factor){
   return rgbToHex(r*factor, g*factor, b*factor);
 }
 
-function drawPattern(ctx, x, y, w, h, r, c, rows, cols){
-  const pattern = state.testPattern;
+function drawPattern(ctx, x, y, w, h, r, c, rows, cols, scrState){
+  const pattern = scrState.testPattern;
   if(pattern === 'none') return;
-
   switch(pattern){
     case 'checkerboard': {
-      const c1 = state.chessColor1, c2 = state.chessColor2;
+      const c1 = scrState.chessColor1, c2 = scrState.chessColor2;
       const c1d = darkenColor(c1, 0.65), c2d = darkenColor(c2, 0.65);
       const colors = [c1, c2, c1d, c2d];
-      const idx = (r * cols + c) % 4;
-      ctx.fillStyle = colors[idx];
+      ctx.fillStyle = colors[(r * cols + c) % 4];
       ctx.fillRect(x, y, w, h);
       break;
     }
     case 'gray-stripe': {
-      const levels = 4;
-      const idx = r % levels;
-      const brightness = 0.04 + idx * 0.06;
-      ctx.fillStyle = `rgba(255,255,255,${brightness})`;
+      const idx = r % 4;
+      ctx.fillStyle = `rgba(255,255,255,${0.04 + idx * 0.06})`;
       ctx.fillRect(x, y, w, h);
       break;
     }
@@ -1073,15 +1233,15 @@ let _rulerDragging = false;
 
 function toWallCoords(e){
   const rect = dom.canvas.getBoundingClientRect();
-  const dims = getWallDims();
-  const scale = getCanvasScale(dims);
+  const combined = getCombinedDims();
+  const scale = getCanvasScale(combined);
   const dx = (e.clientX - rect.left) * (dom.canvas.width / rect.width);
   const dy = (e.clientY - rect.top) * (dom.canvas.height / rect.height);
   return { x: dx / scale, y: dy / scale };
 }
 
-function drawRulers(ctx, s, dims, cw, ch){
-  const mmPerPx = dims.totalMmW / dims.totalPxW;
+function drawRulers(ctx, s, combined, cw, ch){
+  const mmPerPx = (state.screens[0]?.moduleWmm || 320) / (state.screens[0]?.moduleW || 128);
   const all = [...state.measurements];
   if(_rulerStart && _rulerEnd && _rulerDragging){
     all.push({ x1: _rulerStart.x, y1: _rulerStart.y, x2: _rulerEnd.x, y2: _rulerEnd.y, _active: true });
@@ -1131,7 +1291,8 @@ function drawRulers(ctx, s, dims, cw, ch){
 
 /* ====== INFO PANEL ====== */
 function updateInfo(){
-  const dims = getWallDims();
+  const scrState = scr();
+  const dims = getScreenDims(scrState);
   const density = (1000 / dims.pitch).toFixed(2);
   const distance = (dims.pitch * 1000).toFixed(0);
   const physW = (dims.totalMmW / 1000).toFixed(2);
@@ -1146,7 +1307,7 @@ function updateInfo(){
   dom.infoResolution.innerHTML = `${dims.totalPxW}×${dims.totalPxH} <span class="unit">px</span>`;
 }
 
-/* ====== RENDER (with rAF smoothing) ====== */
+/* ====== RENDER ====== */
 let _renderQueued = false;
 function queueRender(){
   if(!_renderQueued){
@@ -1165,154 +1326,57 @@ function render(){
   drawCanvas();
 }
 
-/* ====== DOWNLOAD PNG (pixel-perfect) ====== */
+/* ====== DOWNLOAD PNG ====== */
 function downloadPNG(){
-  const dims = getWallDims();
+  const screens = state.screens;
+  if(screens.length === 0) return;
+  const dimsArr = screens.map(getScreenDims);
+  const combined = getCombinedDims();
   const MAX_DL = 16384;
   let s = 1;
-  if(dims.totalPxW > MAX_DL || dims.totalPxH > MAX_DL){
-    s = Math.min(MAX_DL / dims.totalPxW, MAX_DL / dims.totalPxH);
-    toast(`Размер стены слишком велик для экспорта 1:1. PNG будет масштабирован (${Math.round(s*100)}%).`, 'info', 5000);
+  if(combined.totalPxW > MAX_DL || combined.totalPxH > MAX_DL){
+    s = Math.min(MAX_DL / combined.totalPxW, MAX_DL / combined.totalPxH);
+    toast(`Размер стены слишком велик. PNG будет масштабирован (${Math.round(s*100)}%).`, 'info', 5000);
   }
   const dlCanvas = document.createElement('canvas');
   const ctx = dlCanvas.getContext('2d');
-  const w = Math.round(dims.totalPxW * s);
-  const h = Math.round(dims.totalPxH * s);
+  const w = Math.round(combined.totalPxW * s);
+  const h = Math.round(combined.totalPxH * s);
   dlCanvas.width = w;
   dlCanvas.height = h;
   ctx.imageSmoothingEnabled = false;
 
-  const cols = dims.cols, rows = dims.rows;
-  const mw = dims.mw, mh = dims.mh;
-
   ctx.fillStyle = '#0a0a0f';
   ctx.fillRect(0, 0, w, h);
 
-  for(let r = 0; r < rows; r++){
-    for(let c = 0; c < cols; c++){
-      const x = Math.round(c * mw * s);
-      const y = Math.round(r * mh * s);
-      const mwS = Math.round(mw * s);
-      const mhS = Math.round(mh * s);
-
-      drawPattern(ctx, x, y, mwS, mhS, r, c, rows, cols);
-
-      if(state.moduleBorder){
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-        ctx.lineWidth = Math.max(1, Math.round(s));
-        ctx.strokeRect(x + 0.5, y + 0.5, mwS - 1, mhS - 1);
-      }
-
-      const cx = x + mwS / 2;
-      const cy = y + mhS / 2;
-      const color = state.markerColor;
-      const lw = Math.max(1, Math.round(2 * s));
-
-      if(state.markers.cross){
-        ctx.strokeStyle = color; ctx.lineWidth = lw;
-        const len = Math.min(mwS, mhS) * 0.3;
-        ctx.beginPath(); ctx.moveTo(cx - len, cy); ctx.lineTo(cx + len, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy - len); ctx.lineTo(cx, cy + len); ctx.stroke();
-      }
-      if(state.markers.plus){
-        ctx.strokeStyle = color; ctx.lineWidth = lw;
-        const len = Math.min(mwS, mhS) * 0.2;
-        ctx.beginPath(); ctx.moveTo(cx - len, cy); ctx.lineTo(cx + len, cy); ctx.stroke();
-      }
-      if(state.markers.circle){
-        ctx.strokeStyle = color; ctx.lineWidth = lw;
-        const rad = Math.min(mwS, mhS) * 0.15;
-        ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.stroke();
-      }
-
-      if(state.identification !== 'none'){
-        const id = getModuleId(r, c, dims);
-        if(id){
-          const fontSize = Math.max(8, Math.min(mwS, mhS) * 0.12);
-          ctx.font = `${fontSize}px Inter, -apple-system, sans-serif`;
-          ctx.fillStyle = 'rgba(255,255,255,0.6)';
-          ctx.textBaseline = 'bottom';
-          ctx.textAlign = 'left';
-          ctx.fillText(id, x + 4 * s + 0.5, y + mhS - 3 * s + 0.5);
-        }
-      }
+  let ox = 0;
+  for(let i = 0; i < screens.length; i++){
+    const ss = screens[i];
+    const d = dimsArr[i];
+    const sw = d.totalPxW * s;
+    if(i > 0){
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      ctx.fillRect(ox, 0, combined.gapPx * s, h);
     }
+    drawOneScreen(ctx, s, d, ox, 0, ss);
+    ox += sw + combined.gapPx * s;
   }
 
-  // Full-wall markers (download)
+  // Full-wall markers (global)
   const fwColor = state.markerColor;
   const fwLw = Math.max(1, Math.round(3 * s));
   ctx.strokeStyle = fwColor;
   ctx.lineWidth = fwLw;
-  ctx.globalAlpha = 0.5;
-  if(state.markers.diagTLBR){
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w, h); ctx.stroke();
-  }
-  if(state.markers.diagTRBL){
-    ctx.beginPath(); ctx.moveTo(w, 0); ctx.lineTo(0, h); ctx.stroke();
-  }
-  if(state.markers.fullCircle){
-    const r = Math.min(w, h) / 2;
-    ctx.beginPath(); ctx.arc(w / 2, h / 2, r * 0.96, 0, Math.PI * 2); ctx.stroke();
-  }
+  ctx.globalAlpha = 0.3;
+  const anyTLBR = screens.some(s => s.markers.diagTLBR);
+  const anyTRBL = screens.some(s => s.markers.diagTRBL);
+  const anyCircle = screens.some(s => s.markers.fullCircle);
+  if(anyTLBR){ ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w, h); ctx.stroke(); }
+  if(anyTRBL){ ctx.beginPath(); ctx.moveTo(w, 0); ctx.lineTo(0, h); ctx.stroke(); }
+  if(anyCircle){ const r = Math.min(w, h) / 2; ctx.beginPath(); ctx.arc(w/2, h/2, r*0.96, 0, Math.PI*2); ctx.stroke(); }
   ctx.globalAlpha = 1;
 
-  // Screen name (center)
-  if(state.screenName){
-    const fontSize = Math.max(14, Math.min(w, h) * 0.035);
-    ctx.font = `700 ${fontSize}px Inter, -apple-system, sans-serif`;
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'center';
-    const padX = Math.max(12, Math.min(w, h) * 0.025);
-    const padY = Math.max(6, Math.min(w, h) * 0.012);
-    const tw = ctx.measureText(state.screenName).width;
-    const bh = fontSize + padY * 2;
-    const bw = tw + padX * 2;
-    const bx = (w - bw) / 2;
-    const by = (h - bh) / 2;
-    ctx.fillStyle = hexToRgba(state.screenNameBg, state.screenNameOpacity / 100);
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.roundRect(bx, by, bw, bh, 6);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
-    ctx.fillStyle = state.screenNameColor;
-    ctx.fillText(state.screenName, w / 2, by + bh / 2);
-  }
-
-  // Info label (bottom-left)
-  if(state.showInfoLabel){
-    const physW = (dims.totalMmW / 1000).toFixed(2);
-    const physH = (dims.totalMmH / 1000).toFixed(2);
-    const lines = [
-      `${physW}×${physH} м | ${dims.totalPxW}×${dims.totalPxH} px`,
-      `${dims.cols}×${dims.rows} модулей | ${state.pixelPitch} мм`
-    ];
-    const fs = Math.max(10, Math.min(w, h) * 0.018);
-    ctx.font = `500 ${fs}px Inter, -apple-system, sans-serif`;
-    ctx.textBaseline = 'bottom';
-    ctx.textAlign = 'left';
-    const pad = Math.max(6, Math.min(w, h) * 0.02);
-    const lh = fs * 1.5;
-    const textH = lines.length * lh + pad * 2;
-    const textW = lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0) + pad * 3;
-    const bx = pad;
-    const by = h - pad - textH;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.roundRect(bx, by, textW, textH, 6);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    lines.forEach((l, i) => {
-      ctx.fillText(l, bx + pad * 1.5, by + textH - pad - (lines.length - 1 - i) * lh);
-    });
-  }
-
-  // Ruler measurements (download)
-  drawRulers(ctx, s, dims, w, h);
+  drawRulers(ctx, s, combined, w, h);
 
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -1322,6 +1386,238 @@ function downloadPNG(){
   link.href = dlCanvas.toDataURL('image/png');
   link.click();
   toast(`Сохранено: ${fn}`, 'success');
+}
+
+/* ====== SVG EXPORT ====== */
+function exportSVG(){
+  const screens = state.screens;
+  if(screens.length === 0) return;
+  const dimsArr = screens.map(getScreenDims);
+  const combined = getCombinedDims();
+  const w = Math.round(combined.totalPxW);
+  const h = Math.round(combined.totalPxH);
+  const lines = [];
+  const push = s => lines.push(s);
+
+  push(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`);
+  push(`<rect width="${w}" height="${h}" fill="#0a0a0f"/>`);
+
+  let ox = 0;
+  for(let i = 0; i < screens.length; i++){
+    const ss = screens[i];
+    const d = dimsArr[i];
+    const sw = d.totalPxW;
+    const sh = d.totalPxH;
+    const mw = d.mw, mh = d.mh;
+    const rows = d.rows, cols = d.cols;
+
+    // Grid lines
+    for(let c = 0; c <= cols; c++){
+      const x = ox + c * mw;
+      push(`<line x1="${x}" y1="0" x2="${x}" y2="${sh}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
+    }
+    for(let r = 0; r <= rows; r++){
+      const y = r * mh;
+      push(`<line x1="${ox}" y1="${y}" x2="${ox+sw}" y2="${y}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
+    }
+
+    // Modules
+    for(let r = 0; r < rows; r++){
+      for(let c = 0; c < cols; c++){
+        const x = ox + c * mw, y = r * mh;
+        // Module border
+        if(ss.moduleBorder){
+          push(`<rect x="${x+0.5}" y="${y+0.5}" width="${mw-1}" height="${mh-1}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`);
+        }
+        const cx = x + mw/2, cy = y + mh/2, color = state.markerColor;
+        const len = Math.min(mw, mh) * 0.3;
+        if(ss.markers.cross){
+          push(`<line x1="${cx-len}" y1="${cy}" x2="${cx+len}" y2="${cy}" stroke="${color}" stroke-width="2"/>`);
+          push(`<line x1="${cx}" y1="${cy-len}" x2="${cx}" y2="${cy+len}" stroke="${color}" stroke-width="2"/>`);
+        }
+        if(ss.markers.plus){
+          const plen = Math.min(mw, mh) * 0.2;
+          push(`<line x1="${cx-plen}" y1="${cy}" x2="${cx+plen}" y2="${cy}" stroke="${color}" stroke-width="2"/>`);
+        }
+        if(ss.markers.circle){
+          const rad = Math.min(mw, mh) * 0.15;
+          push(`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="${color}" stroke-width="2"/>`);
+        }
+        if(ss.identification !== 'none'){
+          const id = getModuleId(r, c, d, ss.identification, ss.startId);
+          if(id){
+            push(`<text x="${x+4}" y="${y+mh-4}" fill="rgba(255,255,255,0.6)" font-size="${Math.max(8, mw*0.1)}" font-family="Inter,sans-serif">${escapeXml(id)}</text>`);
+          }
+        }
+      }
+    }
+
+    // Full-screen markers
+    if(ss.markers.diagTLBR) push(`<line x1="${ox}" y1="0" x2="${ox+sw}" y2="${sh}" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
+    if(ss.markers.diagTRBL) push(`<line x1="${ox+sw}" y1="0" x2="${ox}" y2="${sh}" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
+    if(ss.markers.fullCircle){
+      const r = Math.min(sw, sh) / 2;
+      push(`<circle cx="${ox+sw/2}" cy="${sh/2}" r="${r*0.96}" fill="none" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
+    }
+
+    // Screen name
+    if(ss.screenName){
+      const fontSize = Math.max(14, Math.min(sw, sh) * 0.035);
+      const padX = Math.max(12, Math.min(sw, sh) * 0.025);
+      const padY = Math.max(6, Math.min(sw, sh) * 0.012);
+      const twEst = ss.screenName.length * fontSize * 0.6;
+      const bw = twEst + padX * 2;
+      const bh = fontSize + padY * 2;
+      const bx = ox + (sw - bw) / 2;
+      const by = (sh - bh) / 2;
+      push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="${hexToRgba(ss.screenNameBg, ss.screenNameOpacity/100)}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`);
+      push(`<text x="${ox+sw/2}" y="${by+bh/2}" fill="${ss.screenNameColor}" font-size="${fontSize}" font-weight="700" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle">${escapeXml(ss.screenName)}</text>`);
+    }
+
+    ox += sw;
+    if(i < screens.length - 1) ox += combined.gapPx;
+  }
+
+  push(`</svg>`);
+
+  const blob = new Blob([lines.join('\n')], {type:'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = `led_wall_${new Date().toISOString().slice(0,10)}.svg`;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+  toast('SVG экспортирован', 'success');
+}
+
+function escapeXml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ====== PDF EXPORT ====== */
+function exportPDF(){
+  const screens = state.screens;
+  if(screens.length === 0) return;
+  const dimsArr = screens.map(getScreenDims);
+  const combined = getCombinedDims();
+  const w = combined.totalPxW;
+  const h = combined.totalPxH;
+  const ratio = w / h;
+
+  // Create a temporary HTML page with SVG at print size
+  const pageW = 800;
+  const pageH = pageW / ratio;
+  const svgContent = generateSVGString();
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>LED Wall</title>
+<style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
+svg{max-width:100%;height:auto;}</style></head><body>${svgContent}</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  toast('PDF: сохраните через Ctrl+P → Сохранить как PDF', 'info');
+}
+
+function generateSVGString(){
+  const screens = state.screens;
+  if(screens.length === 0) return '';
+  const dimsArr = screens.map(getScreenDims);
+  const combined = getCombinedDims();
+  const w = Math.round(combined.totalPxW);
+  const h = Math.round(combined.totalPxH);
+  const lines = [];
+  const push = s => lines.push(s);
+
+  push(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`);
+  push(`<rect width="${w}" height="${h}" fill="#0a0a0f"/>`);
+
+  let ox = 0;
+  for(let i = 0; i < screens.length; i++){
+    const ss = screens[i];
+    const d = dimsArr[i];
+    const sw = d.totalPxW, sh = d.totalPxH;
+    const mw = d.mw, mh = d.mh;
+    const rows = d.rows, cols = d.cols;
+
+    for(let c = 0; c <= cols; c++){
+      const x = ox + c * mw;
+      push(`<line x1="${x}" y1="0" x2="${x}" y2="${sh}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
+    }
+    for(let r = 0; r <= rows; r++){
+      const y = r * mh;
+      push(`<line x1="${ox}" y1="${y}" x2="${ox+sw}" y2="${y}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
+    }
+
+    for(let r = 0; r < rows; r++){
+      for(let c = 0; c < cols; c++){
+        const x = ox + c * mw, y = r * mh;
+        if(ss.moduleBorder){
+          push(`<rect x="${x+0.5}" y="${y+0.5}" width="${mw-1}" height="${mh-1}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`);
+        }
+        const cx = x + mw/2, cy = y + mh/2, color = state.markerColor;
+        const len = Math.min(mw, mh) * 0.3;
+        if(ss.markers.cross){
+          push(`<line x1="${cx-len}" y1="${cy}" x2="${cx+len}" y2="${cy}" stroke="${color}" stroke-width="2"/>`);
+          push(`<line x1="${cx}" y1="${cy-len}" x2="${cx}" y2="${cy+len}" stroke="${color}" stroke-width="2"/>`);
+        }
+        if(ss.markers.plus){
+          const plen = Math.min(mw, mh) * 0.2;
+          push(`<line x1="${cx-plen}" y1="${cy}" x2="${cx+plen}" y2="${cy}" stroke="${color}" stroke-width="2"/>`);
+        }
+        if(ss.markers.circle){
+          const rad = Math.min(mw, mh) * 0.15;
+          push(`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="${color}" stroke-width="2"/>`);
+        }
+        if(ss.identification !== 'none'){
+          const id = getModuleId(r, c, d, ss.identification, ss.startId);
+          if(id) push(`<text x="${x+4}" y="${y+mh-4}" fill="rgba(255,255,255,0.6)" font-size="${Math.max(8, mw*0.1)}" font-family="Inter,sans-serif">${escapeXml(id)}</text>`);
+        }
+      }
+    }
+
+    if(ss.markers.diagTLBR) push(`<line x1="${ox}" y1="0" x2="${ox+sw}" y2="${sh}" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
+    if(ss.markers.diagTRBL) push(`<line x1="${ox+sw}" y1="0" x2="${ox}" y2="${sh}" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
+    if(ss.markers.fullCircle){
+      const r = Math.min(sw, sh) / 2;
+      push(`<circle cx="${ox+sw/2}" cy="${sh/2}" r="${r*0.96}" fill="none" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
+    }
+
+    if(ss.screenName){
+      const fontSize = Math.max(14, Math.min(sw, sh) * 0.035);
+      const padX = Math.max(12, Math.min(sw, sh) * 0.025);
+      const padY = Math.max(6, Math.min(sw, sh) * 0.012);
+      const twEst = ss.screenName.length * fontSize * 0.6;
+      const bw = twEst + padX * 2;
+      const bh = fontSize + padY * 2;
+      const bx = ox + (sw - bw) / 2;
+      const by = (sh - bh) / 2;
+      push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="${hexToRgba(ss.screenNameBg, ss.screenNameOpacity/100)}" stroke="rgba(255,255,255,0.08)"/>`);
+      push(`<text x="${ox+sw/2}" y="${by+bh/2}" fill="${ss.screenNameColor}" font-size="${fontSize}" font-weight="700" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle">${escapeXml(ss.screenName)}</text>`);
+    }
+
+    // Info label
+    if(ss.showInfoLabel){
+      const physW = (d.totalMmW / 1000).toFixed(2);
+      const physH = (d.totalMmH / 1000).toFixed(2);
+      const infoLines = [
+        `${physW}x${physH} m | ${d.totalPxW}x${d.totalPxH} px`,
+        `${d.cols}x${d.rows} modules | ${ss.pixelPitch} mm`
+      ];
+      const fs = Math.max(10, Math.min(sw, sh) * 0.018);
+      let yOff = sh - 10;
+      push(`<rect x="${ox+6}" y="${yOff - infoLines.length*(fs*1.5 + 4)}" width="200" height="${infoLines.length*(fs*1.5) + 8}" rx="4" fill="rgba(0,0,0,0.55)"/>`);
+      infoLines.forEach((l, idx) => {
+        yOff -= fs * 1.5;
+        push(`<text x="${ox+12}" y="${yOff}" fill="rgba(255,255,255,0.65)" font-size="${fs}" font-family="Inter,sans-serif">${escapeXml(l)}</text>`);
+      });
+    }
+
+    ox += sw + (i < screens.length - 1 ? combined.gapPx : 0);
+  }
+
+  push('</svg>');
+  return lines.join('\n');
 }
 
 /* ====== EXPORT / IMPORT ====== */
@@ -1348,18 +1644,21 @@ function importConfig(file){
   reader.onload = function(e){
     try{
       const data = JSON.parse(e.target.result);
-      const keys = Object.keys(DEFAULTS);
-      for(const k of keys){
-        if(data[k] !== undefined){
-          if(k === 'markers' && typeof data[k] === 'object'){
-            state.markers = Object.assign({}, DEFAULTS.markers, data.markers);
-          } else {
-            state[k] = data[k];
-          }
-        }
+      if(data.screens && Array.isArray(data.screens)){
+        state = Object.assign(deepClone(DEFAULTS), data);
+        state.screens = data.screens.map(s => Object.assign({}, deepClone(SCREEN_DEFAULTS), s));
+      } else {
+        // flat migration
+        const screen = Object.assign({}, deepClone(SCREEN_DEFAULTS), data);
+        state = deepClone(DEFAULTS);
+        state.screens = [screen];
+        state.markerColor = data.markerColor || DEFAULTS.markerColor;
+        state.sizeLock = data.sizeLock !== undefined ? data.sizeLock : DEFAULTS.sizeLock;
+        state.rulerMode = data.rulerMode || false;
+        state.measurements = data.measurements || [];
       }
       syncInputs();
-      queueRender();
+      render();
       saveState();
       toast('Конфигурация импортирована', 'success');
     }catch(err){
@@ -1370,26 +1669,18 @@ function importConfig(file){
 }
 
 /* ====== RESET ====== */
-function showResetDialog(){
-  dom.modalOverlay.classList.add('open');
-}
-
-function closeResetDialog(){
-  dom.modalOverlay.classList.remove('open');
-}
-
+function showResetDialog(){ dom.modalOverlay.classList.add('open'); }
+function closeResetDialog(){ dom.modalOverlay.classList.remove('open'); }
 function resetAll(){
   state = deepClone(DEFAULTS);
   syncInputs();
-  queueRender();
+  render();
   saveState();
   closeResetDialog();
   toast('Все настройки сброшены', 'info');
 }
 
 /* ====== EVENTS ====== */
-
-// Auto-render on input changes (queued via rAF for smoothness)
 document.querySelectorAll('#sidebar input, #sidebar select').forEach(el => {
   el.addEventListener('input', () => { queueRender(); saveState(); });
   el.addEventListener('change', () => { queueRender(); saveState(); });
@@ -1405,18 +1696,13 @@ dom.pitchPresets.addEventListener('click', function(e){
   if(chip.dataset.mod && chip.dataset.modpx){
     const [mw, mh] = chip.dataset.mod.split(',').map(Number);
     const [pw, ph] = chip.dataset.modpx.split(',').map(Number);
-    if(!dom.lockBtn.classList.contains('locked')){
-      dom.lockBtn.click();
-    }
-    dom.moduleWmm.value = mw;
-    dom.moduleHmm.value = mh;
-    dom.moduleW.value = pw;
-    dom.moduleH.value = ph;
+    if(!dom.lockBtn.classList.contains('locked')) dom.lockBtn.click();
+    dom.moduleWmm.value = mw; dom.moduleHmm.value = mh;
+    dom.moduleW.value = pw; dom.moduleH.value = ph;
   }
   this.querySelectorAll('.pitch-chip').forEach(el => el.classList.remove('active'));
   chip.classList.add('active');
-  queueRender();
-  saveState();
+  queueRender(); saveState();
   toast(`Применён ${chip.textContent.trim()}`, 'info');
 });
 
@@ -1427,8 +1713,7 @@ dom.colorPicker.addEventListener('click', function(e){
   this.querySelectorAll('.color-opt').forEach(el => el.classList.remove('active'));
   opt.classList.add('active');
   state.markerColor = opt.dataset.color;
-  queueRender();
-  saveState();
+  queueRender(); saveState();
 });
 
 // Lock button
@@ -1439,8 +1724,7 @@ dom.lockBtn.addEventListener('click', function(){
   dom.moduleW.disabled = state.sizeLock;
   dom.moduleH.disabled = state.sizeLock;
   if(state.sizeLock) recalcModulePx();
-  queueRender();
-  saveState();
+  queueRender(); saveState();
 });
 
 // Wall calculator
@@ -1452,39 +1736,35 @@ dom.btnCalcWall.addEventListener('click', function(){
     return;
   }
   readInputs();
-  const mw = state.moduleWmm, mh = state.moduleHmm;
-  if(!mw || !mh){
-    toast('Сначала укажите физ. размер модуля', 'error');
-    return;
-  }
-  const cols = Math.ceil(wM * 1000 / mw);
-  const rows = Math.ceil(hM * 1000 / mh);
-  state.gridCols = Math.max(1, Math.min(500, cols));
-  state.gridRows = Math.max(1, Math.min(500, rows));
-  dom.gridCols.value = state.gridCols;
-  dom.gridRows.value = state.gridRows;
-  const actualW = (state.gridCols * mw / 1000).toFixed(2);
-  const actualH = (state.gridRows * mh / 1000).toFixed(2);
+  const s = scr();
+  const mw = s.moduleWmm, mh = s.moduleHmm;
+  if(!mw || !mh){ toast('Сначала укажите физ. размер модуля', 'error'); return; }
+  s.gridCols = Math.max(1, Math.min(500, Math.ceil(wM * 1000 / mw)));
+  s.gridRows = Math.max(1, Math.min(500, Math.ceil(hM * 1000 / mh)));
+  dom.gridCols.value = s.gridCols;
+  dom.gridRows.value = s.gridRows;
+  const actualW = (s.gridCols * mw / 1000).toFixed(2);
+  const actualH = (s.gridRows * mh / 1000).toFixed(2);
   const diffW = (actualW - wM).toFixed(3);
   const diffH = (actualH - hM).toFixed(3);
-  const resDiv = dom.wallCalcResult;
-  resDiv.style.display = 'block';
-  resDiv.innerHTML = `
+  dom.wallCalcResult.style.display = 'block';
+  dom.wallCalcResult.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px">
-      <span style="color:var(--text-muted)">Модулей:</span><span style="color:var(--text-primary);font-weight:600">${state.gridCols}×${state.gridRows}</span>
+      <span style="color:var(--text-muted)">Модулей:</span><span style="color:var(--text-primary);font-weight:600">${s.gridCols}×${s.gridRows}</span>
       <span style="color:var(--text-muted)">Получено:</span><span style="color:var(--text-primary);font-weight:600">${actualW}×${actualH} м</span>
       <span style="color:var(--text-muted)">Отклонение:</span><span style="color:${+diffW>0.01?'var(--accent-orange)':'var(--accent-green)'}">+${diffW} / +${diffH} м</span>
-      <span style="color:var(--text-muted)">Разрешение:</span><span style="color:var(--text-primary)">${state.gridCols*state.moduleW}×${state.gridRows*state.moduleH} px</span>
+      <span style="color:var(--text-muted)">Разрешение:</span><span style="color:var(--text-primary)">${s.gridCols*s.moduleW}×${s.gridRows*s.moduleH} px</span>
     </div>`;
-  queueRender();
-  saveState();
+  queueRender(); saveState();
   toast('Сетка рассчитана по размерам стены', 'success');
 });
 
 // Buttons
 dom.btnRefresh.addEventListener('click', render);
 dom.btnDownload.addEventListener('click', downloadPNG);
-dom.btnExport.addEventListener('click', exportConfig);
+dom.btnExportConfig.addEventListener('click', exportConfig);
+dom.btnExportSVG.addEventListener('click', exportSVG);
+dom.btnExportPDF.addEventListener('click', exportPDF);
 dom.btnImport.addEventListener('click', () => dom.importInput.click());
 dom.importInput.addEventListener('change', function(){
   if(this.files.length) importConfig(this.files[0]);
@@ -1497,7 +1777,11 @@ dom.modalOverlay.addEventListener('click', function(e){
   if(e.target === this) closeResetDialog();
 });
 
-// Keyboard shortcut: Escape to close modal
+// Screen management
+dom.btnAddScreen.addEventListener('click', addScreen);
+dom.btnRemoveScreen.addEventListener('click', removeScreen);
+
+// Keyboard
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeResetDialog();
 });
@@ -1506,18 +1790,14 @@ document.addEventListener('keydown', e => {
 dom.canvasWrap.addEventListener('mousedown', function(e){
   if(!state.rulerMode) return;
   const coords = toWallCoords(e);
-  _rulerStart = coords;
-  _rulerEnd = coords;
-  _rulerDragging = true;
+  _rulerStart = coords; _rulerEnd = coords; _rulerDragging = true;
   dom.canvas.style.cursor = 'crosshair';
 });
-
 dom.canvasWrap.addEventListener('mousemove', function(e){
   if(!_rulerDragging) return;
   _rulerEnd = toWallCoords(e);
   queueRender();
 });
-
 document.addEventListener('mouseup', function(e){
   if(!_rulerDragging) return;
   _rulerDragging = false;
@@ -1525,34 +1805,23 @@ document.addEventListener('mouseup', function(e){
   if(_rulerStart && _rulerEnd){
     const dx = _rulerEnd.x - _rulerStart.x;
     const dy = _rulerEnd.y - _rulerStart.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if(dist > 3){
-      state.measurements.push({
-        x1: _rulerStart.x, y1: _rulerStart.y,
-        x2: _rulerEnd.x, y2: _rulerEnd.y
-      });
+    if(Math.sqrt(dx*dx+dy*dy) > 3){
+      state.measurements.push({ x1:_rulerStart.x, y1:_rulerStart.y, x2:_rulerEnd.x, y2:_rulerEnd.y });
       saveState();
       dom.clearRuler.style.display = '';
     }
   }
-  _rulerStart = null;
-  _rulerEnd = null;
-  queueRender();
+  _rulerStart = null; _rulerEnd = null; queueRender();
 });
-
-// Clear ruler button
 dom.clearRuler.addEventListener('click', function(){
   state.measurements = [];
-  _rulerStart = null;
-  _rulerEnd = null;
-  _rulerDragging = false;
+  _rulerStart = null; _rulerEnd = null; _rulerDragging = false;
   dom.clearRuler.style.display = 'none';
-  saveState();
-  render();
+  saveState(); render();
   toast('Линейки очищены', 'info');
 });
 
-/* ====== RESPONSIVE CANVAS RESIZE ====== */
+/* ====== RESPONSIVE ====== */
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
