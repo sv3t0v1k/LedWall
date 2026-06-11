@@ -805,15 +805,30 @@ function getScreenDims(s){
   return {cols:cols,rows:rows,mw:mw,mh:mh,mmw:mmw,mmh:mmh,pitch:pitch,totalPxW:cols*mw,totalPxH:rows*mh,totalMmW:cols*mmw,totalMmH:rows*mmh};
 }
 
+function getBBox(sw,sh,deg){
+  var rad=deg*(Math.PI/180)||0;
+  var c=Math.abs(Math.cos(rad)),s=Math.abs(Math.sin(rad));
+  return{w:sw*c+sh*s,h:sw*s+sh*c};
+}
+
 function getCombinedDims(){
   var screens=state.screens;
-  if(!screens.length)return{totalPxW:0,totalPxH:0};
+  if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0};
   var dims=screens.map(getScreenDims);
-  var totalPxW=0,maxH=0;
-  for(var i=0;i<dims.length;i++){totalPxW+=dims[i].totalPxW;maxH=Math.max(maxH,dims[i].totalPxH);}
   var gapPx=state.gapX/(dims[0]&&dims[0].pitch||1);
-  var gapPy=state.gapY/(dims[0]&&dims[0].pitch||1);
-  return{totalPxW:totalPxW+gapPx*(screens.length-1),totalPxH:maxH,screens:dims,gapPx:gapPx,gapPy:gapPy};
+  var minLeft=Infinity,maxRight=-Infinity,maxH=0;
+  var ox=0;
+  for(var i=0;i<dims.length;i++){
+    var d=dims[i],rot=screens[i].rotation||0;
+    var bbox=getBBox(d.totalPxW,d.totalPxH,rot);
+    var cx=ox+d.totalPxW/2;
+    var left=cx-bbox.w/2,right=cx+bbox.w/2;
+    if(left<minLeft)minLeft=left;
+    if(right>maxRight)maxRight=right;
+    if(bbox.h>maxH)maxH=bbox.h;
+    ox+=d.totalPxW+gapPx;
+  }
+  return{totalPxW:maxRight-minLeft,totalPxH:maxH,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-minLeft};
 }
 
 function getCanvasScale(dims){
@@ -969,9 +984,10 @@ function drawOneScreen(ctx,s,dims,ox,scrState){
 
 function drawGapLabels(ctx,s,combined,dimsArr){
   if(state.screens.length<2)return;
-  var gapX=combined.gapPx*s;var gapY=combined.gapPy*s;
-  if(gapX<10&&gapY<10)return;
-  var ox=0;
+  var gapX=combined.gapPx*s;
+  if(gapX<10)return;
+  var shiftX=combined.shiftX*s;
+  var ox=shiftX;
   var fs=Math.max(9,combined.totalPxH*s*0.015);
   ctx.font='600 '+fs+'px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   for(var i=0;i<state.screens.length;i++){
@@ -1009,8 +1025,9 @@ function drawCanvas(){
 
   ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,cw,ch);
 
+  var shiftX=combined.shiftX*scale;
   var gapPx=combined.gapPx*scale;
-  var ox=0;
+  var ox=shiftX;
   for(var i=0;i<screens.length;i++){
     var ss=screens[i],d=dimsArr[i];
     var sw=d.totalPxW*scale;
@@ -1140,11 +1157,11 @@ function downloadPNG(){
   var w=Math.round(combined.totalPxW*s),h=Math.round(combined.totalPxH*s);
   c.width=w;c.height=h;ctx.imageSmoothingEnabled=false;
   ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,w,h);
-  var ox=0;
+  var shiftX=combined.shiftX*s;
+  var ox=shiftX;
   for(var i=0;i<screens.length;i++){
     var ss=screens[i],d=dimsArr[i],sw=d.totalPxW*s;
     if(i>0){ctx.fillStyle='rgba(255,255,255,0.02)';ctx.fillRect(ox,0,combined.gapPx*s,h);}
-    // Simplified drawOneScreen for download (layer=all, no annotations)
     drawOneScreen(ctx,s,d,ox,ss);
     ox+=sw+combined.gapPx*s;
   }
@@ -1344,7 +1361,7 @@ dom.canvasWrap.addEventListener('click',function(e){
   if(dom.hotspotTooltip._hideTimer)clearTimeout(dom.hotspotTooltip._hideTimer);
   var coords=toWallCoords(e);
   var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
-  var gapX=combined.gapPx;var ox=0;
+  var gapX=combined.gapPx;var ox=combined.shiftX;
   for(var i=0;i<screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
@@ -1442,7 +1459,7 @@ dom.btnToggleRotate.addEventListener('click',function(){
 dom.canvasWrap.addEventListener('click',function(e){
   if(!state.rotateMode)return;
   var coords=toWallCoords(e);var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
-  var gapX=combined.gapPx;var ox=0;
+  var gapX=combined.gapPx;var ox=combined.shiftX;
   for(var i=0;i<screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
@@ -1512,7 +1529,7 @@ dom.btnResetScreenPos.addEventListener('click',function(){
 dom.canvasWrap.addEventListener('mousedown',function(e){
   if(!state.moveMode||e.button!==0)return;
   var coords=toWallCoords(e);var dimsArr=state.screens.map(getScreenDims);var combined=getCombinedDims();
-  var gapX=combined.gapPx;var ox=0;
+  var gapX=combined.gapPx;var ox=combined.shiftX;
   for(var i=0;i<state.screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
