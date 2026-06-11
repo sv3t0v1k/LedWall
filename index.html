@@ -933,21 +933,6 @@ function drawCanvas(){
 
   drawGapLabels(ctx,scale,combined,dimsArr);
 
-  // Global diagonals
-  if(state.layers.markers){
-    var anyTLBR=screens.some(function(s){return s.markers.diagTLBR});
-    var anyTRBL=screens.some(function(s){return s.markers.diagTRBL});
-    var anyCircle=screens.some(function(s){return s.markers.fullCircle});
-    if(anyTLBR||anyTRBL||anyCircle){
-      ctx.strokeStyle=state.markerColor;ctx.lineWidth=Math.max(1,Math.round(3*scale));ctx.globalAlpha=0.3;
-      ctx.setLineDash([]);
-      if(anyTLBR){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(cw,ch);ctx.stroke();}
-      if(anyTRBL){ctx.beginPath();ctx.moveTo(cw,0);ctx.lineTo(0,ch);ctx.stroke();}
-      if(anyCircle){var rr=Math.min(cw,ch)/2;ctx.beginPath();ctx.arc(cw/2,ch/2,rr*0.96,0,Math.PI*2);ctx.stroke();}
-      ctx.globalAlpha=1;
-    }
-  }
-
   // Annotations
   if(state.layers.annotations&&state.annotations.length){
     state.annotations.forEach(function(a){
