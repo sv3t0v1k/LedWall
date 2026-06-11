@@ -813,22 +813,25 @@ function getBBox(sw,sh,deg){
 
 function getCombinedDims(){
   var screens=state.screens;
-  if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0};
+  if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0,shiftY:0};
   var dims=screens.map(getScreenDims);
   var gapPx=state.gapX/(dims[0]&&dims[0].pitch||1);
-  var minLeft=Infinity,maxRight=-Infinity,maxH=0;
+  var minLeft=Infinity,maxRight=-Infinity,minTop=Infinity,maxBottom=-Infinity;
   var ox=0;
   for(var i=0;i<dims.length;i++){
-    var d=dims[i],rot=screens[i].rotation||0;
+    var d=dims[i],rot=screens[i].rotation||0,offX=screens[i].offsetX||0,offY=screens[i].offsetY||0;
     var bbox=getBBox(d.totalPxW,d.totalPxH,rot);
-    var cx=ox+d.totalPxW/2;
+    var cx=ox+d.totalPxW/2+offX;
+    var cy=d.totalPxH/2+offY;
     var left=cx-bbox.w/2,right=cx+bbox.w/2;
+    var top=cy-bbox.h/2,bottom=cy+bbox.h/2;
     if(left<minLeft)minLeft=left;
     if(right>maxRight)maxRight=right;
-    if(bbox.h>maxH)maxH=bbox.h;
+    if(top<minTop)minTop=top;
+    if(bottom>maxBottom)maxBottom=bottom;
     ox+=d.totalPxW+gapPx;
   }
-  return{totalPxW:maxRight-minLeft,totalPxH:maxH,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-minLeft};
+  return{totalPxW:maxRight-minLeft,totalPxH:maxBottom-minTop,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-minLeft,shiftY:-minTop};
 }
 
 function getCanvasScale(dims){
@@ -986,8 +989,7 @@ function drawGapLabels(ctx,s,combined,dimsArr){
   if(state.screens.length<2)return;
   var gapX=combined.gapPx*s;
   if(gapX<10)return;
-  var shiftX=combined.shiftX*s;
-  var ox=shiftX;
+  var ox=0;
   var fs=Math.max(9,combined.totalPxH*s*0.015);
   ctx.font='600 '+fs+'px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   for(var i=0;i<state.screens.length;i++){
@@ -1018,6 +1020,7 @@ function drawCanvas(){
   var ch=Math.round(combined.totalPxH*scale);
 
 
+
   // Apply zoom/pan via CSS transform
   dom.canvasWrap.style.transform='scale('+state.zoom+') translate('+state.panX+'px,'+state.panY+'px)';
 
@@ -1027,8 +1030,11 @@ function drawCanvas(){
   ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,cw,ch);
 
   var shiftX=combined.shiftX*scale;
+  var shiftY=combined.shiftY*scale;
   var gapPx=combined.gapPx*scale;
-  var ox=shiftX;
+  ctx.save();
+  ctx.translate(shiftX,shiftY);
+  var ox=0;
   for(var i=0;i<screens.length;i++){
     var ss=screens[i],d=dimsArr[i];
     var sw=d.totalPxW*scale;
@@ -1036,8 +1042,8 @@ function drawCanvas(){
     drawOneScreen(ctx,scale,d,ox,ss);
     ox+=sw+gapPx;
   }
-
   drawGapLabels(ctx,scale,combined,dimsArr);
+  ctx.restore();
 
   // Annotations
   if(state.layers.annotations&&state.annotations.length){
@@ -1362,7 +1368,8 @@ dom.canvasWrap.addEventListener('click',function(e){
   if(dom.hotspotTooltip._hideTimer)clearTimeout(dom.hotspotTooltip._hideTimer);
   var coords=toWallCoords(e);
   var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
-  var gapX=combined.gapPx;var ox=combined.shiftX;
+  coords.x-=combined.shiftX;coords.y-=combined.shiftY;
+  var gapX=combined.gapPx;var ox=0;
   for(var i=0;i<screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
@@ -1460,7 +1467,8 @@ dom.btnToggleRotate.addEventListener('click',function(){
 dom.canvasWrap.addEventListener('click',function(e){
   if(!state.rotateMode)return;
   var coords=toWallCoords(e);var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
-  var gapX=combined.gapPx;var ox=combined.shiftX;
+  coords.x-=combined.shiftX;coords.y-=combined.shiftY;
+  var gapX=combined.gapPx;var ox=0;
   for(var i=0;i<screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
@@ -1530,7 +1538,8 @@ dom.btnResetScreenPos.addEventListener('click',function(){
 dom.canvasWrap.addEventListener('mousedown',function(e){
   if(!state.moveMode||e.button!==0)return;
   var coords=toWallCoords(e);var dimsArr=state.screens.map(getScreenDims);var combined=getCombinedDims();
-  var gapX=combined.gapPx;var ox=combined.shiftX;
+  coords.x-=combined.shiftX;coords.y-=combined.shiftY;
+  var gapX=combined.gapPx;var ox=0;
   for(var i=0;i<state.screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
