@@ -1390,97 +1390,9 @@ function downloadPNG(){
 
 /* ====== SVG EXPORT ====== */
 function exportSVG(){
-  const screens = state.screens;
-  if(screens.length === 0) return;
-  const dimsArr = screens.map(getScreenDims);
-  const combined = getCombinedDims();
-  const w = Math.round(combined.totalPxW);
-  const h = Math.round(combined.totalPxH);
-  const lines = [];
-  const push = s => lines.push(s);
-
-  push(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`);
-  push(`<rect width="${w}" height="${h}" fill="#0a0a0f"/>`);
-
-  let ox = 0;
-  for(let i = 0; i < screens.length; i++){
-    const ss = screens[i];
-    const d = dimsArr[i];
-    const sw = d.totalPxW;
-    const sh = d.totalPxH;
-    const mw = d.mw, mh = d.mh;
-    const rows = d.rows, cols = d.cols;
-
-    // Grid lines
-    for(let c = 0; c <= cols; c++){
-      const x = ox + c * mw;
-      push(`<line x1="${x}" y1="0" x2="${x}" y2="${sh}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
-    }
-    for(let r = 0; r <= rows; r++){
-      const y = r * mh;
-      push(`<line x1="${ox}" y1="${y}" x2="${ox+sw}" y2="${y}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
-    }
-
-    // Modules
-    for(let r = 0; r < rows; r++){
-      for(let c = 0; c < cols; c++){
-        const x = ox + c * mw, y = r * mh;
-        // Module border
-        if(ss.moduleBorder){
-          push(`<rect x="${x+0.5}" y="${y+0.5}" width="${mw-1}" height="${mh-1}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`);
-        }
-        const cx = x + mw/2, cy = y + mh/2, color = state.markerColor;
-        const len = Math.min(mw, mh) * 0.3;
-        if(ss.markers.cross){
-          push(`<line x1="${cx-len}" y1="${cy}" x2="${cx+len}" y2="${cy}" stroke="${color}" stroke-width="2"/>`);
-          push(`<line x1="${cx}" y1="${cy-len}" x2="${cx}" y2="${cy+len}" stroke="${color}" stroke-width="2"/>`);
-        }
-        if(ss.markers.plus){
-          const plen = Math.min(mw, mh) * 0.2;
-          push(`<line x1="${cx-plen}" y1="${cy}" x2="${cx+plen}" y2="${cy}" stroke="${color}" stroke-width="2"/>`);
-        }
-        if(ss.markers.circle){
-          const rad = Math.min(mw, mh) * 0.15;
-          push(`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="${color}" stroke-width="2"/>`);
-        }
-        if(ss.identification !== 'none'){
-          const id = getModuleId(r, c, d, ss.identification, ss.startId);
-          if(id){
-            push(`<text x="${x+4}" y="${y+mh-4}" fill="rgba(255,255,255,0.6)" font-size="${Math.max(8, mw*0.1)}" font-family="Inter,sans-serif">${escapeXml(id)}</text>`);
-          }
-        }
-      }
-    }
-
-    // Full-screen markers
-    if(ss.markers.diagTLBR) push(`<line x1="${ox}" y1="0" x2="${ox+sw}" y2="${sh}" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
-    if(ss.markers.diagTRBL) push(`<line x1="${ox+sw}" y1="0" x2="${ox}" y2="${sh}" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
-    if(ss.markers.fullCircle){
-      const r = Math.min(sw, sh) / 2;
-      push(`<circle cx="${ox+sw/2}" cy="${sh/2}" r="${r*0.96}" fill="none" stroke="${state.markerColor}" stroke-width="3" opacity="0.5"/>`);
-    }
-
-    // Screen name
-    if(ss.screenName){
-      const fontSize = Math.max(14, Math.min(sw, sh) * 0.035);
-      const padX = Math.max(12, Math.min(sw, sh) * 0.025);
-      const padY = Math.max(6, Math.min(sw, sh) * 0.012);
-      const twEst = ss.screenName.length * fontSize * 0.6;
-      const bw = twEst + padX * 2;
-      const bh = fontSize + padY * 2;
-      const bx = ox + (sw - bw) / 2;
-      const by = (sh - bh) / 2;
-      push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="${hexToRgba(ss.screenNameBg, ss.screenNameOpacity/100)}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`);
-      push(`<text x="${ox+sw/2}" y="${by+bh/2}" fill="${ss.screenNameColor}" font-size="${fontSize}" font-weight="700" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle">${escapeXml(ss.screenName)}</text>`);
-    }
-
-    ox += sw;
-    if(i < screens.length - 1) ox += combined.gapPx;
-  }
-
-  push(`</svg>`);
-
-  const blob = new Blob([lines.join('\n')], {type:'image/svg+xml'});
+  const svg = generateSVGString();
+  if(!svg) return;
+  const blob = new Blob([svg], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.download = `led_wall_${new Date().toISOString().slice(0,10)}.svg`;
@@ -1496,27 +1408,21 @@ function escapeXml(s){
 
 /* ====== PDF EXPORT ====== */
 function exportPDF(){
-  const screens = state.screens;
-  if(screens.length === 0) return;
-  const dimsArr = screens.map(getScreenDims);
-  const combined = getCombinedDims();
-  const w = combined.totalPxW;
-  const h = combined.totalPxH;
-  const ratio = w / h;
-
-  // Create a temporary HTML page with SVG at print size
-  const pageW = 800;
-  const pageH = pageW / ratio;
   const svgContent = generateSVGString();
+  if(!svgContent) return;
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>LED Wall</title>
-<style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
-svg{max-width:100%;height:auto;}</style></head><body>${svgContent}</body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>LED Wall — Save as PDF</title>
+<style>
+*{margin:0;padding:0}body{background:#fff}svg{width:100%;height:auto;display:block}
+@media print{@page{margin:0}body{margin:0}svg{width:100%;height:auto}}
+</style></head><body>${svgContent}
+<script>window.onload=function(){setTimeout(function(){window.print();},500)};<\/script></body></html>`;
 
   const blob = new Blob([html], {type:'text/html'});
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  toast('PDF: сохраните через Ctrl+P → Сохранить как PDF', 'info');
+  const win = window.open(url, '_blank');
+  if(!win) toast('Разрешите всплывающие окна для сохранения PDF', 'error');
+  else toast('PDF: в диалоге печати выберите "Сохранить как PDF"', 'info');
 }
 
 function generateSVGString(){
@@ -1529,7 +1435,7 @@ function generateSVGString(){
   const lines = [];
   const push = s => lines.push(s);
 
-  push(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`);
+  push(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="Inter,sans-serif">`);
   push(`<rect width="${w}" height="${h}" fill="#0a0a0f"/>`);
 
   let ox = 0;
@@ -1540,20 +1446,32 @@ function generateSVGString(){
     const mw = d.mw, mh = d.mh;
     const rows = d.rows, cols = d.cols;
 
-    for(let c = 0; c <= cols; c++){
-      const x = ox + c * mw;
-      push(`<line x1="${x}" y1="0" x2="${x}" y2="${sh}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
-    }
-    for(let r = 0; r <= rows; r++){
-      const y = r * mh;
-      push(`<line x1="${ox}" y1="${y}" x2="${ox+sw}" y2="${y}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`);
-    }
-
     for(let r = 0; r < rows; r++){
       for(let c = 0; c < cols; c++){
         const x = ox + c * mw, y = r * mh;
+
+        // Test pattern
+        const pat = ss.testPattern;
+        if(pat === 'checkerboard'){
+          const c1 = ss.chessColor1, c2 = ss.chessColor2;
+          const idx = (r * cols + c) % 4;
+          let fc;
+          if(idx === 0) fc = c1;
+          else if(idx === 1) fc = c2;
+          else if(idx === 2) fc = darkenHex(c1, 0.65);
+          else fc = darkenHex(c2, 0.65);
+          push(`<rect x="${x}" y="${y}" width="${mw}" height="${mh}" fill="${fc}"/>`);
+        } else if(pat === 'gray-stripe'){
+          const b = 0.04 + (r % 4) * 0.06;
+          const g = Math.round(b * 255);
+          push(`<rect x="${x}" y="${y}" width="${mw}" height="${mh}" fill="rgb(${g},${g},${g})" fill-opacity="${b}"/>`);
+        } else if(pat === 'rgb-stripe'){
+          const cols2 = ['rgba(255,0,0,0.12)', 'rgba(0,255,0,0.12)', 'rgba(0,0,255,0.12)'];
+          push(`<rect x="${x}" y="${y}" width="${mw}" height="${mh}" fill="${cols2[c % 3]}"/>`);
+        }
+
         if(ss.moduleBorder){
-          push(`<rect x="${x+0.5}" y="${y+0.5}" width="${mw-1}" height="${mh-1}" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`);
+          push(`<rect x="${x+0.5}" y="${y+0.5}" width="${mw-1}" height="${mh-1}" fill="none" stroke="rgb(255,255,255)" stroke-opacity="0.15"/>`);
         }
         const cx = x + mw/2, cy = y + mh/2, color = state.markerColor;
         const len = Math.min(mw, mh) * 0.3;
@@ -1571,7 +1489,7 @@ function generateSVGString(){
         }
         if(ss.identification !== 'none'){
           const id = getModuleId(r, c, d, ss.identification, ss.startId);
-          if(id) push(`<text x="${x+4}" y="${y+mh-4}" fill="rgba(255,255,255,0.6)" font-size="${Math.max(8, mw*0.1)}" font-family="Inter,sans-serif">${escapeXml(id)}</text>`);
+          if(id) push(`<text x="${x+4}" y="${y+mh-4}" fill="rgb(255,255,255)" fill-opacity="0.6" font-size="${Math.max(8, mw*0.1)}">${escapeXml(id)}</text>`);
         }
       }
     }
@@ -1592,8 +1510,10 @@ function generateSVGString(){
       const bh = fontSize + padY * 2;
       const bx = ox + (sw - bw) / 2;
       const by = (sh - bh) / 2;
-      push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="${hexToRgba(ss.screenNameBg, ss.screenNameOpacity/100)}" stroke="rgba(255,255,255,0.08)"/>`);
-      push(`<text x="${ox+sw/2}" y="${by+bh/2}" fill="${ss.screenNameColor}" font-size="${fontSize}" font-weight="700" font-family="Inter,sans-serif" text-anchor="middle" dominant-baseline="middle">${escapeXml(ss.screenName)}</text>`);
+      const bgRgb = hexToRgb(ss.screenNameBg);
+      const bgAlpha = ss.screenNameOpacity / 100;
+      push(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="rgb(${bgRgb.r},${bgRgb.g},${bgRgb.b})" fill-opacity="${bgAlpha}" stroke="rgb(255,255,255)" stroke-opacity="0.08"/>`);
+      push(`<text x="${ox+sw/2}" y="${by+bh/2}" fill="${ss.screenNameColor}" font-size="${fontSize}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${escapeXml(ss.screenName)}</text>`);
     }
 
     // Info label
@@ -1606,10 +1526,11 @@ function generateSVGString(){
       ];
       const fs = Math.max(10, Math.min(sw, sh) * 0.018);
       let yOff = sh - 10;
-      push(`<rect x="${ox+6}" y="${yOff - infoLines.length*(fs*1.5 + 4)}" width="200" height="${infoLines.length*(fs*1.5) + 8}" rx="4" fill="rgba(0,0,0,0.55)"/>`);
-      infoLines.forEach((l, idx) => {
+      const ih = infoLines.length * (fs * 1.5 + 6);
+      push(`<rect x="${ox+6}" y="${yOff - ih}" width="220" height="${ih}" rx="4" fill="rgb(0,0,0)" fill-opacity="0.55"/>`);
+      infoLines.forEach((l) => {
         yOff -= fs * 1.5;
-        push(`<text x="${ox+12}" y="${yOff}" fill="rgba(255,255,255,0.65)" font-size="${fs}" font-family="Inter,sans-serif">${escapeXml(l)}</text>`);
+        push(`<text x="${ox+12}" y="${yOff}" fill="rgb(255,255,255)" fill-opacity="0.65" font-size="${fs}">${escapeXml(l)}</text>`);
       });
     }
 
@@ -1618,6 +1539,11 @@ function generateSVGString(){
 
   push('</svg>');
   return lines.join('\n');
+}
+
+function darkenHex(hex, factor){
+  const {r,g,b} = hexToRgb(hex);
+  return '#' + [r,g,b].map(c => Math.round(c*factor).toString(16).padStart(2,'0')).join('');
 }
 
 /* ====== EXPORT / IMPORT ====== */
