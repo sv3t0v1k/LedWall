@@ -304,6 +304,19 @@ input::placeholder{color:var(--text-muted);font-size:12px}
             <label class="toggle-label"><i class="fa-regular fa-border-all"></i> Граница модуля</label>
             <label class="toggle"><input type="checkbox" id="moduleBorder" checked><span class="toggle-slider"></span></label>
           </div>
+          <div class="row-2" style="margin-top:4px">
+            <div class="form-group">
+              <label class="form-label" style="font-size:10px">Толщина (px)</label>
+              <input type="number" id="borderWidth" value="1" min="0" max="20" step="1" style="padding:4px 6px;font-size:12px">
+            </div>
+            <label class="chess-color-label">
+              <span style="font-size:10px;color:var(--text-muted)">Цвет</span>
+              <div class="chess-color-wrap" style="height:28px">
+                <input type="color" id="borderColor" value="#ffffff">
+                <span class="chess-color-swatch" id="borderSwatch" style="background:#ffffff"></span>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -446,7 +459,8 @@ const SCREEN_DEFAULTS = {
   markers:{cross:true, plus:false, circle:false, diagTLBR:false, diagTRBL:false, fullCircle:false},
   identification:'alpha-numeric', startId:'top-left',
   testPattern:'none', chessColor1:'#ffffff', chessColor2:'#555555',
-  moduleBorder:true,
+  moduleBorder:true, borderWidth:1, borderColor:'#ffffff',
+  markerColor:'#ff3344',
   screenName:'', screenNameColor:'#ffffff', screenNameBg:'#000000',
   screenNameOpacity:50, showInfoLabel:true,
   rotatedModules:{}, zones:{}
@@ -455,7 +469,7 @@ const SCREEN_DEFAULTS = {
 const LAYER_DEFAULTS = {grid:true, modules:true, markers:true, ids:true, screenNames:true, infoLabels:true, rulers:true, annotations:true};
 
 const DEFAULTS = {
-  markerColor:'#ff3344', sizeLock:true,
+  sizeLock:true,
   gapX:0, gapY:0,
   rulerMode:false, measurements:[], annotations:[],
   screens:[Object.assign({}, SCREEN_DEFAULTS)],
@@ -501,12 +515,13 @@ function loadState(){
           markers:saved.markers, identification:saved.identification,
           startId:saved.startId, testPattern:saved.testPattern,
           chessColor1:saved.chessColor1, chessColor2:saved.chessColor2,
-          moduleBorder:saved.moduleBorder, screenName:saved.screenName,
+          moduleBorder:saved.moduleBorder, borderWidth:saved.borderWidth,
+          borderColor:saved.borderColor, markerColor:saved.markerColor,
+          screenName:saved.screenName,
           screenNameColor:saved.screenNameColor, screenNameBg:saved.screenNameBg,
           screenNameOpacity:saved.screenNameOpacity, showInfoLabel:saved.showInfoLabel
         });
         state = {
-          markerColor:saved.markerColor||DEFAULTS.markerColor,
           sizeLock:saved.sizeLock!==undefined?saved.sizeLock:DEFAULTS.sizeLock,
           gapX:DEFAULTS.gapX, gapY:DEFAULTS.gapY,
           rulerMode:saved.rulerMode||false,
@@ -546,7 +561,7 @@ function cacheDOM(){
   dom.testPattern=$('#testPattern');
   dom.chessColors=$('#chessColors');dom.chessColor1=$('#chessColor1');dom.chessColor2=$('#chessColor2');
   dom.chessSwatch1=$('#chessSwatch1');dom.chessSwatch2=$('#chessSwatch2');
-  dom.moduleBorder=$('#moduleBorder');
+  dom.moduleBorder=$('#moduleBorder');dom.borderWidth=$('#borderWidth');dom.borderColor=$('#borderColor');dom.borderSwatch=$('#borderSwatch');
   dom.canvas=$('#canvas');dom.canvasSizeInfo=$('#canvasSizeInfo');dom.canvasWrap=$('#canvas-wrap');
   dom.infoDensity=$('#infoDensity');dom.infoDistance=$('#infoDistance');
   dom.infoPhysical=$('#infoPhysical');dom.infoResolution=$('#infoResolution');
@@ -674,7 +689,10 @@ function syncInputs(){
   dom.chessSwatch1.style.background=s.chessColor1;dom.chessSwatch2.style.background=s.chessColor2;
   dom.chessColors.style.display=s.testPattern==='checkerboard'?'':'none';
   dom.moduleBorder.checked=s.moduleBorder;
-  dom.colorPicker.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el.dataset.color===state.markerColor)});
+  dom.borderWidth.value=s.borderWidth;
+  dom.borderColor.value=s.borderColor;
+  dom.borderSwatch.style.background=s.borderColor;
+  dom.colorPicker.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el.dataset.color===s.markerColor)});
   dom.screenName.value=s.screenName;dom.screenNameColor.value=s.screenNameColor;dom.screenNameBg.value=s.screenNameBg;
   dom.screenNameSwatch.style.background=s.screenNameColor;dom.screenNameBgSwatch.style.background=s.screenNameBg;
   dom.screenNameOpacity.value=s.screenNameOpacity;dom.showInfoLabel.checked=s.showInfoLabel;
@@ -713,6 +731,9 @@ function readInputs(){
   dom.chessSwatch1.style.background=s.chessColor1;dom.chessSwatch2.style.background=s.chessColor2;
   dom.chessColors.style.display=s.testPattern==='checkerboard'?'':'none';
   s.moduleBorder=dom.moduleBorder.checked;
+  s.borderWidth=parseInt(dom.borderWidth.value,10)||1;
+  s.borderColor=dom.borderColor.value;
+  dom.borderSwatch.style.background=s.borderColor;
   s.screenName=dom.screenName.value.trim();s.screenNameColor=dom.screenNameColor.value;s.screenNameBg=dom.screenNameBg.value;
   dom.screenNameBgSwatch.style.background=s.screenNameBg;dom.screenNameSwatch.style.background=s.screenNameColor;
   s.screenNameOpacity=parseInt(dom.screenNameOpacity.value,10)||50;s.showInfoLabel=dom.showInfoLabel.checked;
@@ -787,8 +808,11 @@ function drawOneScreen(ctx,s,dims,ox,scrState){
       if(state.layers.modules){
         drawPattern(ctx,x,y,w,h,r,c,rows,cols,scrState);
 
-        if(scrState.moduleBorder&&!state.layers.markers){
-          ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;ctx.strokeRect(x+0.5,y+0.5,w-1,h-1);
+        if(scrState.moduleBorder&&scrState.borderWidth>0){
+          var bw=scrState.borderWidth*s;
+          ctx.strokeStyle=scrState.borderColor;
+          ctx.lineWidth=bw;
+          ctx.strokeRect(x+bw/2,y+bw/2,w-bw,h-bw);
         }
       }
 
@@ -807,7 +831,7 @@ function drawOneScreen(ctx,s,dims,ox,scrState){
       }
 
       if(state.layers.markers){
-        var cx=x+w/2,cy=y+h/2,color=state.markerColor;
+        var cx=x+w/2,cy=y+h/2,color=scrState.markerColor;
         if(scrState.markers.cross){
           ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,Math.round(2*s));
           var len=Math.min(w,h)*0.3;
@@ -840,7 +864,7 @@ function drawOneScreen(ctx,s,dims,ox,scrState){
   }
 
   if(state.layers.markers){
-    var fwColor=state.markerColor;var fwLw=Math.max(1,Math.round(3*s));
+    var fwColor=scrState.markerColor;var fwLw=Math.max(1,Math.round(3*s));
     ctx.strokeStyle=fwColor;ctx.lineWidth=fwLw;ctx.setLineDash([]);ctx.globalAlpha=0.5;
     if(scrState.markers.diagTLBR){ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox+dims.totalPxW*s,sh);ctx.stroke();}
     if(scrState.markers.diagTRBL){ctx.beginPath();ctx.moveTo(ox+dims.totalPxW*s,0);ctx.lineTo(ox,sh);ctx.stroke();}
@@ -1102,16 +1126,16 @@ function generateSVGString(){
       else if(pat==='gray-stripe'){var g=Math.round((0.04+(r%4)*0.06)*255);p('<rect x="'+x+'" y="'+y+'" width="'+mw+'" height="'+mh+'" fill="rgb('+g+','+g+','+g+')" fill-opacity="'+(0.04+(r%4)*0.06)+'"/>');}
       else if(pat==='rgb-stripe'){p('<rect x="'+x+'" y="'+y+'" width="'+mw+'" height="'+mh+'" fill="'+['rgba(255,0,0,0.12)','rgba(0,255,0,0.12)','rgba(0,0,255,0.12)'][c%3]+'"/>');}
       if(ss.moduleBorder){p('<rect x="'+(x+0.5)+'" y="'+(y+0.5)+'" width="'+(mw-1)+'" height="'+(mh-1)+'" fill="none" stroke="rgb(255,255,255)" stroke-opacity="0.15"/>');}
-      var cx=x+mw/2,cy=y+mh/2,color=state.markerColor;
+      var cx=x+mw/2,cy=y+mh/2,color=ss.markerColor;
       var len=Math.min(mw,mh)*0.3;
       if(ss.markers.cross){p('<line x1="'+(cx-len)+'" y1="'+cy+'" x2="'+(cx+len)+'" y2="'+cy+'" stroke="'+color+'" stroke-width="2"/>');p('<line x1="'+cx+'" y1="'+(cy-len)+'" x2="'+cx+'" y2="'+(cy+len)+'" stroke="'+color+'" stroke-width="2"/>');}
       if(ss.markers.plus){var plen=Math.min(mw,mh)*0.2;p('<line x1="'+(cx-plen)+'" y1="'+cy+'" x2="'+(cx+plen)+'" y2="'+cy+'" stroke="'+color+'" stroke-width="2"/>');}
       if(ss.markers.circle){var rad=Math.min(mw,mh)*0.15;p('<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="none" stroke="'+color+'" stroke-width="2"/>');}
       if(ss.identification!=='none'){var id=getModuleId(r,c,d,ss.identification,ss.startId);if(id)p('<text x="'+(x+4)+'" y="'+(y+mh-4)+'" fill="rgb(255,255,255)" fill-opacity="0.6" font-size="'+Math.max(8,mw*0.1)+'">'+escapeXml(id)+'</text>');}
     }}
-    if(ss.markers.diagTLBR)p('<line x1="'+ox+'" y1="0" x2="'+(ox+sw)+'" y2="'+sh+'" stroke="'+state.markerColor+'" stroke-width="3" opacity="0.5"/>');
-    if(ss.markers.diagTRBL)p('<line x1="'+(ox+sw)+'" y1="0" x2="'+ox+'" y2="'+sh+'" stroke="'+state.markerColor+'" stroke-width="3" opacity="0.5"/>');
-    if(ss.markers.fullCircle){var r2=Math.min(sw,sh)/2;p('<circle cx="'+(ox+sw/2)+'" cy="'+(sh/2)+'" r="'+(r2*0.96)+'" fill="none" stroke="'+state.markerColor+'" stroke-width="3" opacity="0.5"/>');}
+    if(ss.markers.diagTLBR)p('<line x1="'+ox+'" y1="0" x2="'+(ox+sw)+'" y2="'+sh+'" stroke="'+ss.markerColor+'" stroke-width="3" opacity="0.5"/>');
+    if(ss.markers.diagTRBL)p('<line x1="'+(ox+sw)+'" y1="0" x2="'+ox+'" y2="'+sh+'" stroke="'+ss.markerColor+'" stroke-width="3" opacity="0.5"/>');
+    if(ss.markers.fullCircle){var r2=Math.min(sw,sh)/2;p('<circle cx="'+(ox+sw/2)+'" cy="'+(sh/2)+'" r="'+(r2*0.96)+'" fill="none" stroke="'+ss.markerColor+'" stroke-width="3" opacity="0.5"/>');}
     if(ss.screenName){
       var fs2=Math.max(14,Math.min(sw,sh)*0.035),px2=Math.max(12,Math.min(sw,sh)*0.025),py2=Math.max(6,Math.min(sw,sh)*0.012);
       var tw2=ss.screenName.length*fs2*0.6,bw2=tw2+px2*2,bh2=fs2+py2*2;
@@ -1183,7 +1207,7 @@ function importConfig(file){
     try{
       var data=JSON.parse(e.target.result);
       if(data.screens&&Array.isArray(data.screens)){state=Object.assign(deepClone(DEFAULTS),data);state.screens=data.screens.map(function(s){return Object.assign({},deepClone(SCREEN_DEFAULTS),s)});if(!state.layers)state.layers=Object.assign({},LAYER_DEFAULTS);}
-      else{var screen=Object.assign({},deepClone(SCREEN_DEFAULTS),data);state=deepClone(DEFAULTS);state.screens=[screen];state.markerColor=data.markerColor||DEFAULTS.markerColor;state.sizeLock=data.sizeLock!==undefined?data.sizeLock:DEFAULTS.sizeLock;state.rulerMode=data.rulerMode||false;state.measurements=data.measurements||[];}
+      else{var screen=Object.assign({},deepClone(SCREEN_DEFAULTS),data);if(!screen.markerColor)screen.markerColor=data.markerColor||'#ff3344';state=deepClone(DEFAULTS);state.screens=[screen];state.sizeLock=data.sizeLock!==undefined?data.sizeLock:DEFAULTS.sizeLock;state.rulerMode=data.rulerMode||false;state.measurements=data.measurements||[];}
       syncInputs();render();saveState();toast('Конфигурация импортирована','success');
     }catch(err){toast('Ошибка загрузки конфигурации','error');}
   };
@@ -1296,7 +1320,7 @@ dom.pitchPresets.addEventListener('click',function(e){
 dom.colorPicker.addEventListener('click',function(e){
   var opt=e.target.closest('.color-opt');if(!opt)return;
   this.querySelectorAll('.color-opt').forEach(function(el){el.classList.remove('active')});
-  opt.classList.add('active');state.markerColor=opt.dataset.color;queueRender();saveState();
+  opt.classList.add('active');scr().markerColor=opt.dataset.color;queueRender();saveState();
 });
 
 // Lock button
