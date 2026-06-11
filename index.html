@@ -169,7 +169,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
     <div class="sidebar-scroll">
 
       <!-- Screens -->
-      <div class="card">
+      <div class="card" id="screensCard">
         <div class="card-header"><i class="fa-solid fa-display"></i> Экраны</div>
         <div class="card-body">
           <div id="screenTabs" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"></div>
@@ -427,7 +427,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
             <button class="btn btn-secondary btn-sm" id="btnImport"><i class="fa-regular fa-file-import"></i> Импорт</button>
             <button class="btn btn-danger btn-sm" id="btnReset"><i class="fa-regular fa-trash-can"></i> Сброс</button>
           </div>
-          <div class="toggle-wrap" style="margin-bottom:0;padding-bottom:2px">
+          <div class="toggle-wrap" id="rulerWrap" style="margin-bottom:0;padding-bottom:2px">
             <label class="toggle-label"><i class="fa-regular fa-ruler-combined"></i> Линейка</label>
             <div style="display:flex;align-items:center;gap:6px">
               <label class="toggle"><input type="checkbox" id="rulerMode"><span class="toggle-slider"></span></label>
@@ -438,7 +438,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
       </div>
 
       <div id="proModeHint" class="pro-hint" style="display:none">
-        <i class="fa-regular fa-sliders"></i> Профессиональный режим
+        <i class="fa-regular fa-compass"></i> Про: экраны, слои, BOM, SVG/PDF/JSON, линейка, hotspot
       </div>
 
     </div>
@@ -604,7 +604,7 @@ function cacheDOM(){
   dom.screenName=$('#screenName');dom.screenNameColor=$('#screenNameColor');dom.screenNameBg=$('#screenNameBg');
   dom.screenNameSwatch=$('#screenNameSwatch');dom.screenNameBgSwatch=$('#screenNameBgSwatch');
   dom.screenNameOpacity=$('#screenNameOpacity');dom.showInfoLabel=$('#showInfoLabel');
-  dom.rulerMode=$('#rulerMode');dom.clearRuler=$('#clearRuler');
+  dom.rulerWrap=$('#rulerWrap');dom.rulerMode=$('#rulerMode');dom.clearRuler=$('#clearRuler');
   dom.screenTabs=$('#screenTabs');
   dom.btnAddScreen=$('#btnAddScreen');dom.btnRemoveScreen=$('#btnRemoveScreen');
   dom.gapX=$('#gapX');dom.gapY=$('#gapY');
@@ -612,6 +612,7 @@ function cacheDOM(){
   dom.modeToggle=$('#modeToggle');dom.proModeHint=$('#proModeHint');
   dom.layersCard=$('#layersCard');dom.layersContainer=$('#layersContainer');
   dom.btnBOM=$('#btnBOM');dom.btnToggleRotate=$('#btnToggleRotate');
+  dom.screensCard=$('#screensCard');
   dom.btnMoveScreen=$('#btnMoveScreen');dom.btnResetScreenPos=$('#btnResetScreenPos');
   dom.btnResetRotation=$('#btnResetRotation');dom.btnRotateM90=$('#btnRotateM90');dom.btnRotateP90=$('#btnRotateP90');
   dom.screenRotation=$('#screenRotation');dom.screenRotationRange=$('#screenRotationRange');
@@ -722,8 +723,16 @@ function updateModeUI(){
   dom.modeToggle.innerHTML=pro?'<i class="fa-regular fa-compass"></i>':'<i class="fa-regular fa-sliders"></i>';
   dom.modeToggle.className='btn btn-sm '+(pro?'btn-primary':'btn-outline');
   dom.modeToggle.title=pro?'Переключить в простой режим':'Переключить в профессиональный режим';
+  // Pro-only elements
+  dom.screensCard.style.display=pro?'':'none';
+  dom.layersCard.style.display=pro?'':'none';
   dom.btnBOM.style.display=pro?'':'none';
   dom.btnToggleRotate.style.display=pro?'':'none';
+  dom.btnExportSVG.style.display=pro?'':'none';
+  dom.btnExportPDF.style.display=pro?'':'none';
+  dom.btnExportConfig.style.display=pro?'':'none';
+  dom.btnImport.style.display=pro?'':'none';
+  dom.rulerWrap.style.display=pro?'':'none';
 
   renderLayers();
 }
@@ -1379,7 +1388,7 @@ document.addEventListener('mouseup',function(e){
 
 // Hotspot - click to show module info
 dom.canvasWrap.addEventListener('click',function(e){
-  if(state.rulerMode||state.rotateMode)return;
+  if(!state.professionalMode||state.rulerMode||state.rotateMode)return;
   dom.hotspotTooltip.classList.remove('visible');
   if(dom.hotspotTooltip._hideTimer)clearTimeout(dom.hotspotTooltip._hideTimer);
   var coords=toWallCoords(e);
