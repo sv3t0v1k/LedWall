@@ -1277,6 +1277,11 @@ document.addEventListener('mouseup',function(e){
   _isPanning=false;dom.canvasWrap.classList.remove('panning');
 });
 
+// Hide hotspot tooltip on any click
+document.addEventListener('click',function(e){
+  if(e.target.closest&&!e.target.closest('#canvas-wrap')) dom.hotspotTooltip.classList.remove('visible');
+});
+
 // Hotspot - click to show module info
 dom.canvasWrap.addEventListener('click',function(e){
   if(state.rulerMode||state.rotateMode||_isPanning)return;
@@ -1295,10 +1300,11 @@ dom.canvasWrap.addEventListener('click',function(e){
         '<div class="h-row"><span class="h-label">Позиция</span><span class="h-value">'+(col+1)+'×'+(row+1)+'</span></div>'+
         '<div class="h-row"><span class="h-label">Поворот</span><span class="h-value">'+(rotated?'180°':'—')+'</span></div>'+
         '<div class="h-row"><span class="h-label">Pitch</span><span class="h-value">'+ss.pixelPitch+' мм</span></div>';
-      tip.style.left=Math.min(e.clientX-80,document.body.clientWidth-280)+'px';
-      tip.style.top=Math.max(10,e.clientY-180)+'px';
+      tip.style.left=Math.min(e.clientX+12,document.body.clientWidth-280)+'px';
+      tip.style.top=Math.max(10,e.clientY-120)+'px';
       tip.classList.add('visible');
-      setTimeout(function(){tip.classList.remove('visible')},3000);
+      var ttHint=setTimeout(function(){tip.classList.remove('visible')},2500);
+      tip._hideTimer=ttHint;
       return;
     }
     ox+=sw+gapX;
