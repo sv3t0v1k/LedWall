@@ -599,9 +599,27 @@ function renderScreenTabs(){
   state.screens.forEach(function(s,i){
     var tab=document.createElement('button');
     tab.className='btn btn-sm'+(i===state.activeScreen?' btn-primary':' btn-outline');
-    tab.textContent=s.name||'Экран '+(i+1);
+    tab.textContent=s.name||(s.screenName||'Экран '+(i+1));
     tab.style.fontSize='10px';tab.style.padding='4px 8px';
+    tab.title='Дважды кликните чтобы переименовать';
     tab.addEventListener('click',function(){switchScreen(i)});
+    tab.addEventListener('dblclick',function(e){
+      e.stopPropagation();
+      var inp=document.createElement('input');
+      inp.type='text';inp.value=s.name||tab.textContent;
+      inp.style.cssText='width:80px;padding:2px 4px;font-size:10px;border:1px solid var(--accent-cyan);background:var(--bg-primary);color:var(--text-primary);border-radius:4px;outline:none';
+      tab.textContent='';tab.appendChild(inp);
+      inp.focus();inp.select();
+      function done(){
+        var val=inp.value.trim()||'Экран '+(i+1);
+        state.screens[i].name=val;
+        if(!state.screens[i].screenName)state.screens[i].screenName=val;
+        if(i===state.activeScreen){dom.screenName.value=val;readInputs();}
+        renderScreenTabs();render();saveState();
+      }
+      inp.addEventListener('blur',done);
+      inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();inp.blur();}if(ev.key==='Escape'){inp.value=s.name||tab.textContent;inp.blur();}});
+    });
     dom.screenTabs.appendChild(tab);
   });
   dom.screenParamsLabel.textContent='#'+(state.activeScreen+1);
@@ -693,7 +711,7 @@ function syncInputs(){
   dom.borderColor.value=s.borderColor;
   dom.borderSwatch.style.background=s.borderColor;
   dom.colorPicker.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el.dataset.color===s.markerColor)});
-  dom.screenName.value=s.screenName;dom.screenNameColor.value=s.screenNameColor;dom.screenNameBg.value=s.screenNameBg;
+  dom.screenName.value=s.screenName||s.name||'';dom.screenNameColor.value=s.screenNameColor;dom.screenNameBg.value=s.screenNameBg;
   dom.screenNameSwatch.style.background=s.screenNameColor;dom.screenNameBgSwatch.style.background=s.screenNameBg;
   dom.screenNameOpacity.value=s.screenNameOpacity;dom.showInfoLabel.checked=s.showInfoLabel;
   dom.rulerMode.checked=state.rulerMode;
@@ -735,6 +753,7 @@ function readInputs(){
   s.borderColor=dom.borderColor.value;
   dom.borderSwatch.style.background=s.borderColor;
   s.screenName=dom.screenName.value.trim();s.screenNameColor=dom.screenNameColor.value;s.screenNameBg=dom.screenNameBg.value;
+  if(s.screenName)s.name=s.screenName;
   dom.screenNameBgSwatch.style.background=s.screenNameBg;dom.screenNameSwatch.style.background=s.screenNameColor;
   s.screenNameOpacity=parseInt(dom.screenNameOpacity.value,10)||50;s.showInfoLabel=dom.showInfoLabel.checked;
   state.rulerMode=dom.rulerMode.checked;
