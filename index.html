@@ -106,7 +106,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
 #main{flex:1;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
-#canvas-container{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;position:relative}
+#canvas-container{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;position:relative}
 #canvas-wrap{position:relative;display:inline-flex;border-radius:var(--radius-md);box-shadow:0 0 60px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05);overflow:hidden;transform-origin:center center;transition:transform .05s}
 #canvas{display:block;background:#0a0a0f;image-rendering:pixelated}
 #canvas-wrap.panning{cursor:grabbing!important}
@@ -743,7 +743,10 @@ function readInputs(){
 }
 
 /* ====== CANVAS RENDERING ====== */
-const MAX_CANVAS=4096;
+function getMaxCanvasSize(){
+  var rect=dom.canvasWrap.parentElement.getBoundingClientRect();
+  return Math.min(rect.width-48, rect.height-48, 4096);
+}
 
 function getScreenDims(s){
   var cols=Math.max(1,Math.min(500,s.gridCols));
@@ -768,7 +771,8 @@ function getCombinedDims(){
 
 function getCanvasScale(dims){
   if(!dims.totalPxW||!dims.totalPxH)return 1;
-  var s=Math.min(MAX_CANVAS/dims.totalPxW,MAX_CANVAS/dims.totalPxH,1);
+  var maxCanvas=getMaxCanvasSize();
+  var s=Math.min(maxCanvas/dims.totalPxW,maxCanvas/dims.totalPxH,1);
   return Math.max(s,0.05);
 }
 
