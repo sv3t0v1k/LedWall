@@ -855,7 +855,10 @@ function getCombinedDims(){
   }
   var effectiveMinLeft=minLeft===Infinity?0:(minLeft<0?minLeft:0);
   var effectiveMinTop=minTop===Infinity?0:(minTop<0?minTop:0);
-  return{totalPxW:maxRight-effectiveMinLeft,totalPxH:maxBottom-effectiveMinTop,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-effectiveMinLeft,shiftY:-effectiveMinTop};
+  var shiftX=effectiveMinLeft<0?-effectiveMinLeft:0;
+  var shiftY=effectiveMinTop<0?-effectiveMinTop:0;
+  shiftY=Math.round(shiftY*0.2);
+  return{totalPxW:maxRight+shiftX,totalPxH:maxBottom+shiftY,screens:dims,gapPx:gapPx,gapPy:0,shiftX:shiftX,shiftY:shiftY};
 }
 
 function getCanvasScale(dims){
