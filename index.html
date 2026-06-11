@@ -178,11 +178,29 @@ input::placeholder{color:var(--text-muted);font-size:12px}
             <button class="btn btn-danger btn-sm" id="btnRemoveScreen"><i class="fa-regular fa-minus"></i></button>
           </div>
           <div class="form-group">
+            <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+              <span><i class="fa-regular fa-rotate-right"></i> Поворот экрана (°)</span>
+              <button class="btn btn-sm btn-outline" id="btnResetRotation" style="padding:2px 6px;font-size:10px" title="Сбросить поворот"><i class="fa-regular fa-arrow-rotate-left"></i></button>
+            </label>
+            <input type="range" id="screenRotationRange" min="-360" max="360" value="0" step="0.5" style="width:100%;margin-bottom:4px">
+            <div class="row-2">
+              <input type="number" id="screenRotation" value="0" min="-360" max="360" step="0.5" style="padding:4px 6px;font-size:12px">
+              <div class="btn-row" style="grid-template-columns:1fr 1fr;gap:4px">
+                <button class="btn btn-secondary btn-sm" id="btnRotateM90" style="font-size:10px;padding:4px 6px">-90°</button>
+                <button class="btn btn-secondary btn-sm" id="btnRotateP90" style="font-size:10px;padding:4px 6px">+90°</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="form-label"><i class="fa-regular fa-arrows-left-right"></i> Отступ между экранами (мм)</label>
             <div class="row-2">
               <input type="number" id="gapX" value="0" min="0" max="10000" step="1" placeholder="X">
               <input type="number" id="gapY" value="0" min="0" max="10000" step="1" placeholder="Y">
             </div>
+          </div>
+          <div class="row-2" style="margin-top:4px">
+            <button class="btn btn-secondary btn-sm" id="btnMoveScreen"><i class="fa-regular fa-up-down-left-right"></i> Сдвиг</button>
+            <button class="btn btn-secondary btn-sm" id="btnResetScreenPos"><i class="fa-regular fa-arrow-to-top"></i> Сброс</button>
           </div>
         </div>
       </div>
@@ -317,10 +335,7 @@ input::placeholder{color:var(--text-muted);font-size:12px}
               </div>
             </label>
           </div>
-          <div class="form-group" id="rotationGroup" style="display:none">
-            <label class="form-label"><i class="fa-regular fa-rotate-right"></i> Поворот экрана (°)</label>
-            <input type="number" id="screenRotation" value="0" min="-360" max="360" step="0.5" style="padding:4px 6px;font-size:12px">
-          </div>
+
         </div>
       </div>
 
@@ -390,10 +405,6 @@ input::placeholder{color:var(--text-muted);font-size:12px}
           <div class="btn-row" id="proActionsRow">
             <button class="btn btn-secondary btn-sm" id="btnBOM"><i class="fa-regular fa-clipboard-list"></i> BOM</button>
             <button class="btn btn-secondary btn-sm" id="btnToggleRotate"><i class="fa-regular fa-rotate-right"></i> Модуль</button>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-secondary btn-sm" id="btnMoveScreen"><i class="fa-regular fa-up-down-left-right"></i> Сдвиг</button>
-            <button class="btn btn-secondary btn-sm" id="btnResetScreenPos"><i class="fa-regular fa-arrow-to-top"></i> Сброс</button>
           </div>
           <div class="btn-row">
             <button class="btn btn-secondary btn-sm" id="btnDownload"><i class="fa-regular fa-download"></i> PNG</button>
@@ -593,7 +604,8 @@ function cacheDOM(){
   dom.layersCard=$('#layersCard');dom.layersContainer=$('#layersContainer');
   dom.btnBOM=$('#btnBOM');dom.btnToggleRotate=$('#btnToggleRotate');
   dom.btnMoveScreen=$('#btnMoveScreen');dom.btnResetScreenPos=$('#btnResetScreenPos');
-  dom.screenRotation=$('#screenRotation');dom.rotationGroup=$('#rotationGroup');
+  dom.btnResetRotation=$('#btnResetRotation');dom.btnRotateM90=$('#btnRotateM90');dom.btnRotateP90=$('#btnRotateP90');
+  dom.screenRotation=$('#screenRotation');dom.screenRotationRange=$('#screenRotationRange');
   dom.zoomIn=$('#zoomIn');dom.zoomOut=$('#zoomOut');dom.zoomReset=$('#zoomReset');dom.zoomLevel=$('#zoomLevel');
   dom.hotspotTooltip=$('#hotspot-tooltip');
 }
@@ -702,9 +714,7 @@ function updateModeUI(){
   dom.modeToggle.title=pro?'Переключить в простой режим':'Переключить в профессиональный режим';
   dom.btnBOM.style.display=pro?'':'none';
   dom.btnToggleRotate.style.display=pro?'':'none';
-  dom.btnMoveScreen.style.display=pro?'':'none';
-  dom.btnResetScreenPos.style.display=pro?'':'none';
-  dom.rotationGroup.style.display=pro?'':'none';
+
   renderLayers();
 }
 
@@ -727,7 +737,7 @@ function syncInputs(){
   dom.borderSwatch.style.background=s.borderColor;
   dom.colorPicker.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el.dataset.color===s.markerColor)});
   dom.screenRotation.value=s.rotation||0;
-  dom.rotationGroup.style.display=state.professionalMode?'':'none';
+  dom.screenRotationRange.value=s.rotation||0;
   dom.screenName.value=s.screenName||s.name||'';dom.screenNameColor.value=s.screenNameColor;dom.screenNameBg.value=s.screenNameBg;
   dom.screenNameSwatch.style.background=s.screenNameColor;dom.screenNameBgSwatch.style.background=s.screenNameBg;
   dom.screenNameOpacity.value=s.screenNameOpacity;dom.showInfoLabel.checked=s.showInfoLabel;
@@ -1446,6 +1456,39 @@ dom.canvasWrap.addEventListener('click',function(e){
     ox+=sw+gapX;
   }
 },{capture:true});
+
+// Rotation controls
+dom.screenRotationRange.addEventListener('input',function(){
+  scr().rotation=parseFloat(this.value)||0;
+  dom.screenRotation.value=this.value;
+  queueRender();saveState();
+});
+dom.screenRotation.addEventListener('input',function(){
+  var v=parseFloat(this.value)||0;
+  scr().rotation=v;
+  dom.screenRotationRange.value=v;
+  queueRender();saveState();
+});
+dom.btnResetRotation.addEventListener('click',function(){
+  pushUndo();scr().rotation=0;
+  dom.screenRotation.value=0;dom.screenRotationRange.value=0;
+  queueRender();saveState();
+  toast('Поворот сброшен','info');
+});
+dom.btnRotateM90.addEventListener('click',function(){
+  var v=((parseFloat(dom.screenRotation.value)||0)-90+360)%360;
+  if(v>180)v-=360;
+  scr().rotation=v;
+  dom.screenRotation.value=v;dom.screenRotationRange.value=v;
+  pushUndo();queueRender();saveState();
+});
+dom.btnRotateP90.addEventListener('click',function(){
+  var v=((parseFloat(dom.screenRotation.value)||0)+90+360)%360;
+  if(v>180)v-=360;
+  scr().rotation=v;
+  dom.screenRotation.value=v;dom.screenRotationRange.value=v;
+  pushUndo();queueRender();saveState();
+});
 
 // Move mode toggle
 var _moveScreenIdx=-1,_moveStartX=0,_moveStartY=0,_moveOrigX=0,_moveOrigY=0;
