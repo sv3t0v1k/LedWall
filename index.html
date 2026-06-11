@@ -832,7 +832,7 @@ function getCombinedDims(){
   var minLeft=Infinity,maxRight=-Infinity,minTop=Infinity,maxBottom=-Infinity;
   var ox=0;
   for(var i=0;i<dims.length;i++){
-    var d=dims[i],rot=screens[i].rotation||0,offX=screens[i].offsetX||0,offY=screens[i].offsetY||0;
+    var d=dims[i],rot=screens[i].rotation||0,offX=(screens[i].offsetX||0),offY=(screens[i].offsetY||0);
     var bbox=getBBox(d.totalPxW,d.totalPxH,rot);
     var cx=ox+d.totalPxW/2+offX;
     var cy=d.totalPxH/2+offY;
@@ -844,7 +844,9 @@ function getCombinedDims(){
     if(bottom>maxBottom)maxBottom=bottom;
     ox+=d.totalPxW+gapPx;
   }
-  return{totalPxW:maxRight-minLeft,totalPxH:maxBottom-minTop,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-minLeft,shiftY:-minTop};
+  var effectiveMinLeft=minLeft===Infinity?0:(minLeft<0?minLeft:0);
+  var effectiveMinTop=minTop===Infinity?0:(minTop<0?minTop:0);
+  return{totalPxW:maxRight-effectiveMinLeft,totalPxH:maxBottom-effectiveMinTop,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-effectiveMinLeft,shiftY:-effectiveMinTop};
 }
 
 function getCanvasScale(dims){
@@ -871,14 +873,12 @@ function getModuleId(r,c,dims,identification,startId){
   return toAlpha(rr)+(cc+1);
 }
 
-function drawOneScreen(ctx,s,dims,ox,scrState){
+function drawOneScreen(ctx,s,dims,ox,oy,scrState){
   var cols=dims.cols,rows=dims.rows,mw=dims.mw,mh=dims.mh;
   var sh=dims.totalPxH*s;
   var rot=scrState.rotation*(Math.PI/180)||0;
-  var offX=(scrState.offsetX||0)*s;
-  var offY=(scrState.offsetY||0)*s;
-  var cx=ox+dims.totalPxW*s/2+offX;
-  var cy=sh/2+offY;
+  var cx=ox+dims.totalPxW*s/2;
+  var cy=oy+sh/2;
 
   if(rot){
     ctx.save();
@@ -1034,6 +1034,7 @@ function drawCanvas(){
 
 
 
+
   // Apply zoom/pan via CSS transform
   dom.canvasWrap.style.transform='scale('+state.zoom+') translate('+state.panX+'px,'+state.panY+'px)';
 
@@ -1045,18 +1046,17 @@ function drawCanvas(){
   var shiftX=combined.shiftX*scale;
   var shiftY=combined.shiftY*scale;
   var gapPx=combined.gapPx*scale;
-  ctx.save();
-  ctx.translate(shiftX,shiftY);
   var ox=0;
   for(var i=0;i<screens.length;i++){
     var ss=screens[i],d=dimsArr[i];
     var sw=d.totalPxW*scale;
-    if(i>0){ctx.fillStyle='rgba(255,255,255,0.02)';ctx.fillRect(ox,0,gapPx,ch);}
-    drawOneScreen(ctx,scale,d,ox,ss);
+    var sx=ox+shiftX+(ss.offsetX||0)*scale;
+    var sy=shiftY+(ss.offsetY||0)*scale;
+    if(i>0){ctx.fillStyle='rgba(255,255,255,0.02)';ctx.fillRect(sx,sy,gapPx,d.totalPxH*scale);}
+    drawOneScreen(ctx,scale,d,sx,sy,ss);
     ox+=sw+gapPx;
   }
   drawGapLabels(ctx,scale,combined,dimsArr);
-  ctx.restore();
 
   // Annotations
   if(state.layers.annotations&&state.annotations.length){
@@ -1178,11 +1178,14 @@ function downloadPNG(){
   c.width=w;c.height=h;ctx.imageSmoothingEnabled=false;
   ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,w,h);
   var shiftX=combined.shiftX*s;
-  var ox=shiftX;
+  var shiftY=combined.shiftY*s;
+  var ox=0;
   for(var i=0;i<screens.length;i++){
     var ss=screens[i],d=dimsArr[i],sw=d.totalPxW*s;
-    if(i>0){ctx.fillStyle='rgba(255,255,255,0.02)';ctx.fillRect(ox,0,combined.gapPx*s,h);}
-    drawOneScreen(ctx,s,d,ox,ss);
+    var sx=ox+shiftX+(ss.offsetX||0)*s;
+    var sy=shiftY+(ss.offsetY||0)*s;
+    if(i>0){ctx.fillStyle='rgba(255,255,255,0.02)';ctx.fillRect(sx,sy,combined.gapPx*s,d.totalPxH*s);}
+    drawOneScreen(ctx,s,d,sx,sy,ss);
     ox+=sw+combined.gapPx*s;
   }
   drawRulers(ctx,s,combined,w,h);
