@@ -198,6 +198,15 @@ input::placeholder{color:var(--text-muted);font-size:12px}
               <input type="number" id="gapY" value="0" min="0" max="10000" step="1" placeholder="Y">
             </div>
           </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-up-down-left-right"></i> Смещение экрана (px)</label>
+            <input type="range" id="offsetXRange" min="-500" max="500" value="0" step="1" style="width:100%;margin-bottom:2px">
+            <input type="range" id="offsetYRange" min="-500" max="500" value="0" step="1" style="width:100%;margin-bottom:4px">
+            <div class="row-2">
+              <input type="number" id="offsetX" value="0" min="-5000" max="5000" step="1" placeholder="X" style="padding:4px 6px;font-size:12px">
+              <input type="number" id="offsetY" value="0" min="-5000" max="5000" step="1" placeholder="Y" style="padding:4px 6px;font-size:12px">
+            </div>
+          </div>
           <div class="row-2" style="margin-top:4px">
             <button class="btn btn-secondary btn-sm" id="btnMoveScreen"><i class="fa-regular fa-up-down-left-right"></i> Сдвиг</button>
             <button class="btn btn-secondary btn-sm" id="btnResetScreenPos"><i class="fa-regular fa-arrow-to-top"></i> Сброс</button>
@@ -606,6 +615,7 @@ function cacheDOM(){
   dom.btnMoveScreen=$('#btnMoveScreen');dom.btnResetScreenPos=$('#btnResetScreenPos');
   dom.btnResetRotation=$('#btnResetRotation');dom.btnRotateM90=$('#btnRotateM90');dom.btnRotateP90=$('#btnRotateP90');
   dom.screenRotation=$('#screenRotation');dom.screenRotationRange=$('#screenRotationRange');
+  dom.offsetX=$('#offsetX');dom.offsetY=$('#offsetY');dom.offsetXRange=$('#offsetXRange');dom.offsetYRange=$('#offsetYRange');
   dom.zoomIn=$('#zoomIn');dom.zoomOut=$('#zoomOut');dom.zoomReset=$('#zoomReset');dom.zoomLevel=$('#zoomLevel');
   dom.hotspotTooltip=$('#hotspot-tooltip');
 }
@@ -738,6 +748,8 @@ function syncInputs(){
   dom.colorPicker.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el.dataset.color===s.markerColor)});
   dom.screenRotation.value=s.rotation||0;
   dom.screenRotationRange.value=s.rotation||0;
+  dom.offsetX.value=s.offsetX||0;dom.offsetY.value=s.offsetY||0;
+  dom.offsetXRange.value=s.offsetX||0;dom.offsetYRange.value=s.offsetY||0;
   dom.screenName.value=s.screenName||s.name||'';dom.screenNameColor.value=s.screenNameColor;dom.screenNameBg.value=s.screenNameBg;
   dom.screenNameSwatch.style.background=s.screenNameColor;dom.screenNameBgSwatch.style.background=s.screenNameBg;
   dom.screenNameOpacity.value=s.screenNameOpacity;dom.showInfoLabel.checked=s.showInfoLabel;
@@ -784,6 +796,7 @@ function readInputs(){
   dom.screenNameBgSwatch.style.background=s.screenNameBg;dom.screenNameSwatch.style.background=s.screenNameColor;
   s.screenNameOpacity=parseInt(dom.screenNameOpacity.value,10)||50;s.showInfoLabel=dom.showInfoLabel.checked;
   s.rotation=parseFloat(dom.screenRotation.value)||0;
+  s.offsetX=parseInt(dom.offsetX.value,10)||0;s.offsetY=parseInt(dom.offsetY.value,10)||0;
   state.rulerMode=dom.rulerMode.checked;
   dom.canvasWrap.style.cursor=state.rulerMode?'crosshair':(state.rotateMode?'copy':(state.moveMode?'move':''));
   state.gapX=parseInt(dom.gapX.value,10)||0;state.gapY=parseInt(dom.gapY.value,10)||0;
@@ -1516,6 +1529,17 @@ dom.btnRotateP90.addEventListener('click',function(){
   pushUndo();queueRender();saveState();
 });
 
+// Offset controls
+function syncOffsetUI(vx,vy){
+  dom.offsetX.value=vx;dom.offsetXRange.value=vx;
+  dom.offsetY.value=vy;dom.offsetYRange.value=vy;
+  scr().offsetX=vx;scr().offsetY=vy;
+}
+dom.offsetXRange.addEventListener('input',function(){syncOffsetUI(parseInt(this.value)||0,parseInt(dom.offsetY.value)||0);queueRender();saveState();});
+dom.offsetYRange.addEventListener('input',function(){syncOffsetUI(parseInt(dom.offsetX.value)||0,parseInt(this.value)||0);queueRender();saveState();});
+dom.offsetX.addEventListener('input',function(){syncOffsetUI(parseInt(this.value)||0,parseInt(dom.offsetY.value)||0);queueRender();saveState();});
+dom.offsetY.addEventListener('input',function(){syncOffsetUI(parseInt(dom.offsetX.value)||0,parseInt(this.value)||0);queueRender();saveState();});
+
 // Move mode toggle
 var _moveScreenIdx=-1,_moveStartX=0,_moveStartY=0,_moveOrigX=0,_moveOrigY=0;
 dom.btnMoveScreen.addEventListener('click',function(){
@@ -1560,8 +1584,10 @@ document.addEventListener('mousemove',function(e){
   // For first screen, adjust offsetX/offsetY of the screen itself
   // For others, adjust gapX/gapY (which affects all screens to the right)
   if(_moveScreenIdx===0){
-    state.screens[0].offsetX=dx;
-    state.screens[0].offsetY=dy;
+    state.screens[0].offsetX=Math.round(dx);
+    state.screens[0].offsetY=Math.round(dy);
+    dom.offsetX.value=Math.round(dx);dom.offsetXRange.value=Math.round(dx);
+    dom.offsetY.value=Math.round(dy);dom.offsetYRange.value=Math.round(dy);
   }else{
     state.gapX=Math.max(0,_moveOrigX+dx);
     state.gapY=Math.max(0,_moveOrigY+dy);
