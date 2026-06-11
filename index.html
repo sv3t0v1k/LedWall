@@ -421,8 +421,8 @@ input::placeholder{color:var(--text-muted);font-size:12px}
       <div id="canvas-wrap">
         <canvas id="canvas"></canvas>
         <div class="canvas-info-overlay"><i class="fa-regular fa-up-down-left-right"></i> <span id="canvasSizeInfo">—</span></div>
-        <div id="hotspot-tooltip"></div>
       </div>
+      <div id="hotspot-tooltip"></div>
       <div class="zoom-controls">
         <button class="zoom-btn" id="zoomIn" title="Приблизить"><i class="fa-solid fa-plus"></i></button>
         <div class="zoom-level" id="zoomLevel">100%</div>
@@ -1277,15 +1277,12 @@ document.addEventListener('mouseup',function(e){
   _isPanning=false;dom.canvasWrap.classList.remove('panning');
 });
 
-// Hide hotspot tooltip on any click
-document.addEventListener('click',function(e){
-  if(e.target.closest&&!e.target.closest('#canvas-wrap')) dom.hotspotTooltip.classList.remove('visible');
-});
-
 // Hotspot - click to show module info
 dom.canvasWrap.addEventListener('click',function(e){
-  if(state.rulerMode||state.rotateMode||_isPanning)return;
-  var coords=toWallCoords(e);var scale=getCanvasScale(getCombinedDims());
+  if(state.rulerMode||state.rotateMode)return;
+  dom.hotspotTooltip.classList.remove('visible');
+  if(dom.hotspotTooltip._hideTimer)clearTimeout(dom.hotspotTooltip._hideTimer);
+  var coords=toWallCoords(e);
   var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
   var gapX=combined.gapPx;var ox=0;
   for(var i=0;i<screens.length;i++){
@@ -1300,11 +1297,12 @@ dom.canvasWrap.addEventListener('click',function(e){
         '<div class="h-row"><span class="h-label">Позиция</span><span class="h-value">'+(col+1)+'×'+(row+1)+'</span></div>'+
         '<div class="h-row"><span class="h-label">Поворот</span><span class="h-value">'+(rotated?'180°':'—')+'</span></div>'+
         '<div class="h-row"><span class="h-label">Pitch</span><span class="h-value">'+ss.pixelPitch+' мм</span></div>';
-      tip.style.left=Math.min(e.clientX-130,document.body.clientWidth-270)+'px';
-      tip.style.top=Math.max(4,Math.min(e.clientY-12,window.innerHeight-170))+'px';
-      tip.classList.add('visible');
-      var ttHint=setTimeout(function(){tip.classList.remove('visible')},2500);
-      tip._hideTimer=ttHint;
+      tip.style.left=Math.max(8,Math.min(e.clientX+14,document.documentElement.clientWidth-270))+'px';
+      tip.style.top=Math.max(8,Math.min(e.clientY-8,document.documentElement.clientHeight-190))+'px';
+      requestAnimationFrame(function(){
+        tip.classList.add('visible');
+        tip._hideTimer=setTimeout(function(){tip.classList.remove('visible')},2500);
+      });
       return;
     }
     ox+=sw+gapX;
