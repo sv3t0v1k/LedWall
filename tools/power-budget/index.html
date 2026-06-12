@@ -364,13 +364,29 @@ function getApparentPower(totalPower,pf){return Math.round(totalPower/(pf||0.9)/
 
 function autoBalance(){
   var phases={L1:0,L2:0,L3:0};
-  var sorted=state.devices.slice().sort(function(a,b){return (b.power*b.qty)-(a.power*a.qty)});
-  sorted.forEach(function(d){
-    var min=Object.keys(phases).sort(function(a,b){return phases[a]-phases[b]})[0];
-    d.phase=min;phases[min]+=d.power*d.qty;
+  var nextId=state.nextId;
+  var balanced=[];
+
+  function addBalanced(name,power,qty,pf,cat,phase){
+    var existing=balanced.find(function(b){
+      return b.name===name&&b.power===power&&b.pf===pf&&b.cat===cat&&b.phase===phase;
+    });
+    if(existing){existing.qty+=qty;return;}
+    balanced.push({id:nextId++,name:name,power:power,qty:qty,phase:phase,pf:pf,cat:cat});
+  }
+
+  state.devices.forEach(function(d){
+    for(var i=0;i<d.qty;i++){
+      var min=Object.keys(phases).sort(function(a,b){return phases[a]-phases[b]})[0];
+      addBalanced(d.name,d.power,1,d.pf,d.cat||'custom',min);
+      phases[min]+=d.power;
+    }
   });
+
+  state.devices=balanced;
+  state.nextId=nextId;
   saveState();render();
-  toast('Auto-Balance выполнен','success');
+  toast('Auto-Balance: каждый прибор распределён по фазам','success');
 }
 
 function render(){
