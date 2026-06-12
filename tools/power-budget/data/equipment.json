@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "Equipment power database",
+    "updated": "2026-06-12"
+  },
+  "presets": [
+    { "name": "Moving Head Beam",     "power": 350,  "cat": "light", "pf": 0.9 },
+    { "name": "Moving Head Wash",     "power": 400,  "cat": "light", "pf": 0.9 },
+    { "name": "LED Par 54",           "power": 150,  "cat": "light", "pf": 0.95 },
+    { "name": "Blinder 4-lite",       "power": 800,  "cat": "light", "pf": 1 },
+    { "name": "Atomic Strobe 3000",   "power": 600,  "cat": "light", "pf": 1 },
+    { "name": "LED Wash",             "power": 200,  "cat": "light", "pf": 0.95 },
+    { "name": "Laser RGB",            "power": 150,  "cat": "light", "pf": 0.85 },
+    { "name": "FollowSpot 2.5kW",     "power": 2500, "cat": "light", "pf": 0.9 },
+    { "name": "Line Array Element",   "power": 800,  "cat": "sound", "pf": 0.85 },
+    { "name": "Subwoofer Active",     "power": 1200, "cat": "sound", "pf": 0.85 },
+    { "name": "Monitor Wedge Active", "power": 500,  "cat": "sound", "pf": 0.85 },
+    { "name": "Amplifier Rack",       "power": 2000, "cat": "sound", "pf": 0.8 },
+    { "name": "Mixing Console",       "power": 500,  "cat": "sound", "pf": 0.9 },
+    { "name": "Stage Rack DSP",       "power": 300,  "cat": "sound", "pf": 0.9 },
+    { "name": "LED Wall Panel",       "power": 200,  "cat": "video", "pf": 0.95 },
+    { "name": "Video Projector",      "power": 1500, "cat": "video", "pf": 0.9 },
+    { "name": "Media Server",         "power": 1000, "cat": "video", "pf": 0.9 },
+    { "name": "Vision Mixer",         "power": 500,  "cat": "video", "pf": 0.9 },
+    { "name": "Hazer Machine",        "power": 400,  "cat": "fx",    "pf": 0.9 },
+    { "name": "Smoke Machine",        "power": 1500, "cat": "fx",    "pf": 1 },
+    { "name": "CO2 Jet",              "power": 2000, "cat": "fx",    "pf": 1 },
+    { "name": "Confetti Cannon",      "power": 100,  "cat": "fx",    "pf": 0.8 },
+    { "name": "Chain Hoist 1t",       "power": 2000, "cat": "rig",   "pf": 0.8 },
+    { "name": "Truss Motor",          "power": 1500, "cat": "rig",   "pf": 0.8 }
+  ],
+  "custom": []
+}

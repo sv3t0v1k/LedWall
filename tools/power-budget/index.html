@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Budget — GenMap Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--bg2:#0e0e16;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);--text:#f0f0f5;--text2:#8a8aa0;--text3:#5a5a72;--cyan:#00d4ff;--purple:#7c3aed;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--pink:#ec4899;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15);--rs:8px;--rm:12px;--rl:16px;--t:.2s ease;--font:'Inter',-apple-system,sans-serif;--sb:360px}
+html,body{height:100%;overflow:hidden}
+body{opacity:0;transition:opacity .5s ease;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body.loaded{opacity:1}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+#app{display:flex;height:100vh;width:100vw;overflow:hidden}
+#sidebar{width:var(--sb);min-width:var(--sb);height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-header{padding:16px 18px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06))}
+.sidebar-header i{font-size:20px;color:var(--cyan);filter:drop-shadow(0 0 8px rgba(0,212,255,0.3))}
+.sidebar-header h1{font-size:15px;font-weight:700;letter-spacing:-.3px;background:linear-gradient(135deg,#f0f0f5,#8a8aa0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-header h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-scroll{padding:12px 14px 20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--bg-card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--rl);transition:transform var(--t),box-shadow var(--t),border-color var(--t)}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow),var(--glow);border-color:var(--border-hover)}
+.card-header{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);border-bottom:1px solid rgba(255,255,255,0.04)}
+.card-header i{font-size:11px;color:var(--cyan)}
+.card-body{padding:10px 14px 14px}
+.form-group{margin-bottom:8px}
+.form-group:last-child{margin-bottom:0}
+.form-label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--text2);margin-bottom:3px;letter-spacing:.2px}
+.form-label i{font-size:9px;color:var(--cyan);width:12px;text-align:center}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+input[type="number"],input[type="text"],select{width:100%;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:12px;transition:border-color var(--t),box-shadow var(--t);outline:none;-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a8aa0'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;font-size:12px}
+select option{background:#14141f;color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;border:none;border-radius:var(--rs);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;transition:all var(--t);position:relative;overflow:hidden;user-select:none;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0090b3);color:#0a0a0f}
+.btn-primary:hover{box-shadow:0 0 20px rgba(0,212,255,0.3);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);color:var(--text);border-color:var(--border-hover)}
+.btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--red)}
+.btn-danger:hover{background:rgba(239,68,68,0.2)}
+.btn-block{width:100%}
+.btn-sm{padding:5px 8px;font-size:10px}
+.preset-grid{display:flex;flex-wrap:wrap;gap:4px}
+.preset-chip{padding:3px 8px;font-size:10px;font-weight:500;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text3);cursor:pointer;transition:all var(--t);user-select:none;white-space:nowrap}
+.preset-chip:hover{background:rgba(0,212,255,0.08);border-color:var(--cyan);color:var(--cyan)}
+.table-wrap{overflow-x:auto;margin-top:6px;border-radius:var(--rs);border:1px solid rgba(255,255,255,0.04)}
+.dev-table{width:100%;border-collapse:collapse;font-size:11px}
+.dev-table th{text-align:left;padding:5px 6px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:600;background:rgba(255,255,255,0.02);white-space:nowrap}
+.dev-table td{padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text2);font-size:10px;vertical-align:middle}
+.dev-table tr:hover td{background:rgba(255,255,255,0.02)}
+.dev-table .cat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.dev-table input, .dev-table select{background:transparent;border:1px solid transparent;color:var(--text);font-family:var(--font);font-size:10px;padding:2px 3px;border-radius:3px;width:100%;min-width:28px;outline:none;transition:border-color var(--t)}
+.dev-table input:focus, .dev-table select:focus{border-color:var(--cyan);background:rgba(0,212,255,0.04)}
+.dev-table select{background-image:none;padding:2px 3px}
+.dev-table .phase-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+.dev-table .phase-L1{background:rgba(0,212,255,0.12);color:var(--cyan)}
+.dev-table .phase-L2{background:rgba(245,158,11,0.12);color:var(--orange)}
+.dev-table .phase-L3{background:rgba(16,185,129,0.12);color:var(--green)}
+.dev-table .phase-auto{background:rgba(255,255,255,0.04);color:var(--text3)}
+.dev-table .actions{display:flex;gap:2px}
+.dev-table .actions button{padding:2px 4px;font-size:9px;border:none;border-radius:3px;cursor:pointer;background:rgba(255,255,255,0.04);color:var(--text3);transition:all var(--t)}
+.dev-table .actions button:hover{background:rgba(0,212,255,0.1);color:var(--cyan)}
+.dev-table .actions .btn-del:hover{background:rgba(239,68,68,0.15);color:var(--red)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.stat-item{background:rgba(255,255,255,0.03);border-radius:var(--rs);padding:6px 8px;display:flex;align-items:center;gap:6px}
+.stat-item i{font-size:12px;width:16px;text-align:center}
+.stat-item .stat-info{display:flex;flex-direction:column}
+.stat-item .stat-label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.stat-item .stat-value{font-size:13px;font-weight:600}
+.phase-preview{margin-top:6px}
+.phase-preview-item{display:flex;align-items:center;gap:6px;margin-bottom:2px;font-size:10px}
+.phase-preview-item .pp-name{color:var(--text2);min-width:22px;font-weight:600}
+.phase-preview-item .pp-val{color:var(--text3);min-width:50px;text-align:right;font-size:9px}
+/* Main */
+#main{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#viewer{padding:16px 20px;overflow-y:auto;flex:1}
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.summary-card{background:var(--bg-card);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--rm);padding:16px;text-align:center}
+.summary-card .sc-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.summary-card .sc-value{font-size:28px;font-weight:700;letter-spacing:-1px}
+.summary-card .sc-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.summary-card.total .sc-value{background:linear-gradient(135deg,var(--cyan),#0090b3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.summary-card.generator .sc-value{color:var(--orange)}
+.summary-card.headroom .sc-value{color:var(--green)}
+/* Phase bars */
+.phase-section{margin-bottom:16px}
+.phase-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rm);padding:14px;margin-bottom:8px}
+.phase-card:last-child{margin-bottom:0}
+.phase-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.phase-label{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.phase-stats{display:flex;gap:12px;font-size:11px}
+.phase-stat{color:var(--text2)}
+.phase-stat strong{color:var(--text);font-weight:600}
+.phase-bar-wrap{height:32px;border-radius:6px;overflow:hidden;display:flex;background:rgba(255,255,255,0.02)}
+.phase-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:7px;color:rgba(255,255,255,0.8);font-weight:600;cursor:pointer;transition:opacity .15s;overflow:hidden;position:relative;min-width:2px}
+.phase-seg:hover{opacity:.85;z-index:2}
+.phase-seg .seg-tooltip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(10,10,15,0.95);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.4);min-width:80px;text-align:center}
+.phase-seg:hover .seg-tooltip{opacity:1}
+.phase-empty{color:var(--text3);font-size:11px;padding:8px;text-align:center}
+/* Summary table */
+.summary-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
+.summary-table th{text-align:left;padding:5px 8px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.summary-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text2);font-size:11px}
+.summary-table td:last-child{text-align:right;font-weight:600;color:var(--text)}
+/* Cable calculator */
+.cable-section{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.cable-section h3{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.cable-section h3 i{color:var(--cyan);font-size:13px}
+.cable-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.cable-result{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);border-radius:var(--rs);padding:10px;margin-top:6px}
+.cable-result .cr-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:var(--text2)}
+.cable-result .cr-row strong{color:var(--text)}
+.cable-result .cr-head{font-weight:700;color:var(--cyan);font-size:14px;margin-bottom:4px;display:block}
+.cable-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10px}
+.cable-table th{text-align:center;padding:4px 6px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.cable-table td{text-align:center;padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text2)}
+.cable-table tr.current td{background:rgba(0,212,255,0.06);font-weight:600;color:var(--text)}
+.cable-table tr.current td:first-child{color:var(--cyan)}
+/* Actions */
+.actions{display:flex;flex-direction:column;gap:5px}
+.actions .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+/* Toast / Modal (same as DMX) */
+#toast-container{position:fixed;top:12px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{pointer-events:auto;padding:8px 14px;border-radius:var(--rm);backdrop-filter:blur(16px);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.5);transform:translateX(120%);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);max-width:360px;border:1px solid}
+.toast.show{transform:translateX(0);opacity:1}
+.toast-success{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:var(--green)}
+.toast-error{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:var(--red)}
+.toast-info{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.2);color:var(--cyan)}
+.toast i{font-size:14px}
+.toast .toast-close{margin-left:auto;cursor:pointer;opacity:.5;background:none;border:none;color:inherit;padding:0 4px;font-size:11px}
+.toast-close:hover{opacity:1}
+#modal-overlay{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+#modal-overlay.open{display:flex}
+#modal{background:linear-gradient(145deg,#14141f,#1a1a2e);border:1px solid var(--border);border-radius:var(--rl);padding:20px;max-width:400px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.6)}
+#modal h3{font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+#modal p{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5}
+#modal .btn-row{display:flex;gap:6px;justify-content:flex-end}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+/* Responsive */
+@media(max-width:900px){#sidebar{width:300px;min-width:300px}#viewer{padding:12px}}
+@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.summary-grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr}.cable-grid{grid-template-columns:1fr}}
+@media(max-width:480px){#sidebar{max-height:40vh}.sidebar-scroll{padding:8px;gap:6px}.row-2,.row-3,.row-4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;color:var(--text3);text-decoration:none;font-size:10px;margin-right:4px;transition:color .2s" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color=''"><i class="fa-solid fa-arrow-left"></i></a>
+      <i class="fa-solid fa-bolt"></i>
+      <h1>Power <span>Budget</span></h1>
+    </div>
+    <div class="sidebar-scroll">
+
+      <!-- Add device -->
+      <div class="card">
+        <div class="card-header"><i class="fa-solid fa-plus"></i> Добавить оборудование</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-tag"></i> Название</label>
+            <input type="text" id="devName" placeholder="Название прибора" maxlength="40">
+          </div>
+          <div class="row-3">
+            <div class="form-group">
+              <label class="form-label">Вт (ед)</label>
+              <input type="number" id="devPower" value="100" min="1" max="100000" step="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Кол-во</label>
+              <input type="number" id="devQty" value="1" min="1" max="999" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">PF</label>
+              <input type="number" id="devPF" value="0.9" min="0.5" max="1" step="0.05">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-arrows-split"></i> Фаза</label>
+            <select id="devPhase"><option value="auto">Auto (L1/L2/L3)</option><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option></select>
+          </div>
+          <button class="btn btn-primary btn-block btn-sm" id="btnAddDevice"><i class="fa-regular fa-plus"></i> Добавить</button>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-bookmark"></i> Пресеты</div>
+        <div class="card-body">
+          <div class="preset-grid" id="presetGrid"></div>
+        </div>
+      </div>
+
+      <!-- Device table -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-table-list"></i> Оборудование <span id="devCount" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);margin-left:4px"></span></div>
+        <div class="card-body" style="padding-bottom:8px">
+          <div id="devTableWrap" class="table-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-chart-simple"></i> Статистика</div>
+        <div class="card-body">
+          <div class="stat-grid" id="statGrid"></div>
+          <div class="phase-preview" id="phasePreview"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="card-body actions">
+          <button class="btn btn-primary btn-sm btn-block" id="btnBalance"><i class="fa-regular fa-scale-balanced"></i> Auto-Balance</button>
+          <button class="btn btn-secondary btn-sm btn-block" id="btnCalcToggle"><i class="fa-regular fa-cable-car"></i> Калькулятор кабеля</button>
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-sm" id="btnRefresh"><i class="fa-regular fa-rotate"></i> Обновить</button>
+            <button class="btn btn-secondary btn-sm" id="btnExportCSV"><i class="fa-regular fa-file-csv"></i> CSV</button>
+          </div>
+          <button class="btn btn-danger btn-sm btn-block" id="btnReset"><i class="fa-regular fa-trash-can"></i> Сброс</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="viewer">
+
+      <!-- Summary cards -->
+      <div class="summary-grid" id="summaryGrid"></div>
+
+      <!-- Phase bars -->
+      <div class="phase-section" id="phaseSection"></div>
+
+      <!-- Summary table -->
+      <div id="summaryTableWrap"></div>
+
+      <!-- Cable calculator -->
+      <div id="cableSection" class="cable-section" style="display:none"></div>
+
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <h3><i class="fa-regular fa-triangle-exclamation"></i> Сбросить всё?</h3>
+    <p>Все устройства и настройки будут удалены.</p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="modalCancel">Отмена</button>
+      <button class="btn btn-danger" id="modalConfirm"><i class="fa-regular fa-trash-can"></i> Сбросить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var V_PHASE = 230;
+var V_LINE = 400;
+var GAMMA = 57;
+
+var CAT_COLORS = {
+  light: '#eab308', sound: '#3b82f6', video: '#ef4444',
+  fx: '#a855f7', rig: '#f97316'
+};
+
+var CABLE_SPECS = [
+  { mm2: 1.5,  amp: 10  }, { mm2: 2.5,  amp: 16  }, { mm2: 4,    amp: 25  },
+  { mm2: 6,    amp: 32  }, { mm2: 10,   amp: 42  }, { mm2: 16,   amp: 63  },
+  { mm2: 25,   amp: 80  }, { mm2: 35,   amp: 100 }, { mm2: 50,   amp: 125 },
+  { mm2: 70,   amp: 160 }, { mm2: 95,   amp: 200 }
+];
+
+var DEFAULT_PRESETS = [
+  {name:'Moving Head Beam',power:350,cat:'light',pf:0.9},{name:'Moving Head Wash',power:400,cat:'light',pf:0.9},
+  {name:'LED Par 54',power:150,cat:'light',pf:0.95},{name:'Blinder 4-lite',power:800,cat:'light',pf:1},
+  {name:'LED Wash',power:200,cat:'light',pf:0.95},{name:'Hazer Machine',power:400,cat:'fx',pf:0.9},
+  {name:'Line Array Element',power:800,cat:'sound',pf:0.85},{name:'Subwoofer Active',power:1200,cat:'sound',pf:0.85},
+  {name:'Monitor Wedge',power:500,cat:'sound',pf:0.85},{name:'LED Wall Panel',power:200,cat:'video',pf:0.95},
+  {name:'Video Projector',power:1500,cat:'video',pf:0.9},{name:'Chain Hoist',power:2000,cat:'rig',pf:0.8}
+];
+
+var state = {devices:[],nextId:1,cableDist:50,cableDrop:3};
+var cableVisible = false;
+var presets = [];
+
+function $(s){return document.querySelector(s)}
+function deepClone(o){return JSON.parse(JSON.stringify(o))}
+
+function toast(m,t,d){t=t||'success';d=d||3000;var icons={success:'fa-regular fa-circle-check',error:'fa-regular fa-circle-xmark',info:'fa-regular fa-circle-info'};var c=$('#toast-container');var el=document.createElement('div');el.className='toast toast-'+t;el.innerHTML='<i class="'+(icons[t]||icons.info)+'"></i><span>'+m+'</span><button class="toast-close">&times;</button>';c.appendChild(el);requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show')})});var close=function(){el.classList.remove('show');setTimeout(function(){el.remove()},400)};el.querySelector('.toast-close').addEventListener('click',close);setTimeout(close,d)}
+
+function saveState(){try{localStorage.setItem('pw_state',JSON.stringify(state))}catch(e){}}
+function loadState(){
+  try{var raw=localStorage.getItem('pw_state');if(raw){state=Object.assign({devices:[],nextId:1,cableDist:50,cableDrop:3},JSON.parse(raw));return}}catch(e){}
+  state={devices:[],nextId:1,cableDist:50,cableDrop:3};
+}
+function loadLibrary(){
+  fetch('data/equipment.json').then(function(r){return r.json()}).then(function(d){presets=(d.presets||[]).slice();renderPresets()}).catch(function(){presets=DEFAULT_PRESETS.slice();renderPresets()});
+}
+
+// CRUD
+function addDevice(name,power,qty,phase,pf){
+  if(!name||!power||!qty){toast('Заполните поля','error');return null;}
+  power=parseInt(power,10);qty=parseInt(qty,10);pf=parseFloat(pf)||0.9;
+  if(power<1||qty<1){toast('Некорректные значения','error');return null;}
+  var d={id:state.nextId++,name:name,power:power,qty:qty,phase:phase||'auto',pf:pf,cat:'custom'};
+  state.devices.push(d);
+  saveState();render();toast('Добавлено: '+name,'success');
+  return d;
+}
+function removeDevice(id){state.devices=state.devices.filter(function(d){return d.id!==id});saveState();render()}
+function moveDevice(id,dir){
+  var i=state.devices.findIndex(function(d){return d.id===id});
+  if(i<0)return;var j=i+(dir==='up'?-1:1);
+  if(j<0||j>=state.devices.length)return;
+  var tmp=state.devices[i];state.devices[i]=state.devices[j];state.devices[j]=tmp;saveState();render();
+}
+function updateDevice(id,field,val){
+  var d=state.devices.find(function(x){return x.id===id});if(!d)return;
+  if(field==='name')d.name=String(val).trim()||d.name;
+  else if(field==='power'){var v=parseInt(val,10);if(v>0)d.power=v;}
+  else if(field==='qty'){var v=parseInt(val,10);if(v>0)d.qty=v;}
+  else if(field==='phase'){if(['L1','L2','L3','auto'].indexOf(val)>=0)d.phase=val;}
+  else if(field==='pf'){var v=parseFloat(val);if(v>=0.5&&v<=1)d.pf=v;}
+  saveState();render();
+}
+
+// Phase calculations
+function getPhasePower(){
+  var p={L1:0,L2:0,L3:0};
+  state.devices.forEach(function(d){
+    var ph=d.phase==='auto'?'L1':d.phase;
+    p[ph]+=d.power*d.qty;
+  });
+  return p;
+}
+function getPhaseDevices(){
+  var d={L1:[],L2:[],L3:[]};
+  state.devices.forEach(function(dev){
+    d[dev.phase==='auto'?'L1':dev.phase].push(dev);
+  });
+  return d;
+}
+function getTotalPower(){var t=0;state.devices.forEach(function(d){t+=d.power*d.qty});return t}
+function getPhaseCurrent(power){return Math.round(power/V_PHASE*10)/10}
+function getLineCurrent(totalPower,pf){return Math.round(totalPower/(Math.sqrt(3)*V_LINE*(pf||0.9))*10)/10}
+function getApparentPower(totalPower,pf){return Math.round(totalPower/(pf||0.9)/10)/10}
+
+function autoBalance(){
+  var phases={L1:0,L2:0,L3:0};
+  var sorted=state.devices.slice().sort(function(a,b){return (b.power*b.qty)-(a.power*a.qty)});
+  sorted.forEach(function(d){
+    var min=Object.keys(phases).sort(function(a,b){return phases[a]-phases[b]})[0];
+    d.phase=min;phases[min]+=d.power*d.qty;
+  });
+  saveState();render();
+  toast('Auto-Balance выполнен','success');
+}
+
+function render(){
+  renderDevTable();
+  renderStats();
+  renderSummary();
+  renderPhases();
+  renderCableCalc();
+  var c=state.devices.length;
+  $('#devCount').textContent=c?'('+c+')':'';
+}
+
+function renderDevTable(){
+  var wrap=$('#devTableWrap');
+  if(state.devices.length===0){wrap.innerHTML='<div style="font-size:11px;color:var(--text3);padding:12px;text-align:center">Оборудования пока нет</div>';return;}
+  wrap.innerHTML='<table class="dev-table"><thead><tr><th>#</th><th>Название</th><th>Вт</th><th>×</th><th>Всего</th><th>Фаза</th><th style="width:46px"></th></tr></thead><tbody>'+state.devices.map(function(d,i){
+    var total=d.power*d.qty;
+    var phClass=d.phase==='auto'?'phase-auto':'phase-'+d.phase;
+    return '<tr data-id="'+d.id+'"><td>'+(i+1)+'</td>'+
+      '<td><input data-field="name" value="'+d.name.replace(/"/g,'&quot;')+'" title="Редактировать"></td>'+
+      '<td><input type="number" data-field="power" value="'+d.power+'" min="1"></td>'+
+      '<td><input type="number" data-field="qty" value="'+d.qty+'" min="1"></td>'+
+      '<td style="font-weight:600;color:var(--text)">'+total+'</td>'+
+      '<td><select data-field="phase"><option value="auto"'+(d.phase==='auto'?' selected':'')+'>Auto</option><option value="L1"'+(d.phase==='L1'?' selected':'')+'>L1</option><option value="L2"'+(d.phase==='L2'?' selected':'')+'>L2</option><option value="L3"'+(d.phase==='L3'?' selected':'')+'>L3</option></select></td>'+
+      '<td class="actions"><button class="btn-move-up" data-id="'+d.id+'" title="Вверх"><i class="fa-solid fa-chevron-up"></i></button><button class="btn-move-down" data-id="'+d.id+'" title="Вниз"><i class="fa-solid fa-chevron-down"></i></button><button class="btn-del" data-id="'+d.id+'" title="Удалить"><i class="fa-solid fa-xmark"></i></button></td></tr>';
+  }).join('')+'</tbody></table>';
+
+  wrap.querySelectorAll('input').forEach(function(inp){
+    inp.addEventListener('blur',function(){var tr=this.closest('tr');if(tr)updateDevice(parseInt(tr.dataset.id,10),this.dataset.field,this.value)});
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')this.blur();if(e.key==='Escape'){this.value=this.defaultValue;this.blur()}});
+  });
+  wrap.querySelectorAll('select').forEach(function(sel){
+    sel.addEventListener('change',function(){var tr=this.closest('tr');if(tr)updateDevice(parseInt(tr.dataset.id,10),this.dataset.field,this.value)});
+  });
+  wrap.querySelectorAll('.btn-move-up').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();moveDevice(parseInt(this.dataset.id,10),'up')})});
+  wrap.querySelectorAll('.btn-move-down').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();moveDevice(parseInt(this.dataset.id,10),'down')})});
+  wrap.querySelectorAll('.btn-del').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();removeDevice(parseInt(this.dataset.id,10))})});
+}
+
+function renderStats(){
+  var grid=$('#statGrid');var preview=$('#phasePreview');
+  var total=getTotalPower();
+  var pp=getPhasePower();
+  var phases=[{n:'L1',w:pp.L1},{n:'L2',w:pp.L2},{n:'L3',w:pp.L3}];
+  var max=Math.max(pp.L1,pp.L2,pp.L3,1);
+  var maxA=getPhaseCurrent(max);
+  var totalA=getPhaseCurrent(total);
+  var maxDev={name:'—',power:0};
+  state.devices.forEach(function(d){if(d.power*d.qty>maxDev.power)maxDev={name:d.name,power:d.power*d.qty}});
+  grid.innerHTML='<div class="stat-item"><i class="fa-regular fa-bolt" style="color:var(--cyan)"></i><div class="stat-info"><span class="stat-label">Всего</span><span class="stat-value">'+(total/1000).toFixed(1)+' <span style="font-size:10px;font-weight:400;color:var(--text3)">kW</span></span></div></div>'+
+    '<div class="stat-item"><i class="fa-regular fa-waveform" style="color:var(--purple)"></i><div class="stat-info"><span class="stat-label">Ток макс.</span><span class="stat-value">'+maxA+' <span style="font-size:10px;font-weight:400;color:var(--text3)">A</span></span></div></div>'+
+    '<div class="stat-item"><i class="fa-regular fa-cube" style="color:var(--orange)"></i><div class="stat-info"><span class="stat-label">Устройств</span><span class="stat-value">'+state.devices.length+'</span></div></div>'+
+    '<div style="background:rgba(255,255,255,0.03);border-radius:var(--rs);padding:6px 8px;display:flex;align-items:center;gap:6px"><i class="fa-regular fa-arrow-trend-up" style="color:var(--red);font-size:12px;width:16px;text-align:center"></i><div class="stat-info"><span class="stat-label">Макс. потребитель</span><span class="stat-value" style="font-size:11px">'+(maxDev.power>0?maxDev.name+' ('+maxDev.power+' Вт)':'—')+'</span></div></div>';
+  preview.innerHTML=phases.map(function(p){
+    var pct=Math.round(p.w/max*100);
+    return '<div class="phase-preview-item"><span class="pp-name" style="color:'+(p.n==='L1'?'var(--cyan)':p.n==='L2'?'var(--orange)':'var(--green)')+'">'+p.n+'</span><div style="flex:1;height:6px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(p.n==='L1'?'var(--cyan)':p.n==='L2'?'var(--orange)':'var(--green)')+';border-radius:3px"></div></div><span class="pp-val">'+(p.w/1000).toFixed(1)+' kW</span></div>';
+  }).join('');
+}
+
+function renderSummary(){
+  var grid=$('#summaryGrid');
+  var phases=['L1','L2','L3'];
+  var pp=getPhasePower();
+  var total=getTotalPower();
+  var pc=phases.map(function(p){return{name:p,power:pp[p],current:getPhaseCurrent(pp[p])}});
+  var maxPhase=pc.slice().sort(function(a,b){return b.power-a.power})[0];
+  var avg=total/3;
+  var imbalance=phases.map(function(p){return{name:p,dev:pp[p]-avg}});
+  var totalPfc=state.devices.reduce(function(s,d){return s+d.pf},0);
+  var avgPf=state.devices.length>0?(state.devices.reduce(function(s,d){return s+d.pf},0)/state.devices.length):0.9;
+  var appPower=getApparentPower(total,avgPf);
+  var genRec=Math.ceil(appPower*1.25/5)*5;
+
+  grid.innerHTML=
+    '<div class="summary-card total"><div class="sc-label">Общая нагрузка</div><div class="sc-value">'+(total/1000).toFixed(1)+'</div><div class="sc-sub">'+total+' W &middot; '+getPhaseCurrent(total)+' A/ф</div></div>'+
+    '<div class="summary-card headroom"><div class="sc-label">Макс. фаза</div><div class="sc-value" style="color:var(--orange)">'+maxPhase.name+'</div><div class="sc-sub">'+(maxPhase.power/1000).toFixed(1)+' kW &middot; '+maxPhase.current+' A</div></div>'+
+    '<div class="summary-card generator"><div class="sc-label">Рекомендация</div><div class="sc-value" style="font-size:22px">'+appPower+'</div><div class="sc-sub">kVA &rarr; генератор от '+genRec+' kVA</div></div>';
+
+  var imbalanceMax=0;
+  imbalance.forEach(function(p){if(p.dev>0)imbalanceMax=Math.max(imbalanceMax,Math.round(p.dev/maxPhase.power*100));});
+  var tbl=$('#summaryTableWrap');
+  tbl.innerHTML='<table class="summary-table"><thead><tr><th>Фаза</th><th>Мощность</th><th>Ток</th><th>Дисбаланс</th><th>kVA</th></tr></thead><tbody>'+
+    pc.map(function(p){
+      var imb=imbalance.find(function(x){return x.name===p.name});
+      var ib=imb?Math.round(imb.dev/maxPhase.power*100):0;
+      var ibStr=ib>0?'<span style="color:var(--red)">+'+ib+'%</span>':ib<0?'<span style="color:var(--green)">'+ib+'%</span>':'<span style="color:var(--text3)">—</span>';
+      var col=p.name==='L1'?'var(--cyan)':p.name==='L2'?'var(--orange)':'var(--green)';
+      return '<tr><td style="color:'+col+';font-weight:600">'+p.name+'</td><td>'+(p.power/1000).toFixed(2)+' kW</td><td>'+p.current+' A</td><td>'+ibStr+'</td><td>'+(getApparentPower(p.power,avgPf)).toFixed(1)+'</td></tr>';
+    }).join('')+
+    '<tr><td style="font-weight:700;color:var(--text)">Total</td><td style="font-weight:700;color:var(--text)">'+(total/1000).toFixed(2)+' kW</td><td style="font-weight:700;color:var(--text)">'+(getPhaseCurrent(total))+' A</td><td style="font-weight:700;color:var(--text)"></td><td style="font-weight:700;color:var(--cyan)">'+appPower+' kVA</td></tr>'+
+    '</tbody></table>';
+}
+
+function renderPhases(){
+  var section=$('#phaseSection');
+  var phases=['L1','L2','L3'];
+  var pp=getPhasePower();
+  var maxPower=Math.max(pp.L1,pp.L2,pp.L3,1);
+  var devs=getPhaseDevices();
+
+  section.innerHTML=phases.map(function(ph){
+    var pwr=pp[ph];var pct=Math.round(pwr/maxPower*100);
+    var col=ph==='L1'?'var(--cyan)':ph==='L2'?'var(--orange)':'var(--green)';
+    var cur=getPhaseCurrent(pwr);
+    var items=devs[ph];
+    var totalItems=items.reduce(function(s,d){return s+d.qty},0);
+    var barHtml='';
+    if(items.length===0){
+      barHtml='<div class="phase-empty">Нет оборудования</div>';
+    }else{
+      barHtml='<div class="phase-bar-wrap">'+items.map(function(d){
+        var segW=Math.max(2,Math.round(d.power*d.qty/maxPower*100));
+        var cat=d.cat||'custom';
+        var bg=CAT_COLORS[cat]||'#8a8aa0';
+        var totalW=d.power*d.qty;
+        return '<div class="phase-seg" style="flex:0 0 '+segW+'%;background:'+bg+'" title="'+d.name+' | '+(d.power)+' Вт × '+d.qty+' = '+totalW+' Вт"><span class="seg-tooltip">'+d.name+'<br>'+(d.power)+' Вт × '+d.qty+'<br>Всего: <strong>'+(totalW/1000).toFixed(2)+' kW</strong></span></div>';
+      }).join('')+'</div>';
+    }
+    return '<div class="phase-card"><div class="phase-header"><div class="phase-label" style="color:'+col+'">'+ph+' <span style="font-size:9px;color:var(--text3);font-weight:400">'+totalItems+' ед.</span></div><div class="phase-stats"><span class="phase-stat"><strong>'+(pwr/1000).toFixed(2)+'</strong> kW</span><span class="phase-stat"><strong>'+cur+'</strong> A</span></div></div>'+barHtml+'</div>';
+  }).join('');
+}
+
+function renderCableCalc(){
+  var sec=$('#cableSection');
+  if(!cableVisible){sec.style.display='none';return;}
+  var pp=getPhasePower();
+  var maxPhase=Math.max(pp.L1,pp.L2,pp.L3);
+  var maxCur=getPhaseCurrent(maxPhase);
+  var dist=state.cableDist||50;
+  var drop=state.cableDrop||3;
+
+  // Find cable
+  var rec=null;
+  for(var i=0;i<CABLE_SPECS.length;i++){if(CABLE_SPECS[i].amp>=maxCur){rec=CABLE_SPECS[i];break;}}
+  if(!rec)rec=CABLE_SPECS[CABLE_SPECS.length-1];
+
+  // Voltage drop for recommended cable
+  var avgPf=state.devices.length>0?state.devices.reduce(function(s,d){return s+d.pf},0)/state.devices.length:0.9;
+  var dropV=2*maxCur*dist*avgPf/(GAMMA*rec.mm2);
+  var dropPct=Math.round(dropV/V_PHASE*1000)/10;
+  var ok=dropPct<=drop;
+  var cee=maxCur<=16?'16A CEE':maxCur<=32?'32A CEE':maxCur<=63?'63A CEE':maxCur<=80?'63A CEE':'125A CEE';
+
+  sec.style.display='block';
+  sec.innerHTML='<h3><i class="fa-regular fa-cable-car"></i> Калькулятор кабеля</h3>'+
+    '<div class="cable-grid"><div class="form-group"><label class="form-label"><i class="fa-regular fa-ruler"></i> Длина линии (м)</label><input type="number" id="cableDist" value="'+dist+'" min="1" max="1000"></div>'+
+    '<div class="form-group"><label class="form-label"><i class="fa-regular fa-percent"></i> Падение макс. (%)</label><input type="number" id="cableDrop" value="'+drop+'" min="1" max="10" step="0.5"></div></div>'+
+    '<div class="cable-result"><span class="cr-head'+(ok?'':' style="color:var(--orange)"')+' '+(ok?'':'')+'">'+(rec?rec.mm2:'—')+' mm²</span>'+
+    '<div class="cr-row"><span>Ток фазы (макс)</span><strong>'+maxCur+' A</strong></div>'+
+    '<div class="cr-row"><span>Кабель</span><strong>'+rec.mm2+' mm² CU</strong></div>'+
+    '<div class="cr-row"><span>Допуст. ток</span><strong>'+rec.amp+' A</strong></div>'+
+    '<div class="cr-row"><span>Падение на '+dist+'м</span><strong style="color:'+(ok?'var(--green)':'var(--red)')+'">'+dropPct+'%'+(ok?' ✓':' ✗')+'</strong></div>'+
+    '<div class="cr-row"><span>Разъём CEE</span><strong>'+cee+'</strong></div></div>'+
+    '<table class="cable-table"><thead><tr><th>Сечение</th><th>Ток</th><th>Падение на '+dist+'м</th><th>Статус</th></tr></thead><tbody>'+
+    CABLE_SPECS.map(function(c){
+      var dv=2*maxCur*avgPf*dist/(GAMMA*c.mm2);
+      var dp=Math.round(dv/V_PHASE*1000)/10;
+      var ro=c.amp>=maxCur?(dp<=drop?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--orange)">+сеч.</span>'):'<span style="color:var(--red)">✗</span>';
+      var cls=c===rec?' class="current"':'';
+      return '<tr'+cls+'><td>'+(c.m2||c.mm2).toFixed(1)+'</td><td>'+c.amp+' A</td><td>'+(dp>0?dp+'%':'—')+'</td><td>'+ro+'</td></tr>';
+    }).join('')+'</tbody></table>';
+
+  $('#cableDist').addEventListener('input',function(){state.cableDist=parseInt(this.value,10)||50;renderCableCalc();saveState()});
+  $('#cableDrop').addEventListener('input',function(){state.cableDrop=parseFloat(this.value)||3;renderCableCalc();saveState()});
+}
+
+function renderPresets(){
+  var grid=$('#presetGrid');if(!grid)return;
+  var all=presets.slice();
+  try{var raw=localStorage.getItem('pw_custom');if(raw){var c=JSON.parse(raw);c.forEach(function(p){all.push(p)})}}catch(e){}
+  grid.innerHTML=all.map(function(p){
+    return '<span class="preset-chip" data-power="'+p.power+'" data-pf="'+p.pf+'" data-name="'+p.name.replace(/"/g,'&quot;')+'" data-cat="'+p.cat+'">'+p.name+'</span>';
+  }).join('');
+  grid.querySelectorAll('.preset-chip').forEach(function(chip){
+    chip.addEventListener('click',function(){
+      $('#devName').value=this.dataset.name;$('#devPower').value=this.dataset.power;$('#devQty').value='4';$('#devPF').value=this.dataset.pf;
+      $('#devName').focus();toast('Пресет: '+this.dataset.name,'info');
+    });
+  });
+}
+
+function exportCSV(){
+  var lines=['#,Name,Power(W),Qty,Total(W),Phase,PF,Cat'];
+  state.devices.forEach(function(d,i){lines.push((i+1)+',"'+d.name+'",'+d.power+','+d.qty+','+(d.power*d.qty)+','+d.phase+','+d.pf.toFixed(2)+','+(d.cat||'custom'))});
+  var csv=lines.join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(csv).then(function(){toast('CSV скопирован','success')}).catch(function(){fallbackCopy(csv)})}else{fallbackCopy(csv)}
+}
+function fallbackCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('CSV скопирован','success')}catch(e){toast('Ошибка','error')}document.body.removeChild(ta)}
+
+// Ripple
+document.querySelectorAll('.btn').forEach(function(b){
+  b.addEventListener('click',function(e){
+    var r=b.getBoundingClientRect();var s=Math.max(r.width,r.height);
+    var sp=document.createElement('span');sp.className='ripple';
+    sp.style.width=sp.style.height=s+'px';sp.style.left=(e.clientX-r.left-s/2)+'px';sp.style.top=(e.clientY-r.top-s/2)+'px';
+    b.appendChild(sp);sp.addEventListener('animationend',function(){sp.remove()});
+  });
+});
+
+// Modal
+var modal=$('#modal-overlay');
+$('#btnReset').addEventListener('click',function(){modal.classList.add('open')});
+$('#modalCancel').addEventListener('click',function(){modal.classList.remove('open')});
+$('#modalConfirm').addEventListener('click',function(){state={devices:[],nextId:1,cableDist:50,cableDrop:3};saveState();render();modal.classList.remove('open');toast('Сброшено','info')});
+modal.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')modal.classList.remove('open')});
+
+// Actions
+$('#btnAddDevice').addEventListener('click',function(){addDevice($('#devName').value,$('#devPower').value,$('#devQty').value,$('#devPhase').value,$('#devPF').value)});
+$('#btnBalance').addEventListener('click',autoBalance);
+$('#btnRefresh').addEventListener('click',render);
+$('#btnExportCSV').addEventListener('click',exportCSV);
+$('#btnCalcToggle').addEventListener('click',function(){
+  cableVisible=!cableVisible;
+  if(cableVisible)renderCableCalc();
+  else $('#cableSection').style.display='none';
+});
+
+// Enter key on form
+$('#devName').addEventListener('keydown',function(e){if(e.key==='Enter')$('#btnAddDevice').click()});
+
+// Init
+document.addEventListener('DOMContentLoaded',function(){loadState();loadLibrary();render();document.body.classList.add('loaded')});
+
+})();
+</script>
+</body>
+</html>
