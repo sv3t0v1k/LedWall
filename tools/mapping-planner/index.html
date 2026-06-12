@@ -221,7 +221,7 @@ select option{background:#14141f;color:var(--text)}
         <div class="card-body">
           <div class="btn-row" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
             <button class="btn btn-secondary btn-sm" id="btnExportPNG"><i class="fa-regular fa-download"></i> PNG</button>
-            <button class="btn btn-secondary btn-sm" id="btnExportCSV"><i class="fa-regular fa-file-csv"></i> CSV</button>
+            <button class="btn btn-secondary btn-sm" id="btnExportSVG"><i class="fa-regular fa-file-lines"></i> SVG</button>
           </div>
         </div>
       </div>
@@ -794,14 +794,23 @@ function exportPNG(){
   toast('PNG сохранён','success');
 }
 
-function exportCSV(){
-  var lines=['Label,X,Y,W,H,Color'];
-  state.planes.forEach(function(p){lines.push('"'+p.label+'",'+p.x+','+p.y+','+p.w+','+p.h+',"'+p.color+'"');});
-  var csv=lines.join('\n');
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(csv).then(function(){toast('CSV скопирован','success')}).catch(function(){fallbackCopy(csv)})}else{fallbackCopy(csv)}
+function exportSVG(){
+  var cw=state.canvasW,ch=state.canvasH;
+  var l=[];function p(s){l.push(s)}
+  p('<svg xmlns="http://www.w3.org/2000/svg" width="'+cw+'" height="'+ch+'" viewBox="0 0 '+cw+' '+ch+'" font-family="Inter,sans-serif">');
+  p('<rect width="'+cw+'" height="'+ch+'" fill="#06060a"/>');
+  state.planes.forEach(function(pl){
+    p('<rect x="'+pl.x+'" y="'+pl.y+'" width="'+pl.w+'" height="'+pl.h+'" fill="'+pl.color+'" fill-opacity="0.3" stroke="'+pl.color+'" stroke-width="2"/>');
+    p('<text x="'+(pl.x+pl.w/2)+'" y="'+(pl.y+pl.h/2)+'" fill="rgb(255,255,255)" font-size="14" font-weight="700" text-anchor="middle" dominant-baseline="middle">'+escapeXml(pl.label)+'</text>');
+    p('<text x="'+(pl.x+pl.w/2)+'" y="'+(pl.y+pl.h/2+18)+'" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle" dominant-baseline="middle">'+pl.w+'×'+pl.h+'</text>');
+  });
+  p('</svg>');
+  var blob=new Blob([l.join('\n')],{type:'image/svg+xml'});var url=URL.createObjectURL(blob);
+  var link=document.createElement('a');link.download='mapping_'+(new Date().toISOString().slice(0,10))+'.svg';link.href=url;link.click();
+  URL.revokeObjectURL(url);toast('SVG экспортирован','success');
 }
 
-function fallbackCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('CSV скопирован','success')}catch(e){toast('Ошибка','error')}document.body.removeChild(ta)}
+function escapeXml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 /* === COLOR PICKER === */
 function initColorPicker(){
@@ -849,7 +858,7 @@ function setupEvents(){
 
   // Export
   $('#btnExportPNG').addEventListener('click',exportPNG);
-  $('#btnExportCSV').addEventListener('click',exportCSV);
+  $('#btnExportSVG').addEventListener('click',exportSVG);
 
   // Zoom
   $('#zoomIn').addEventListener('click',function(){state.zoom*=1.5;applyZoom()});
