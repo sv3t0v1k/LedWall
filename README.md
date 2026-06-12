@@ -26,6 +26,7 @@ GenMap/
 | LED Wall Alignment | ✅ Готов | Визуальная разметка LED-стен, экспорт PNG/SVG/PDF |
 | DMX Universe Calculator | ✅ Готов | Расчёт DMX-вселенных, адресация, коллизии, DMX-карта |
 | Power Budget | ✅ Готов | Расчёт электропитания: фазы L1/L2/L3, кабель, генератор |
+| Delay & Array Calculator | ✅ Готов | Задержки, Line Array, Subwoofer-конфигурации |
 | Cable Manager | 🚧 В разработке | Учёт кабельного парка |
 | Stage Geometry | 🚧 В разработке | Планирование сцены |
 

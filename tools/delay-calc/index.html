@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delay & Array Calculator — GenMap Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--bg2:#0e0e16;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);--text:#f0f0f5;--text2:#8a8aa0;--text3:#5a5a72;--cyan:#00d4ff;--purple:#7c3aed;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15);--rs:8px;--rm:12px;--rl:16px;--t:.2s ease;--font:'Inter',-apple-system,sans-serif;--sb:380px}
+html,body{height:100%;overflow:hidden}
+body{opacity:0;transition:opacity .5s ease;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body.loaded{opacity:1}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+#app{display:flex;height:100vh;width:100vw;overflow:hidden}
+#sidebar{width:var(--sb);min-width:var(--sb);height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-header{padding:16px 18px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06))}
+.sidebar-header i{font-size:20px;color:var(--cyan);filter:drop-shadow(0 0 8px rgba(0,212,255,0.3))}
+.sidebar-header h1{font-size:15px;font-weight:700;letter-spacing:-.3px;background:linear-gradient(135deg,#f0f0f5,#8a8aa0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-header h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-scroll{padding:12px 14px 20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--bg-card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--rl);transition:transform var(--t),box-shadow var(--t),border-color var(--t)}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow),var(--glow);border-color:var(--border-hover)}
+.card-header{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);border-bottom:1px solid rgba(255,255,255,0.04)}
+.card-header i{font-size:11px;color:var(--cyan)}
+.card-body{padding:10px 14px 14px}
+.form-group{margin-bottom:8px}
+.form-group:last-child{margin-bottom:0}
+.form-label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--text2);margin-bottom:3px;letter-spacing:.2px}
+.form-label i{font-size:9px;color:var(--cyan);width:12px;text-align:center}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+input[type="number"],input[type="text"],select{width:100%;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:12px;transition:border-color var(--t),box-shadow var(--t);outline:none;-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a8aa0'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;font-size:12px}
+select option{background:#14141f;color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;border:none;border-radius:var(--rs);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;transition:all var(--t);position:relative;overflow:hidden;user-select:none;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0090b3);color:#0a0a0f}
+.btn-primary:hover{box-shadow:0 0 20px rgba(0,212,255,0.3);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);color:var(--text);border-color:var(--border-hover)}
+.btn-block{width:100%}
+.btn-sm{padding:5px 8px;font-size:10px}
+.section-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
+/* Main */
+#main{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#viewer{padding:16px 20px;overflow-y:auto;flex:1}
+/* Result hero */
+.result-hero{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.result-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rm);padding:16px;text-align:center}
+.result-card .rc-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.result-card .rc-value{font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1.1}
+.result-card .rc-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.result-card.delay .rc-value{background:linear-gradient(135deg,var(--cyan),#0090b3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-card.distance .rc-value{color:var(--orange)}
+.result-card.speed .rc-value{color:var(--green);font-size:22px}
+/* Canvas */
+.canvas-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden;margin-bottom:12px}
+.canvas-wrap canvas{display:block;width:100%;height:auto;background:#0a0a0f}
+/* Result sections */
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rm);padding:12px}
+.detail-card h4{font-size:11px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.detail-card h4 i{color:var(--cyan);font-size:12px}
+.detail-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;color:var(--text2)}
+.detail-row strong{color:var(--text)}
+.detail-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}
+.detail-table th{text-align:left;padding:4px 5px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.detail-table td{padding:4px 5px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text2)}
+.detail-table td:first-child{color:var(--text)}
+/* Toast */
+#toast-container{position:fixed;top:12px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{pointer-events:auto;padding:8px 14px;border-radius:var(--rm);backdrop-filter:blur(16px);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.5);transform:translateX(120%);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);max-width:360px;border:1px solid}
+.toast.show{transform:translateX(0);opacity:1}
+.toast-success{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:var(--green)}
+.toast-info{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.2);color:var(--cyan)}
+.toast i{font-size:14px}
+.toast .toast-close{margin-left:auto;cursor:pointer;opacity:.5;background:none;border:none;color:inherit;padding:0 4px;font-size:11px}
+.toast-close:hover{opacity:1}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
+.toggle-label{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggle-label i{font-size:10px;color:var(--cyan);width:14px}
+.toggle{position:relative;width:34px;height:18px;flex-shrink:0;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.06);border-radius:18px;transition:all var(--t);border:1px solid rgba(255,255,255,0.04)}
+.toggle-slider::before{content:'';position:absolute;width:12px;height:12px;left:2px;bottom:2px;background:var(--text3);border-radius:50%;transition:all var(--t)}
+.toggle input:checked+.toggle-slider{background:rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.2)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--cyan);box-shadow:0 0 6px rgba(0,212,255,0.3)}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+/* Responsive */
+@media(max-width:900px){#sidebar{width:320px;min-width:320px}#viewer{padding:12px}.result-hero{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.result-hero{grid-template-columns:1fr}.results-grid{grid-template-columns:1fr}}
+@media(max-width:480px){#sidebar{max-height:40vh}.sidebar-scroll{padding:8px;gap:6px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;color:var(--text3);text-decoration:none;font-size:10px;margin-right:4px;transition:color .2s" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color=''"><i class="fa-solid fa-arrow-left"></i></a>
+      <i class="fa-solid fa-waveform"></i>
+      <h1>Delay &amp; <span>Array</span></h1>
+    </div>
+    <div class="sidebar-scroll">
+
+      <!-- Environment -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-temperature-low"></i> Параметры среды</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-thermometer-half"></i> Температура воздуха</label>
+            <input type="number" id="temperature" value="20" min="-20" max="50" step="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- PA Position -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-tower-broadcast"></i> Основной PA</div>
+        <div class="card-body">
+          <div class="row-2">
+            <div class="form-group">
+              <label class="form-label">Дистанция (м)</label>
+              <input type="number" id="paDist" value="10" min="0" max="500" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Высота (м)</label>
+              <input type="number" id="paHeight" value="8" min="0" max="50" step="0.5">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delay Position -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-tower-cell"></i> Delay-башня</div>
+        <div class="card-body">
+          <div class="toggle-wrap">
+            <label class="toggle-label"><i class="fa-regular fa-arrows-split"></i> Рассчитать по координатам</label>
+            <label class="toggle"><input type="checkbox" id="useCoords" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div id="coordsMode">
+            <div class="row-2">
+              <div class="form-group">
+                <label class="form-label">Дистанция (м)</label>
+                <input type="number" id="delayDist" value="25" min="0" max="500" step="0.5">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Высота (м)</label>
+                <input type="number" id="delayHeight" value="8" min="0" max="50" step="0.5">
+              </div>
+            </div>
+          </div>
+          <div id="distMode" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Расстояние от PA (м)</label>
+              <input type="number" id="directDist" value="15" min="0" max="500" step="0.5">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Array -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-chart-simple"></i> Line Array</div>
+        <div class="card-body">
+          <div class="row-2">
+            <div class="form-group">
+              <label class="form-label">Кол-во элементов</label>
+              <input type="number" id="arrayCount" value="8" min="1" max="32" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Высота кабинета (м)</label>
+              <input type="number" id="cabHeight" value="0.37" min="0.1" max="2" step="0.01">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Splay-углы (°)</label>
+            <input type="text" id="splayAngles" value="0.5, 1, 1, 2, 2, 3, 4" placeholder="0.5, 1, 1, 2, 2, 3, 4">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Нижняя высота (м)</label>
+            <input type="number" id="arrayBottom" value="2" min="0" max="30" step="0.5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Subwoofer -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-circle-dot"></i> Subwoofer</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Конфигурация</label>
+            <select id="subConfig">
+              <option value="none">Без расчёта</option>
+              <option value="endfire">End-Fire Array</option>
+              <option value="gradient">Gradient (cardioid)</option>
+              <option value="left-right">Left / Right</option>
+            </select>
+          </div>
+          <div id="subParams">
+            <div class="row-2">
+              <div class="form-group">
+                <label class="form-label">Кол-во колонок</label>
+                <input type="number" id="subCount" value="4" min="2" max="16" step="1">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Шаг (м)</label>
+                <input type="number" id="subSpacing" value="1.0" min="0.1" max="10" step="0.1">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="card-body" style="display:flex;flex-direction:column;gap:5px">
+          <button class="btn btn-primary btn-sm btn-block" id="btnRefresh"><i class="fa-regular fa-rotate"></i> Рассчитать</button>
+          <button class="btn btn-secondary btn-sm" id="btnReset"><i class="fa-regular fa-trash-can"></i> Сброс</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="viewer">
+
+      <!-- Results hero -->
+      <div class="result-hero" id="resultHero"></div>
+
+      <!-- Canvas -->
+      <div class="canvas-wrap">
+        <canvas id="schematic"></canvas>
+      </div>
+
+      <!-- Detailed results -->
+      <div class="results-grid" id="resultsGrid"></div>
+
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(function(){
+'use strict';
+
+var state = {
+  temp: 20,
+  paDist: 10, paHeight: 8,
+  delayDist: 25, delayHeight: 8,
+  directDist: 15,
+  useCoords: true,
+  arrayCount: 8, cabHeight: 0.37,
+  splayStr: '0.5, 1, 1, 2, 2, 3, 4',
+  arrayBottom: 2,
+  subConfig: 'none',
+  subCount: 4, subSpacing: 1.0
+};
+
+function $(s){return document.querySelector(s)}
+function deepClone(o){return JSON.parse(JSON.stringify(o))}
+
+function toast(m,t,d){t=t||'info';d=d||2500;var icons={success:'fa-regular fa-circle-check',error:'fa-regular fa-circle-xmark',info:'fa-regular fa-circle-info'};var c=$('#toast-container');var el=document.createElement('div');el.className='toast toast-'+t;el.innerHTML='<i class="'+(icons[t]||icons.info)+'"></i><span>'+m+'</span><button class="toast-close">&times;</button>';c.appendChild(el);requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show')})});var close=function(){el.classList.remove('show');setTimeout(function(){el.remove()},400)};el.querySelector('.toast-close').addEventListener('click',close);setTimeout(close,d)}
+
+function readState(){
+  state.temp=parseFloat($('#temperature').value)||20;
+  state.paDist=parseFloat($('#paDist').value)||0;
+  state.paHeight=parseFloat($('#paHeight').value)||0;
+  state.useCoords=$('#useCoords').checked;
+  state.delayDist=parseFloat($('#delayDist').value)||0;
+  state.delayHeight=parseFloat($('#delayHeight').value)||0;
+  state.directDist=parseFloat($('#directDist').value)||0;
+  state.arrayCount=parseInt($('#arrayCount').value,10)||1;
+  state.cabHeight=parseFloat($('#cabHeight').value)||0.37;
+  state.splayStr=$('#splayAngles').value;
+  state.arrayBottom=parseFloat($('#arrayBottom').value)||0;
+  state.subConfig=$('#subConfig').value;
+  state.subCount=parseInt($('#subCount').value,10)||2;
+  state.subSpacing=parseFloat($('#subSpacing').value)||1;
+}
+
+/* === CALCULATIONS === */
+function calcSpeedOfSound(t){return 331+0.6*t}
+
+function calcDelay(paDist, paH, delayDist, delayH){
+  var d=Math.sqrt(Math.pow(delayDist-paDist,2)+Math.pow(delayH-paH,2));
+  return d;
+}
+
+function parseSplays(str, count){
+  var parts=str.split(',').map(function(s){return parseFloat(s.trim())}).filter(function(v){return!isNaN(v)&&v>=0});
+  var result=[];
+  for(var i=0;i<count-1;i++)result.push(parts[i]||parts[parts.length-1]||0);
+  return result;
+}
+
+function render(){
+  readState();
+
+  var c=calcSpeedOfSound(state.temp);
+  var d=state.useCoords?calcDelay(state.paDist,state.paHeight,state.delayDist,state.delayHeight):state.directDist;
+  var delayMs=d/c*1000;
+  var samples48=Math.round(delayMs*48);
+  var samples96=Math.round(delayMs*96);
+  var splays=parseSplays(state.splayStr,state.arrayCount);
+  var totalAngle=0;splays.forEach(function(a){totalAngle+=a});
+  var topH=state.arrayBottom+Math.cos(totalAngle*Math.PI/180)*state.arrayCount*state.cabHeight;
+
+  // Hero
+  var hero=$('#resultHero');
+  hero.innerHTML=
+    '<div class="result-card delay"><div class="rc-label">Задержка</div><div class="rc-value">'+delayMs.toFixed(1)+'</div><div class="rc-sub">ms</div></div>'+
+    '<div class="result-card distance"><div class="rc-label">Расстояние</div><div class="rc-value">'+d.toFixed(1)+'</div><div class="rc-sub">м</div></div>'+
+    '<div class="result-card speed"><div class="rc-label">Скорость звука</div><div class="rc-value">'+c.toFixed(1)+'</div><div class="rc-sub">м/с @ '+state.temp+'°C</div></div>';
+
+  // Detailed results
+  var grid=$('#resultsGrid');
+  var delayHtml=
+    '<div class="detail-card"><h4><i class="fa-regular fa-clock"></i> Delay</h4>'+
+    '<div class="detail-row"><span>Время задержки</span><strong>'+delayMs.toFixed(2)+' ms</strong></div>'+
+    '<div class="detail-row"><span>Сэмплы @ 48 кГц</span><strong>'+samples48+' smp</strong></div>'+
+    '<div class="detail-row"><span>Сэмплы @ 96 кГц</span><strong>'+samples96+' smp</strong></div>'+
+    '<div class="detail-row"><span>Длина волны @ 100 Гц</span><strong>'+(c/100).toFixed(2)+' м</strong></div>'+
+    '<div class="detail-row"><span>Длина волны @ 1 кГц</span><strong>'+(c/1000).toFixed(2)+' м</strong></div></div>';
+
+  var arrayHtml=
+    '<div class="detail-card"><h4><i class="fa-regular fa-chart-simple"></i> Line Array</h4>'+
+    '<div class="detail-row"><span>Элементов</span><strong>'+state.arrayCount+'</strong></div>'+
+    '<div class="detail-row"><span>Общий угол</span><strong>'+totalAngle.toFixed(1)+'°</strong></div>'+
+    '<div class="detail-row"><span>Высота верхнего</span><strong>'+topH.toFixed(2)+' м</strong></div>'+
+    '<div class="detail-row"><span>Высота нижнего</span><strong>'+state.arrayBottom+' м</strong></div>'+
+    '<div class="detail-row"><span>Покрытие по высоте</span><strong>'+(topH-state.arrayBottom).toFixed(2)+' м</strong></div>'+
+    (splays.length>0?'<table class="detail-table"><thead><tr><th>Элемент</th><th>Угол</th><th>Накопленный</th></tr></thead><tbody>'+splays.map(function(a,i){
+      var acc=0;for(var j=0;j<=i;j++)acc+=splays[j];
+      return '<tr><td>'+(i+2)+' (над '+((i+1))+')</td><td>'+a.toFixed(1)+'°</td><td>'+acc.toFixed(1)+'°</td></tr>';
+    }).join('')+'</tbody></table>':'')+'</div>';
+
+  // Subwoofer
+  var subHtml='';
+  if(state.subConfig!=='none'){
+    var subDetail='';
+    if(state.subConfig==='endfire'){
+      var totalLen=(state.subCount-1)*state.subSpacing;
+      var maxCancel=state.subSpacing/c*1000;
+      subDetail='<div class="detail-row"><span>Длина массива</span><strong>'+totalLen.toFixed(1)+' м</strong></div>'+
+        '<div class="detail-row"><span>Макс. подавление</span><strong>'+maxCancel.toFixed(1)+' мс</strong></div>'+
+        '<div class="detail-row"><span>Полярность</span><br><span style="font-size:9px;color:var(--text3)">Все колонки в фазе. Задержка: 0 / '+maxCancel.toFixed(1)+' / '+(maxCancel*2).toFixed(1)+' ms</span></div>';
+    }else if(state.subConfig==='gradient'){
+      subDetail='<div class="detail-row"><span>Тыловые колонки</span><strong>'+Math.floor(state.subCount/2)+'</strong></div>'+
+        '<div class="detail-row"><span>Инвертировать полярность</span><strong>Да</strong></div>'+
+        '<div class="detail-row"><span>Задержка тыла</span><strong>'+(state.subSpacing/c*1000).toFixed(2)+' ms</strong></div>';
+    }else if(state.subConfig==='left-right'){
+      subDetail='<div class="detail-row"><span>Колонок на сторону</span><strong>'+(state.subCount/2)+(state.subCount%2?' (+1 center)':'')+'</strong></div>'+
+        '<div class="detail-row"><span>Ширина базы (L–R)</span><strong>'+(state.subSpacing).toFixed(1)+' м</strong></div>';
+    }
+    subHtml='<div class="detail-card"><h4><i class="fa-regular fa-circle-dot"></i> Sub: '+['','End-Fire','Gradient','Left/Right'][['none','endfire','gradient','left-right'].indexOf(state.subConfig)]+'</h4>'+subDetail+'</div>';
+  }
+
+  grid.innerHTML=delayHtml+arrayHtml+(subHtml||'')+'<div class="detail-card"><h4><i class="fa-regular fa-ruler"></i> Параметры</h4>'+
+    '<div class="detail-row"><span>PA позиция</span><strong>'+state.paDist+' м / '+state.paHeight+' м</strong></div>'+
+    '<div class="detail-row"><span>Delay позиция</span><strong>'+(state.useCoords?state.delayDist+' м / '+state.delayHeight+' м':'дистанция '+state.directDist+' м')+'</strong></div></div>';
+
+  // Canvas
+  drawSchematic(state.paDist,state.paHeight,state.useCoords?state.delayDist:state.paDist+state.directDist,state.useCoords?state.delayHeight:state.paHeight,c,delayMs);
+}
+
+/* === CANVAS SCHEMATIC === */
+function drawSchematic(paX,paY,dX,dY,c,ms){
+  var canvas=$('#schematic');
+  var wrap=canvas.parentElement;
+  var rect=wrap.getBoundingClientRect();
+  var W=Math.min(rect.width-4,900);
+  var H=220;
+  var dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  ctx.clearRect(0,0,W,H);
+
+  var pad=50;
+  var plotW=W-pad*2;
+  var plotH=H-pad*2-30;
+  var maxX=Math.max(paX,dX)+5;
+  var maxY=Math.max(paY,4)+2;
+  var sx=plotW/maxX,sy=plotH/maxY;
+  var scale=Math.min(sx,sy);
+  var midY=H-pad-10;
+  var zeroY=midY;
+  var groundY=midY+2;
+
+  // Ground line
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,groundY);ctx.lineTo(pad+maxX*scale,groundY);ctx.stroke();
+
+  // Hash marks on ground
+  ctx.fillStyle='var(--text3)';ctx.font='8px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';
+  for(var i=0;i<=Math.ceil(maxX);i++){
+    var hx=pad+i*scale;
+    ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(hx,groundY-4);ctx.lineTo(hx,groundY+4);ctx.stroke();
+    if(i%2===0){ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillText(i+'м',hx,groundY+6);}
+  }
+
+  // Stage line
+  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(pad-10,groundY-20);ctx.lineTo(pad,groundY-20);ctx.lineTo(pad,groundY);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='8px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText('STAGE',pad-5,groundY-22);
+
+  // PA
+  var paPX=pad+paX*scale;
+  var paPY=zeroY-paY*scale;
+  drawTower(ctx,paPX,paPY,c,'#00d4ff','PA');
+
+  // Delay
+  var dlPX=pad+dX*scale;
+  var dlPY=zeroY-dY*scale;
+  drawTower(ctx,dlPX,dlPY,c,'#f59e0b','DELAY');
+
+  // Connection line with arrow
+  ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(paPX,paPY);ctx.lineTo(dlPX,dlPY);ctx.stroke();ctx.setLineDash([]);
+
+  // Distance label on line
+  var midX=(paPX+dlPX)/2,midY2=(paPY+dlPY)/2-14;
+  ctx.fillStyle='rgba(0,212,255,0.6)';ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+  var dist=Math.sqrt(Math.pow(dX-paX,2)+Math.pow(dY-paY,2));
+  ctx.fillText(dist.toFixed(1)+' м  |  '+ms.toFixed(1)+' ms',midX,midY2);
+
+  // Legend
+  ctx.font='9px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='bottom';
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  ctx.fillText('c = '+c.toFixed(1)+' м/с @ '+state.temp+'°C',pad,midY-20);
+
+  // Speaker icon at top right
+  ctx.font='9px Inter,sans-serif';ctx.textAlign='right';
+  ctx.fillStyle='rgba(255,255,255,0.1)';
+  ctx.fillText('Samples @ 48k: '+Math.round(ms*48)+'  |  @ 96k: '+Math.round(ms*96),W-pad,midY-20);
+}
+
+function drawTower(ctx,x,y,color,label){
+  // Tower pole
+  ctx.strokeStyle=color;ctx.lineWidth=2;
+  ctx.globalAlpha=0.3;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+80);ctx.stroke();
+  ctx.globalAlpha=1;
+
+  // Head
+  ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=8;
+  ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Label
+  ctx.fillStyle=color;ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText(label,x,y-8);
+
+  // Height label
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='8px Inter,sans-serif';ctx.textBaseline='top';
+  ctx.fillText('('+(y<100?((y-80)*-1).toFixed(1):(y-80).toFixed(1)).replace('-','')+'m)',x,y+4);
+}
+
+/* === EVENTS === */
+function syncInputs(){
+  $('#temperature').value=state.temp;
+  $('#paDist').value=state.paDist;$('#paHeight').value=state.paHeight;
+  $('#delayDist').value=state.delayDist;$('#delayHeight').value=state.delayHeight;
+  $('#directDist').value=state.directDist;
+  $('#useCoords').checked=state.useCoords;
+  $('#arrayCount').value=state.arrayCount;$('#cabHeight').value=state.cabHeight;
+  $('#splayAngles').value=state.splayStr;$('#arrayBottom').value=state.arrayBottom;
+  $('#subConfig').value=state.subConfig;$('#subCount').value=state.subCount;$('#subSpacing').value=state.subSpacing;
+  toggleCoordMode();
+}
+
+function toggleCoordMode(){
+  var use=$('#useCoords').checked;
+  $('#coordsMode').style.display=use?'':'none';
+  $('#distMode').style.display=use?'none':'';
+}
+
+// Auto-calc on any input
+document.querySelectorAll('#sidebar input, #sidebar select').forEach(function(el){
+  el.addEventListener('input',render);
+  el.addEventListener('change',render);
+});
+
+$('#useCoords').addEventListener('change',function(){toggleCoordMode();render();});
+
+// Subwoofer visibility
+$('#subConfig').addEventListener('change',function(){
+  var vis=this.value!=='none';
+  $('#subParams').style.display=vis?'':'none';
+  render();
+});
+
+$('#btnRefresh').addEventListener('click',render);
+
+// Reset
+$('#btnReset').addEventListener('click',function(){
+  state={temp:20,paDist:10,paHeight:8,delayDist:25,delayHeight:8,directDist:15,useCoords:true,arrayCount:8,cabHeight:0.37,splayStr:'0.5, 1, 1, 2, 2, 3, 4',arrayBottom:2,subConfig:'none',subCount:4,subSpacing:1.0};
+  syncInputs();render();
+  toast('Сброшено','info');
+});
+
+// Ripple
+document.querySelectorAll('.btn').forEach(function(b){
+  b.addEventListener('click',function(e){
+    var r=b.getBoundingClientRect();var s=Math.max(r.width,r.height);
+    var sp=document.createElement('span');sp.className='ripple';
+    sp.style.width=sp.style.height=s+'px';sp.style.left=(e.clientX-r.left-s/2)+'px';sp.style.top=(e.clientY-r.top-s/2)+'px';
+    b.appendChild(sp);sp.addEventListener('animationend',function(){sp.remove()});
+  });
+});
+
+// Init
+document.addEventListener('DOMContentLoaded',function(){
+  syncInputs();
+  render();
+  // Sub params visibility
+  var vis=$('#subConfig').value!=='none';
+  $('#subParams').style.display=vis?'':'none';
+  document.body.classList.add('loaded');
+});
+
+})();
+</script>
+</body>
+</html>
