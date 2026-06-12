@@ -838,27 +838,15 @@ function getCombinedDims(){
   if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0,shiftY:0};
   var dims=screens.map(getScreenDims);
   var gapPx=state.gapX/(dims[0]&&dims[0].pitch||1);
-  var minLeft=Infinity,maxRight=-Infinity,minTop=Infinity,maxBottom=-Infinity;
-  var ox=0;
-  for(var i=0;i<dims.length;i++){
-    var d=dims[i],rot=screens[i].rotation||0,offX=(screens[i].offsetX||0),offY=(screens[i].offsetY||0);
-    var bbox=getBBox(d.totalPxW,d.totalPxH,rot);
-    var cx=ox+d.totalPxW/2+offX;
-    var cy=d.totalPxH/2+offY;
-    var left=cx-bbox.w/2,right=cx+bbox.w/2;
-    var top=cy-bbox.h/2,bottom=cy+bbox.h/2;
-    if(left<minLeft)minLeft=left;
-    if(right>maxRight)maxRight=right;
-    if(top<minTop)minTop=top;
-    if(bottom>maxBottom)maxBottom=bottom;
-    ox+=d.totalPxW+gapPx;
-  }
-  var effectiveMinLeft=minLeft===Infinity?0:(minLeft<0?minLeft:0);
-  var effectiveMinTop=minTop===Infinity?0:(minTop<0?minTop:0);
-  var shiftX=effectiveMinLeft<0?-effectiveMinLeft:0;
-  var shiftY=effectiveMinTop<0?-effectiveMinTop:0;
-  shiftY=Math.round(shiftY*0.2);
-  return{totalPxW:maxRight+shiftX,totalPxH:maxBottom+shiftY,screens:dims,gapPx:gapPx,gapPy:0,shiftX:shiftX,shiftY:shiftY};
+  var baseW=0,maxH=0;
+  for(var i=0;i<dims.length;i++){baseW+=dims[i].totalPxW;maxH=Math.max(maxH,dims[i].totalPxH);}
+  baseW+=gapPx*(screens.length-1);
+  // Add padding to cover rotation anti-aliasing edges.
+  // 13% of the largest screen dimension is enough to cover any rotation anti-aliasing.
+  var maxDim=0;
+  for(var i=0;i<dims.length;i++){maxDim=Math.max(maxDim,dims[i].totalPxW,dims[i].totalPxH);}
+  var pad=Math.round(maxDim*0.2);
+  return{totalPxW:baseW+pad*2,totalPxH:maxH+pad*2,screens:dims,gapPx:gapPx,gapPy:0,shiftX:pad,shiftY:pad};
 }
 
 function getCanvasScale(dims){
