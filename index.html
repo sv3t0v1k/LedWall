@@ -848,24 +848,35 @@ function getViewDims(){
 }
 
 function getExportDims(){
-  // Export: exact bounding box of ALL content (with rotation bbox) + 5px margin.
+  // Export canvas sized to fit ALL content:
+  // - Width: full bbox of all screens (includes rotation extent on both sides)
+  // - Height: unrotated baseline + extra below from rotated screens
+  // - Screens drawn at natural y=0 (no vertical shift) to avoid empty space below unrotated content.
   var screens=state.screens;
   if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0,shiftY:0};
   var dims=screens.map(getScreenDims);
   var gapPx=state.gapX/(dims[0]&&dims[0].pitch||1);
-  var minL=Infinity,maxR=-Infinity,minT=Infinity,maxB=-Infinity;
+  var minL=Infinity,maxR=-Infinity,extraBelow=0;
   var ox=0;
+  var baseH=0;
+  for(var i=0;i<dims.length;i++){baseH=Math.max(baseH,dims[i].totalPxH);}
   for(var i=0;i<dims.length;i++){
     var d=dims[i],s=screens[i],rot=s.rotation||0,ox2=s.offsetX||0,oy=s.offsetY||0;
     var bb=getBBox(d.totalPxW,d.totalPxH,rot);
     var cx=ox+d.totalPxW/2+ox2;
     var cy=d.totalPxH/2+oy;
-    var l=cx-bb.w/2,r=cx+bb.w/2,t=cy-bb.h/2,b=cy+bb.h/2;
-    if(l<minL)minL=l;if(r>maxR)maxR=r;if(t<minT)minT=t;if(b>maxB)maxB=b;
+    var l=cx-bb.w/2,r=cx+bb.w/2;
+    if(l<minL)minL=l;if(r>maxR)maxR=r;
+    // How much the rotated bbox extends below the unrotated screen bottom
+    var btm=cy+bb.h/2;
+    var unrotBtm=oy+baseH;
+    if(btm>unrotBtm+extraBelow)extraBelow=btm-unrotBtm;
     ox+=d.totalPxW+gapPx;
   }
-  var m=5; // 5px safety margin
-  return{totalPxW:maxR-minL+m*2,totalPxH:maxB-minT+m*2,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-(minL-m),shiftY:-(minT-m)};
+  var m=5;
+  var totalH=baseH+Math.max(0,extraBelow)+m;
+  // Width: full bbox with margins, shiftX to center negative content
+  return{totalPxW:maxR-minL+m*2,totalPxH:totalH,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-(minL-m),shiftY:m};
 }
 
 function getCanvasScale(dims){
