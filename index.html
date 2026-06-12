@@ -835,22 +835,16 @@ function getBBox(sw,sh,deg){
 }
 
 function getViewDims(){
-  // Screen view: unrotated layout, shifted to keep negative content visible, NO padding.
+  // Pure unrotated layout — stable size, no shifts, no bbox expansion.
+  // Rotated/offset content that extends beyond is accessible via scroll/zoom.
   var screens=state.screens;
   if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0,shiftY:0};
   var dims=screens.map(getScreenDims);
   var gapPx=state.gapX/(dims[0]&&dims[0].pitch||1);
-  var baseW=0,maxH=0;
-  for(var i=0;i<dims.length;i++){baseW+=dims[i].totalPxW;maxH=Math.max(maxH,dims[i].totalPxH);}
-  baseW+=gapPx*(screens.length-1);
-  var minLeft=0,minTop=0;
-  var ox=0;
-  for(var i=0;i<dims.length;i++){
-    var d=dims[i],s=screens[i],rot=s.rotation||0,ox2=s.offsetX||0,oy=s.offsetY||0;
-    if(rot){var bb=getBBox(d.totalPxW,d.totalPxH,rot);var cx=ox+d.totalPxW/2+ox2;var cy=d.totalPxH/2+oy;var l=cx-bb.w/2,t=cy-bb.h/2;if(l<minLeft)minLeft=l;if(t<minTop)minTop=t;}
-    ox+=d.totalPxW+gapPx;
-  }
-  return{totalPxW:baseW+(minLeft<0?-minLeft:0),totalPxH:maxH+(minTop<0?-minTop:0),screens:dims,gapPx:gapPx,gapPy:0,shiftX:(minLeft<0?-minLeft:0),shiftY:(minTop<0?-minTop:0)};
+  var w=0,h=0;
+  for(var i=0;i<dims.length;i++){w+=dims[i].totalPxW;h=Math.max(h,dims[i].totalPxH);}
+  w+=gapPx*(screens.length-1);
+  return{totalPxW:w,totalPxH:h,screens:dims,gapPx:gapPx,gapPy:0,shiftX:0,shiftY:0};
 }
 
 function getExportDims(){
@@ -1054,8 +1048,6 @@ function drawCanvas(){
   var dimsArr=screens.map(getScreenDims);
   var view=getViewDims();
   var scale=getCanvasScale(view);
-  var maxC=getMaxCanvasSize();
-  if(view.totalPxW*scale>maxC||view.totalPxH*scale>maxC){var s2=Math.min(maxC/view.totalPxW,maxC/view.totalPxH);scale=Math.max(s2,0.05);}
   var cw=Math.round(view.totalPxW*scale);
   var ch=Math.round(view.totalPxH*scale);
 
