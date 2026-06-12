@@ -7,29 +7,41 @@
 ```
 GenMap/
 ├── index.html                  — Главная страница (лендинг)
+├── .gitignore
+├── README.md
 ├── assets/
 │   ├── css/style.css           — Стили главной страницы
-│   ├── js/main.js              — Скрипты (canvas-фон, карусель, переходы)
-│   └── img/                    — Графика
+│   ├── js/main.js              — Скрипты (canvas-фон, карусель)
+│   └── img/
 ├── tools/
-│   └── led-wall/
-│       └── index.html          — LED Wall Alignment Tool
-├── docs/
-│   └── README.md               — Документация
-└── README.md                   — Этот файл
+│   ├── led-wall/
+│   │   └── index.html          — LED Wall Alignment
+│   ├── dmx-calculator/
+│   │   ├── index.html
+│   │   └── data/fixtures.json
+│   ├── power-budget/
+│   │   ├── index.html
+│   │   └── data/equipment.json
+│   ├── delay-calc/
+│   │   └── index.html
+│   └── rigging-calc/
+│       ├── index.html
+│       └── data/truss.json
+└── docs/
+    ├── README.md               — Документация
+    ├── context.md              — Описание всех инструментов
+    └── rules.md                — Правила работы с проектом
 ```
 
 ## Инструменты
 
 | Инструмент | Статус | Описание |
 |---|---|---|
-| LED Wall Alignment | ✅ Готов | Визуальная разметка LED-стен, экспорт PNG/SVG/PDF |
-| DMX Universe Calculator | ✅ Готов | Расчёт DMX-вселенных, адресация, коллизии, DMX-карта |
-| Power Budget | ✅ Готов | Расчёт электропитания: фазы L1/L2/L3, кабель, генератор |
-| Delay & Array Calculator | ✅ Готов | Задержки, Line Array, Subwoofer-конфигурации |
-| Rigging Load Calculator | ✅ Готов | Нагрузки на трисс BT, 2/3 опоры, эпюра моментов |
-| Cable Manager | 🚧 В разработке | Учёт кабельного парка |
-| Stage Geometry | 🚧 В разработке | Планирование сцены |
+| LED Wall Alignment | ✅ | Визуальная разметка LED-стен, экспорт PNG/SVG/PDF |
+| DMX Universe Calculator | ✅ | DMX-вселенные, адресация, коллизии, DMX-карта |
+| Power Budget | ✅ | Электропитание: фазы L1/L2/L3, кабель ПУЭ, генератор |
+| Delay & Array Calculator | ✅ | Линии задержки, Line Array, Subwoofer |
+| Rigging Load Calculator | ✅ | Нагрузки на трисс BT, 2/3 опоры, эпюра моментов |
 
 ## Стек
 
@@ -38,13 +50,7 @@ GenMap/
 
 ## Разработка
 
-Ветка `feat/main-page` — разработка главной страницы и структуры.
-Ветка `main` — стабильная версия.
-
-```bash
-git checkout feat/main-page
-# Открой index.html в браузере
-```
+См. `docs/rules.md` — правила работы с проектом.
 
 ## Лицензия
 
