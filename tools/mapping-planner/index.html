@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapping Planner — GenMap Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--bg2:#0e0e16;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);--text:#f0f0f5;--text2:#8a8aa0;--text3:#5a5a72;--cyan:#00d4ff;--purple:#7c3aed;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15);--rs:8px;--rm:12px;--rl:16px;--t:.2s ease;--font:'Inter',-apple-system,sans-serif;--sb:380px}
+html,body{height:100%;overflow:hidden}
+body{opacity:0;transition:opacity .5s ease;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body.loaded{opacity:1}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+#app{display:flex;height:100vh;width:100vw;overflow:hidden}
+#sidebar{width:var(--sb);min-width:var(--sb);height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-header{padding:16px 18px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06))}
+.sidebar-header i{font-size:20px;color:var(--cyan);filter:drop-shadow(0 0 8px rgba(0,212,255,0.3))}
+.sidebar-header h1{font-size:15px;font-weight:700;letter-spacing:-.3px;background:linear-gradient(135deg,#f0f0f5,#8a8aa0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-header h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-scroll{padding:12px 14px 20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--bg-card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--rl);transition:transform var(--t),box-shadow var(--t)}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow),var(--glow);border-color:var(--border-hover)}
+.card-header{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);border-bottom:1px solid rgba(255,255,255,0.04)}
+.card-header i{font-size:11px;color:var(--cyan)}
+.card-body{padding:10px 14px 14px}
+.form-group{margin-bottom:8px}
+.form-label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--text2);margin-bottom:3px;letter-spacing:.2px}
+.form-label i{font-size:9px;color:var(--cyan);width:12px;text-align:center}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+input[type="number"],input[type="text"],select{width:100%;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:12px;transition:border-color var(--t);outline:none;-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a8aa0'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;font-size:12px}
+select option{background:#14141f;color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;border:none;border-radius:var(--rs);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;transition:all var(--t);position:relative;overflow:hidden;user-select:none;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0090b3);color:#0a0a0f}
+.btn-primary:hover{box-shadow:0 0 20px rgba(0,212,255,0.3);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);color:var(--text);border-color:var(--border-hover)}
+.btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--red)}
+.btn-danger:hover{background:rgba(239,68,68,0.2)}
+.btn-block{width:100%}
+.btn-sm{padding:5px 8px;font-size:10px}
+.color-opts{display:flex;gap:4px;flex-wrap:wrap}
+.color-opt{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all var(--t);flex-shrink:0}
+.color-opt:hover{transform:scale(1.2)}
+.color-opt.active{border-color:var(--text);box-shadow:0 0 0 2px var(--bg),0 0 0 4px currentColor}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
+.toggle-label{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggle-label i{font-size:10px;color:var(--cyan);width:14px}
+.toggle{position:relative;width:34px;height:18px;flex-shrink:0;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.06);border-radius:18px;transition:all var(--t);border:1px solid rgba(255,255,255,0.04)}
+.toggle-slider::before{content:'';position:absolute;width:12px;height:12px;left:2px;bottom:2px;background:var(--text3);border-radius:50%;transition:all var(--t)}
+.toggle input:checked+.toggle-slider{background:rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.2)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--cyan);box-shadow:0 0 6px rgba(0,212,255,0.3)}
+/* Plane table */
+.plane-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}
+.plane-table th{text-align:left;padding:4px 5px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.plane-table td{padding:3px 5px;color:var(--text2);border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px;vertical-align:middle;cursor:pointer}
+.plane-table tr:hover td{background:rgba(255,255,255,0.02)}
+.plane-table tr.selected td{background:rgba(0,212,255,0.04)}
+.plane-table .color-dot{display:inline-block;width:8px;height:8px;border-radius:2px;vertical-align:middle;margin-right:3px}
+.edit-inp{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:3px;color:var(--text);font-family:var(--font);font-size:10px;padding:1px 3px;width:100%;min-width:24px;outline:none;transition:border-color var(--t)}
+.edit-inp:focus{border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.edit-label{min-width:50px}
+.edit-xy{min-width:30px;width:36px}
+.edit-wh{min-width:30px;width:36px}
+.plane-table .p-actions{display:flex;gap:2px}
+.plane-table .p-actions button{padding:1px 4px;font-size:8px;border:none;border-radius:3px;cursor:pointer;background:rgba(255,255,255,0.04);color:var(--text3);transition:all var(--t)}
+.plane-table .p-actions button:hover{background:rgba(0,212,255,0.1);color:var(--cyan)}
+.plane-table .p-actions .btn-del:hover{background:rgba(239,68,68,0.15);color:var(--red)}
+.btn-edit-plane{padding:1px 4px;font-size:8px;border:none;border-radius:3px;cursor:pointer;background:rgba(255,255,255,0.04);color:var(--text3);transition:all var(--t)}
+.btn-edit-plane:hover{background:rgba(0,212,255,0.1);color:var(--cyan)}
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.stat-item{background:rgba(255,255,255,0.03);border-radius:var(--rs);padding:6px 8px;display:flex;align-items:center;gap:6px}
+.stat-item i{font-size:12px;width:16px;text-align:center}
+.stat-item .stat-info{display:flex;flex-direction:column}
+.stat-item .stat-label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.stat-item .stat-value{font-size:13px;font-weight:600}
+/* Main */
+#main{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#toolbar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;font-size:11px;color:var(--text2);flex-wrap:wrap}
+#toolbar .tb-sep{width:1px;height:18px;background:var(--border)}
+#toolbar .tb-label{color:var(--text3);font-size:10px}
+#viewer{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:var(--bg)}
+#canvas-wrap{position:relative;display:inline-block;transform-origin:0 0}
+#canvas{display:block;cursor:grab;background:var(--bg)}
+#canvas.dragging{cursor:grabbing}
+.canvas-info{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);padding:4px 12px;border-radius:12px;font-size:10px;color:var(--text3);border:1px solid var(--border);white-space:nowrap;pointer-events:none;z-index:2}
+.coord-display{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);padding:3px 8px;border-radius:6px;font-size:10px;color:var(--text2);font-family:monospace;pointer-events:none;z-index:2}
+.zoom-ctrl{display:flex;gap:4px;align-items:center}
+.zoom-btn{width:26px;height:26px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t)}
+.zoom-btn:hover{background:rgba(0,212,255,0.1);color:var(--cyan);border-color:var(--cyan)}
+.zoom-lvl{font-size:10px;color:var(--text3);min-width:32px;text-align:center}
+/* Toast */
+#toast-container{position:fixed;top:12px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{pointer-events:auto;padding:8px 14px;border-radius:var(--rm);backdrop-filter:blur(16px);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.5);transform:translateX(120%);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);max-width:360px;border:1px solid}
+.toast.show{transform:translateX(0);opacity:1}
+.toast-success{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:var(--green)}
+.toast-error{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:var(--red)}
+.toast-info{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.2);color:var(--cyan)}
+.toast i{font-size:14px}
+.toast .toast-close{margin-left:auto;cursor:pointer;opacity:.5;background:none;border:none;color:inherit;padding:0 4px}
+.toast-close:hover{opacity:1}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+@media(max-width:900px){#sidebar{width:320px;min-width:320px}}
+@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:60vh}#toolbar{font-size:10px;padding:4px 8px}.stat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){#sidebar{max-height:35vh}.sidebar-scroll{padding:8px;gap:6px}.row-2,.row-3,.row-4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;color:var(--text3);text-decoration:none;font-size:10px;margin-right:4px;transition:color .2s" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color=''"><i class="fa-solid fa-arrow-left"></i></a>
+      <i class="fa-solid fa-grid"></i>
+      <h1>Mapping <span>Planner</span></h1>
+    </div>
+    <div class="sidebar-scroll">
+
+      <!-- Canvas -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-display"></i> Canvas</div>
+        <div class="card-body">
+          <div class="row-2">
+            <div class="form-group"><label class="form-label">Ширина (px)</label><input type="number" id="canvasW" value="3840" min="1" max="32768" step="1"></div>
+            <div class="form-group"><label class="form-label">Высота (px)</label><input type="number" id="canvasH" value="1080" min="1" max="32768" step="1"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-bolt"></i> Пресеты</label>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px">
+              <span class="preset-chip" data-w="1920" data-h="1080">HD</span>
+              <span class="preset-chip" data-w="3840" data-h="1080">4K wide</span>
+              <span class="preset-chip" data-w="3840" data-h="2160">4K</span>
+              <span class="preset-chip" data-w="7680" data-h="2160">8K wide</span>
+              <span class="preset-chip" data-w="15360" data-h="4320">8K×2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add plane -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-plus"></i> Добавить плоскость</div>
+        <div class="card-body">
+          <div class="row-2">
+            <div class="form-group"><label class="form-label">X (px)</label><input type="number" id="planeX" value="0" min="0"></div>
+            <div class="form-group"><label class="form-label">Y (px)</label><input type="number" id="planeY" value="0" min="0"></div>
+          </div>
+          <div class="row-2">
+            <div class="form-group"><label class="form-label">W (px)</label><input type="number" id="planeW" value="1920" min="1"></div>
+            <div class="form-group"><label class="form-label">H (px)</label><input type="number" id="planeH" value="1080" min="1"></div>
+          </div>
+          <div class="row-2">
+            <div class="form-group">
+              <label class="form-label">Label</label>
+              <input type="text" id="planeLabel" value="Screen 1" maxlength="20">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="margin-bottom:5px">Цвет</label>
+              <div class="color-opts" id="colorOpts"></div>
+              <input type="hidden" id="planeColor" value="#00d4ff">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm btn-block" id="btnAddPlane"><i class="fa-regular fa-plus"></i> Добавить</button>
+        </div>
+      </div>
+
+      <!-- Planes list -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-layer-group"></i> Плоскости <span id="planeCount" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);margin-left:4px"></span></div>
+        <div class="card-body" style="padding-bottom:8px">
+          <div id="planeListWrap"></div>
+          <div style="margin-top:4px;display:flex;gap:4px">
+            <button class="btn btn-secondary btn-xs" id="btnDeleteSel" style="flex:1"><i class="fa-regular fa-trash-can"></i> Удалить</button>
+            <button class="btn btn-secondary btn-xs" id="btnClearAll" style="flex:1"><i class="fa-regular fa-xmark"></i> Все</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Snap -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-magnet"></i> Привязка</div>
+        <div class="card-body">
+          <div class="toggle-wrap">
+            <label class="toggle-label"><i class="fa-regular fa-border-all"></i> Snap to grid</label>
+            <label class="toggle"><input type="checkbox" id="snapGrid" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Шаг сетки (px)</label>
+            <select id="gridSize"><option value="1">1</option><option value="8">8</option><option value="16">16</option><option value="32" selected>32</option><option value="64">64</option><option value="128">128</option></select>
+          </div>
+          <div class="toggle-wrap">
+            <label class="toggle-label"><i class="fa-regular fa-objects-align"></i> Snap to objects</label>
+            <label class="toggle"><input type="checkbox" id="snapObjects" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-chart-simple"></i> Статистика</div>
+        <div class="card-body">
+          <div class="stat-grid" id="statGrid"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="card-body">
+          <div class="btn-row" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <button class="btn btn-secondary btn-sm" id="btnExportPNG"><i class="fa-regular fa-download"></i> PNG</button>
+            <button class="btn btn-secondary btn-sm" id="btnExportCSV"><i class="fa-regular fa-file-csv"></i> CSV</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="toolbar">
+      <span class="tb-label">Canvas:</span>
+      <span id="tbCanvasRes">3840×1080</span>
+      <span class="tb-sep"></span>
+      <div class="zoom-ctrl">
+        <button class="zoom-btn" id="zoomOut"><i class="fa-solid fa-minus"></i></button>
+        <span class="zoom-lvl" id="zoomLvl">100%</span>
+        <button class="zoom-btn" id="zoomIn"><i class="fa-solid fa-plus"></i></button>
+        <button class="zoom-btn" id="zoomFit" title="Fit to view"><i class="fa-solid fa-expand"></i></button>
+      </div>
+      <span class="tb-sep"></span>
+      <span class="tb-label" id="tbInfo">0 planes | 0 px² | 0% coverage</span>
+    </div>
+    <div id="viewer">
+      <div id="canvas-wrap">
+        <canvas id="canvas"></canvas>
+        <div class="canvas-info"><span id="canvasSizeInfo">—</span></div>
+      </div>
+      <div class="coord-display" id="coordDisplay"></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<style>
+.preset-chip{padding:2px 7px;font-size:9px;font-weight:500;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text3);cursor:pointer;transition:all var(--t);user-select:none}
+.preset-chip:hover{background:rgba(0,212,255,0.08);border-color:var(--cyan);color:var(--cyan)}
+.btn-xs{padding:3px 6px;font-size:9px;border-radius:4px}
+</style>
+
+<script>
+(function(){
+'use strict';
+
+var PLANE_COLORS = ['#00d4ff','#22c55e','#f59e0b','#ef4444','#ec4899','#a855f7','#3b82f6','#14b8a6','#f97316','#eab308'];
+
+var state = {
+  canvasW: 3840, canvasH: 1080,
+  gridSize: 32, snapGrid: true, snapObjects: true,
+  planes: [],
+  nextId: 1,
+  zoom: 1, panX: 0, panY: 0,
+  selected: [],
+  editingId: null
+};
+
+var drag = null; // { type, planeIds, startMX, startMY, origX, origY, origW, origH, mode, corner }
+var alignGuides = [];
+
+function $(s){return document.querySelector(s)}
+function deepClone(o){return JSON.parse(JSON.stringify(o))}
+
+function toast(m,t,d){t=t||'success';d=d||2500;var icons={success:'fa-regular fa-circle-check',error:'fa-regular fa-circle-xmark',info:'fa-regular fa-circle-info'};var c=$('#toast-container');var el=document.createElement('div');el.className='toast toast-'+t;el.innerHTML='<i class="'+(icons[t]||icons.info)+'"></i><span>'+m+'</span><button class="toast-close">&times;</button>';c.appendChild(el);requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show')})});var close=function(){el.classList.remove('show');setTimeout(function(){el.remove()},400)};el.querySelector('.toast-close').addEventListener('click',close);setTimeout(close,d)}
+
+function saveState(){try{localStorage.setItem('mp_state',JSON.stringify(state))}catch(e){}}
+
+function loadState(){
+  try{var raw=localStorage.getItem('mp_state');if(raw){state=Object.assign({canvasW:3840,canvasH:1080,gridSize:32,snapGrid:true,snapObjects:true,planes:[],nextId:1,zoom:1,panX:0,panY:0,selected:[],editingId:null},JSON.parse(raw));state.editingId=null;return}}catch(e){}
+}
+
+function readState(){
+  state.canvasW=parseInt($('#canvasW').value,10)||3840;
+  state.canvasH=parseInt($('#canvasH').value,10)||1080;
+  state.gridSize=parseInt($('#gridSize').value,10)||32;
+  state.snapGrid=$('#snapGrid').checked;
+  state.snapObjects=$('#snapObjects').checked;
+}
+
+/* === PLANE CRUD === */
+function addPlane(x,y,w,h,label,color){
+  if(w<1||h<1){toast('Некорректные размеры','error');return null;}
+  x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));
+  var p={id:state.nextId++,label:label||'Plane '+state.nextId,x:x,y:y,w:Math.round(w),h:Math.round(h),color:color||PLANE_COLORS[state.planes.length%PLANE_COLORS.length]};
+  state.planes.push(p);
+  state.selected=[p.id];
+  saveState();render();
+  return p;
+}
+
+function removePlane(id){
+  state.planes=state.planes.filter(function(p){return p.id!==id});
+  state.selected=state.selected.filter(function(s){return s!==id});
+  saveState();render();
+}
+
+function removeSelected(){
+  if(state.selected.length===0){toast('Нет выделенных плоскостей','info');return;}
+  state.planes=state.planes.filter(function(p){return state.selected.indexOf(p.id)<0});
+  state.selected=[];
+  saveState();render();
+  toast('Удалено','info');
+}
+
+/* === CANVAS COORDS === */
+function screenToCanvas(sx,sy){
+  var wrap=$('#canvas-wrap');
+  var r=wrap.getBoundingClientRect();
+  return{
+    x:(sx-r.left)/state.zoom,
+    y:(sy-r.top)/state.zoom
+  };
+}
+
+function hitTestPlanes(cx,cy){
+  for(var i=state.planes.length-1;i>=0;i--){
+    var p=state.planes[i];
+    if(cx>=p.x&&cx<=p.x+p.w&&cy>=p.y&&cy<=p.y+p.h)return p;
+  }
+  return null;
+}
+
+function isOnCorner(p,cx,cy){
+  var s=6/state.zoom;
+  var corners=[{x:p.x,y:p.y,mode:'nw'},{x:p.x+p.w,y:p.y,mode:'ne'},{x:p.x,y:p.y+p.h,mode:'sw'},{x:p.x+p.w,y:p.y+p.h,mode:'se'}];
+  for(var i=0;i<corners.length;i++){
+    if(Math.abs(cx-corners[i].x)<s&&Math.abs(cy-corners[i].y)<s)return corners[i].mode;
+  }
+  return null;
+}
+
+/* === SNAP === */
+function snapValue(val,guides){
+  var threshold=6/state.zoom;
+  for(var i=0;i<guides.length;i++){
+    if(Math.abs(val-guides.value)<threshold)return guides.value;
+  }
+  return val;
+}
+
+function buildSnapGuides(movingIds){
+  var guides={x:[0,state.canvasW],y:[0,state.canvasH]};
+  // Canvas center
+  guides.x.push(state.canvasW/2);guides.y.push(state.canvasH/2);
+  state.planes.forEach(function(p){
+    if(movingIds.indexOf(p.id)>=0)return;
+    guides.x.push(p.x);guides.x.push(p.x+p.w/2);guides.x.push(p.x+p.w);
+    guides.y.push(p.y);guides.y.push(p.y+p.h/2);guides.y.push(p.y+p.h);
+  });
+  guides.x.sort(function(a,b){return a-b});
+  guides.y.sort(function(a,b){return a-b});
+  return guides;
+}
+
+function getAlignGuides(plane,movingIds){
+  var guides=[];
+  var sides={left:plane.x,right:plane.x+plane.w,centerX:plane.x+plane.w/2,top:plane.y,bottom:plane.y+plane.h,centerY:plane.y+plane.h/2};
+  var threshold=6/state.zoom;
+  state.planes.forEach(function(p){
+    if(movingIds.indexOf(p.id)>=0)return;
+    var ps={left:p.x,right:p.x+p.w,centerX:p.x+p.w/2,top:p.y,bottom:p.y+p.h,centerY:p.y+p.h/2};
+    Object.keys(sides).forEach(function(sk){
+      Object.keys(ps).forEach(function(pk){
+        if(Math.abs(sides[sk]-ps[pk])<threshold){
+          guides.push({axis:sk==='left'||sk==='right'||sk==='centerX'?'x':'y',value:ps[pk],type:sk+'-'+pk});
+        }
+      });
+    });
+  });
+  return guides;
+}
+
+function doSnap(plane,movingIds){
+  if(!state.snapObjects)return{dx:0,dy:0};
+  var guides=getAlignGuides(plane,movingIds);
+  var dx=0,dy=0;
+  var threshold=6/state.zoom;
+  var xSides={left:plane.x+dx,right:plane.x+dx+plane.w,centerX:plane.x+dx+plane.w/2};
+  var ySides={top:plane.y+dy,bottom:plane.y+dy+plane.h,centerY:plane.y+dy+plane.h/2};
+  // Find snap for x
+  var snapX=null,minDX=threshold;
+  guides.forEach(function(g){
+    if(g.axis!=='x')return;
+    Object.keys(xSides).forEach(function(sk){
+      var d=Math.abs(xSides[sk]-g.value);
+      if(d<minDX){minDX=d;snapX=g.value-xSides[sk];}
+    });
+  });
+  if(snapX!==null)dx+=snapX;
+  // Find snap for y
+  var snapY=null,minDY=threshold;
+  guides.forEach(function(g){
+    if(g.axis!=='y')return;
+    Object.keys(ySides).forEach(function(sk){
+      var d=Math.abs(ySides[sk]-g.value);
+      if(d<minDY){minDY=d;snapY=g.value-ySides[sk];}
+    });
+  });
+  if(snapY!==null)dy+=snapY;
+  return{dx:dx,dy:dy};
+}
+
+/* === GRID SNAP === */
+function snapToGrid(val){
+  if(!state.snapGrid)return val;
+  var gs=state.gridSize;
+  return Math.round(val/gs)*gs;
+}
+
+/* === CANVAS === */
+var _scaleX=1,_scaleY=1;
+
+function fitZoom(){
+  var wrap=$('#viewer');
+  var r=wrap.getBoundingClientRect();
+  var pad=40;
+  var avW=r.width-pad*2,avH=r.height-pad*2;
+  var scaleX=avW/state.canvasW,scaleY=avH/state.canvasH;
+  state.zoom=Math.min(scaleX,scaleY,1);
+  applyZoom();
+}
+
+function applyZoom(){
+  state.zoom=Math.max(0.05,Math.min(5,state.zoom));
+  $('#zoomLvl').textContent=Math.round(state.zoom*100)+'%';
+  renderCanvas();
+}
+
+function render(){
+  readState();
+  renderPlaneList();
+  renderStats();
+  renderCanvas();
+  updateToolbar();
+}
+
+function renderCanvas(){
+  var canvas=$('#canvas');var ctx=canvas.getContext('2d');
+  var wrap=$('#canvas-wrap');
+  var cw=state.canvasW,ch=state.canvasH;
+  var dpr=window.devicePixelRatio||1;
+  _scaleX=state.zoom; _scaleY=state.zoom;
+  canvas.width=cw*state.zoom*dpr;canvas.height=ch*state.zoom*dpr;
+  canvas.style.width=(cw*state.zoom)+'px';canvas.style.height=(ch*state.zoom)+'px';
+  wrap.style.transform='translate('+state.panX+'px,'+state.panY+'px)';
+  ctx.scale(dpr,dpr);
+  ctx.imageSmoothingEnabled=false;
+
+  // Background
+  ctx.fillStyle='#06060a';ctx.fillRect(0,0,cw*state.zoom,ch*state.zoom);
+
+  // Grid
+  if(state.snapGrid&&state.gridSize>0){
+    var gs=state.gridSize*state.zoom;
+    ctx.fillStyle='rgba(255,255,255,0.04)';
+    for(var gx=0;gx<=cw*state.zoom;gx+=gs){
+      for(var gy=0;gy<=ch*state.zoom;gy+=gs){
+        ctx.fillRect(gx,gy,1,1);
+      }
+    }
+  }
+
+  // Canvas border
+  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+  ctx.strokeRect(0,0,cw*state.zoom,ch*state.zoom);
+
+  // Planes
+  var z=state.zoom;
+  state.planes.forEach(function(p){
+    var px=p.x*z,py=p.y*z,pw=p.w*z,ph=p.h*z;
+    var sel=state.selected.indexOf(p.id)>=0;
+    ctx.fillStyle=p.color+'4d';ctx.fillRect(px,py,pw,ph);
+    ctx.strokeStyle=sel?'#ffffff':p.color;ctx.lineWidth=sel?2:1;
+    ctx.strokeRect(px,py,pw,ph);
+    // Label
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold '+(pw<ph?pw*0.08:ph*0.08)+'px Inter,sans-serif';ctx.textBaseline='middle';ctx.textAlign='center';
+    var fs=Math.max(8,Math.min(pw,ph)/15);
+    ctx.font='bold '+fs+'px Inter,sans-serif';
+    if(pw*z>40&&ph*z>24){
+      ctx.fillText(p.label,px+pw/2,py+ph/2-6);
+      ctx.font=(fs*0.7)+'px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';
+      ctx.fillText(p.w+'×'+p.h,px+pw/2,py+ph/2+fs*0.5+2);
+    }
+    // Selection handles
+    if(sel){
+      ctx.fillStyle='#ffffff';
+      var hs=4;
+      [[px,py],[px+pw,py],[px,py+ph],[px+pw,py+ph]].forEach(function(c){
+        ctx.fillRect(c[0]-hs,c[1]-hs,hs*2,hs*2);
+      });
+    }
+  });
+
+  // Align guides
+  alignGuides.forEach(function(g){
+    ctx.strokeStyle='rgba(0,212,255,0.6)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    if(g.axis==='x'){
+      var v=g.value*z;
+      ctx.beginPath();ctx.moveTo(v,0);ctx.lineTo(v,ch*z);ctx.stroke();
+    }else{
+      var v=g.value*z;
+      ctx.beginPath();ctx.moveTo(0,v);ctx.lineTo(cw*z,v);ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  });
+
+  // Overlap detection
+  for(var i=0;i<state.planes.length;i++){
+    for(var j=i+1;j<state.planes.length;j++){
+      var a=state.planes[i],b=state.planes[j];
+      var ox=Math.max(a.x,b.x),oy=Math.max(a.y,b.y);
+      var ox2=Math.min(a.x+a.w,b.x+b.w),oy2=Math.min(a.y+a.h,b.y+b.h);
+      if(ox<ox2&&oy<oy2){
+        ctx.fillStyle='rgba(239,68,68,0.15)';
+        ctx.fillRect(ox*z,oy*z,(ox2-ox)*z,(oy2-oy)*z);
+        ctx.strokeStyle='rgba(239,68,68,0.4)';ctx.lineWidth=1;ctx.setLineDash([2,2]);
+        ctx.strokeRect(ox*z,oy*z,(ox2-ox)*z,(oy2-oy)*z);
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  // Rulers
+  ctx.fillStyle='rgba(255,255,255,0.1)';ctx.font='8px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';
+  var step=Math.max(1,Math.round(100/z/state.gridSize)*state.gridSize);
+  if(step<16)step=16;
+  for(var rx=0;rx<=cw;rx+=step){
+    ctx.fillText(rx,rx*z,2);
+    ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(rx*z,0,1,ch*z);
+    ctx.fillStyle='rgba(255,255,255,0.1)';
+  }
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(var ry=0;ry<=ch;ry+=step){
+    ctx.fillText(ry,-2,ry*z);
+    ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(0,ry*z,cw*z,1);
+    ctx.fillStyle='rgba(255,255,255,0.1)';
+  }
+
+  $('#canvasSizeInfo').textContent=cw+'×'+ch+' px | '+state.planes.length+' planes';
+}
+
+/* === TOOLBAR === */
+function updateToolbar(){
+  $('#tbCanvasRes').textContent=state.canvasW+'×'+state.canvasH;
+  var totalPx=0;state.planes.forEach(function(p){totalPx+=p.w*p.h});
+  var cov=state.canvasW*state.canvasH>0?Math.round(totalPx/(state.canvasW*state.canvasH)*100):0;
+  $('#tbInfo').textContent=state.planes.length+' planes | '+totalPx+' px² | '+cov+'% coverage';
+}
+
+/* === SIDEBAR === */
+function renderPlaneList(){
+  var wrap=$('#planeListWrap');
+  if(state.planes.length===0){wrap.innerHTML='<div style="font-size:10px;color:var(--text3);padding:4px 0">Нет плоскостей</div>';$('#planeCount').textContent='';return;}
+  $('#planeCount').textContent='('+state.planes.length+')';
+  wrap.innerHTML='<table class="plane-table"><thead><tr><th></th><th>Label</th><th>X</th><th>Y</th><th>W</th><th>H</th><th></th></tr></thead><tbody>'+
+    state.planes.map(function(p){
+      var sel=state.selected.indexOf(p.id)>=0?' class="selected"':'';
+      var edit=state.editingId===p.id;
+      if(edit){
+        return '<tr data-id="'+p.id+'"'+sel+'><td><span class="color-dot" style="background:'+p.color+'"></span></td>'+
+          '<td><input class="edit-inp edit-label" data-field="label" value="'+p.label.replace(/"/g,'&quot;')+'"></td>'+
+          '<td><input class="edit-inp edit-xy" data-field="x" value="'+p.x+'"></td>'+
+          '<td><input class="edit-inp edit-xy" data-field="y" value="'+p.y+'"></td>'+
+          '<td><input class="edit-inp edit-wh" data-field="w" value="'+p.w+'"></td>'+
+          '<td><input class="edit-inp edit-wh" data-field="h" value="'+p.h+'"></td>'+
+          '<td class="p-actions"><button class="btn-del-plane" data-id="'+p.id+'" title="Удалить"><i class="fa-solid fa-xmark"></i></button></td></tr>';
+      }
+      return '<tr data-id="'+p.id+'"'+sel+'><td><span class="color-dot" style="background:'+p.color+'"></span></td><td>'+p.label+'</td><td>'+p.x+'</td><td>'+p.y+'</td><td>'+p.w+'</td><td>'+p.h+'</td><td class="p-actions"><button class="btn-edit-plane" data-id="'+p.id+'" title="Редактировать"><i class="fa-regular fa-pen"></i></button><button class="btn-del-plane" data-id="'+p.id+'" title="Удалить"><i class="fa-solid fa-xmark"></i></button></td></tr>';
+    }).join('')+'</tbody></table>';
+  // Click to select, double-click to edit
+  wrap.querySelectorAll('tr[data-id]').forEach(function(tr){
+    tr.addEventListener('dblclick',function(e){
+      if(e.target.closest('.btn-del-plane')||e.target.closest('.edit-inp')||e.target.closest('.btn-edit-plane'))return;
+      var id=parseInt(this.dataset.id,10);
+      if(state.selected.indexOf(id)<0)state.selected=[id];
+      state.editingId=id;
+      renderPlaneList();
+      var row=document.querySelector('tr[data-id="'+id+'"]');
+      if(row){var first=row.querySelector('.edit-inp');if(first)first.focus();}
+    });
+    tr.addEventListener('click',function(e){
+      if(e.target.closest('.btn-del-plane')||e.target.closest('.edit-inp'))return;
+      var id=parseInt(this.dataset.id,10);
+      if(e.target.closest('.btn-edit-plane')){
+        state.editingId=state.editingId===id?null:id;
+        renderPlaneList();
+        if(state.editingId){var row=document.querySelector('tr[data-id="'+id+'"]');if(row){var f=row.querySelector('.edit-inp');if(f)f.focus();}}
+        return;
+      }
+      if(state.editingId){state.editingId=null;renderPlaneList();return;}
+      if(e.shiftKey){var i=state.selected.indexOf(id);if(i>=0)state.selected.splice(i,1);else state.selected.push(id);}
+      else state.selected=[id];
+      render();
+    });
+  });
+  // Inline edit save
+  wrap.querySelectorAll('.edit-inp').forEach(function(inp){
+    inp.addEventListener('blur',function(){
+      var tr=this.closest('tr[data-id]');if(!tr)return;
+      var id=parseInt(tr.dataset.id,10);
+      var p=state.planes.find(function(pp){return pp.id===id});
+      if(!p)return;
+      var val=this.value;
+      if(this.dataset.field==='label')p.label=String(val).trim()||p.label;
+      else if(this.dataset.field==='x'){var v=parseInt(val,10);if(!isNaN(v))p.x=Math.max(0,v);}
+      else if(this.dataset.field==='y'){var v=parseInt(val,10);if(!isNaN(v))p.y=Math.max(0,v);}
+      else if(this.dataset.field==='w'){var v=parseInt(val,10);if(!isNaN(v)&&v>0)p.w=v;}
+      else if(this.dataset.field==='h'){var v=parseInt(val,10);if(!isNaN(v)&&v>0)p.h=v;}
+    });
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){
+        this.blur();
+        state.editingId=null;
+        saveState();render();
+      }
+      if(e.key==='Escape'){
+        state.editingId=null;
+        render();
+      }
+    });
+  });
+  wrap.querySelectorAll('.btn-del-plane').forEach(function(b){
+    b.addEventListener('click',function(e){e.stopPropagation();removePlane(parseInt(this.dataset.id,10))});
+  });
+}
+
+function renderStats(){
+  var grid=$('#statGrid');
+  var totalPx=0,overlaps=0,gaps=0;
+  state.planes.forEach(function(p){totalPx+=p.w*p.h});
+  var canvasArea=state.canvasW*state.canvasH;
+  var coverage=canvasArea>0?Math.round(totalPx/canvasArea*100):0;
+  // Count overlaps
+  for(var i=0;i<state.planes.length;i++)for(var j=i+1;j<state.planes.length;j++){
+    var a=state.planes[i],b=state.planes[j];
+    if(Math.max(a.x,b.x)<Math.min(a.x+a.w,b.x+b.w)&&Math.max(a.y,b.y)<Math.min(a.y+a.h,b.y+b.h))overlaps++;
+  }
+  grid.innerHTML=
+    '<div class="stat-item"><i class="fa-regular fa-display" style="color:var(--cyan)"></i><div class="stat-info"><span class="stat-label">Canvas</span><span class="stat-value">'+state.canvasW+'×'+state.canvasH+'</span></div></div>'+
+    '<div class="stat-item"><i class="fa-regular fa-layer-group" style="color:var(--purple)"></i><div class="stat-info"><span class="stat-label">Плоскостей</span><span class="stat-value">'+state.planes.length+'</span></div></div>'+
+    '<div class="stat-item"><i class="fa-regular fa-chart-pie" style="color:var(--orange)"></i><div class="stat-info"><span class="stat-label">Покрытие</span><span class="stat-value">'+coverage+'%</span></div></div>'+
+    '<div class="stat-item"><i class="fa-regular fa-arrow-to-right" style="color:'+(overlaps>0?'var(--red)':'var(--green)')+'"></i><div class="stat-info"><span class="stat-label">Пересечения</span><span class="stat-value">'+overlaps+'</span></div></div>';
+}
+
+/* === CANVAS INTERACTIONS === */
+function initCanvasEvents(){
+  var view=$('#viewer');
+  var wrap=$('#canvas-wrap');
+  var canvas=$('#canvas');
+
+  canvas.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    var c=screenToCanvas(e.clientX,e.clientY);
+    var hit=hitTestPlanes(c.x,c.y);
+    var selectedPlane=null;
+    if(hit&&state.selected.indexOf(hit.id)>=0)selectedPlane=hit;
+
+    // Check resize corners on selected
+    if(selectedPlane){
+      var corner=isOnCorner(selectedPlane,c.x,c.y);
+      if(corner){
+        drag={type:'resize',planeIds:[selectedPlane.id],startMX:e.clientX,startMY:e.clientY,origX:selectedPlane.x,origY:selectedPlane.y,origW:selectedPlane.w,origH:selectedPlane.h,corner:corner};
+        return;
+      }
+    }
+
+    if(hit){
+      if(!e.shiftKey&&state.selected.indexOf(hit.id)<0)state.selected=[hit.id];
+      else if(e.shiftKey){var idx=state.selected.indexOf(hit.id);if(idx<0)state.selected.push(hit.id);}
+      var snaps=[];
+      state.selected.forEach(function(sid){
+        var p=state.planes.find(function(pp){return pp.id===sid});
+        if(p){
+          var g=getAlignGuides(p,state.selected);
+          g.forEach(function(g2){if(snaps.indexOf(g2)<0)snaps.push(g2)});
+        }
+      });
+      drag={type:'move',planeIds:state.selected.slice(),startMX:e.clientX,startMY:e.clientY,snaps:snaps};
+      // Save original positions
+      drag.origins={};
+      state.selected.forEach(function(sid){
+        var p=state.planes.find(function(pp){return pp.id===sid});
+        if(p)drag.origins[sid]={x:p.x,y:p.y};
+      });
+      canvas.classList.add('dragging');
+    }else{
+      if(!e.shiftKey)state.selected=[];
+      drag={type:'pan',startMX:e.clientX,startMY:e.clientY,origPX:state.panX,origPY:state.panY};
+      canvas.style.cursor='grabbing';
+    }
+    render();
+  });
+
+  document.addEventListener('mousemove',function(e){
+    if(!drag)return;
+    var dx=(e.clientX-drag.startMX);
+    var dy=(e.clientY-drag.startMY);
+
+    if(drag.type==='pan'){
+      state.panX=drag.origPX+dx;state.panY=drag.origPY+dy;
+      applyZoom();return;
+    }
+
+    var c=screenToCanvas(e.clientX,e.clientY);
+    var startC=screenToCanvas(drag.startMX,drag.startMY);
+    var ddx=c.x-startC.x,ddy=c.y-startC.y;
+
+    if(drag.type==='move'){
+      alignGuides=[];
+      state.selected.forEach(function(sid){
+        var p=state.planes.find(function(pp){return pp.id===sid});
+        if(!p)return;
+        var orig=drag.origins[sid];
+        var nx=snapToGrid(orig.x+ddx),ny=snapToGrid(orig.y+ddy);
+        var tmpP={x:nx,y:ny,w:p.w,h:p.h};
+        var snap=doSnap(tmpP,state.selected);
+        p.x=nx+snap.dx;p.y=ny+snap.dy;
+        // Collect align guides
+        if(snap.dx!==0||snap.dy!==0){
+          var gs=getAlignGuides(p,state.selected);
+          gs.forEach(function(g){
+            var found=false;
+            for(var ai=0;ai<alignGuides.length;ai++){if(alignGuides[ai].axis===g.axis&&Math.abs(alignGuides[ai].value-g.value)<1){found=true;break;}}
+            if(!found)alignGuides.push(g);
+          });
+        }
+      });
+      renderCanvas();
+    }else if(drag.type==='resize'){
+      var p=state.planes.find(function(pp){return pp.id===drag.planeIds[0]});
+      if(!p)return;
+      var c2=screenToCanvas(e.clientX,e.clientY);
+      var nw=p.w,nh=p.h,nx=p.x,ny=p.y;
+      if(drag.corner.indexOf('e')>=0)nw=Math.max(1,Math.round(c2.x-drag.origX));
+      if(drag.corner.indexOf('w')>=0){nw=Math.max(1,Math.round(drag.origX+drag.origW-c2.x));nx=Math.round(c2.x);}
+      if(drag.corner.indexOf('s')>=0)nh=Math.max(1,Math.round(c2.y-drag.origY));
+      if(drag.corner.indexOf('n')>=0){nh=Math.max(1,Math.round(drag.origY+drag.origH-c2.y));ny=Math.round(c2.y);}
+      p.x=snapToGrid(nx);p.y=snapToGrid(ny);p.w=snapToGrid(nw);p.h=snapToGrid(nh);
+      renderCanvas();
+    }
+    // Update coord display
+    var sc=screenToCanvas(e.clientX,e.clientY);
+    $('#coordDisplay').textContent='('+Math.round(sc.x)+', '+Math.round(sc.y)+')';
+  });
+
+  document.addEventListener('mouseup',function(){
+    if(drag&&drag.type!=='pan'){
+      $('#canvas').classList.remove('dragging');
+      alignGuides=[];
+      saveState();renderCanvas();
+    }
+    if(drag&&drag.type==='pan')$('#canvas').style.cursor='grab';
+    drag=null;
+  });
+}
+
+/* === EXPORT === */
+function exportPNG(){
+  var canvas=document.createElement('canvas');var ctx=canvas.getContext('2d');
+  var cw=state.canvasW,ch=state.canvasH;
+  canvas.width=cw;canvas.height=ch;ctx.imageSmoothingEnabled=false;
+  ctx.fillStyle='#06060a';ctx.fillRect(0,0,cw,ch);
+  state.planes.forEach(function(p){
+    ctx.fillStyle=p.color+'80';ctx.fillRect(p.x,p.y,p.w,p.h);
+    ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.strokeRect(p.x,p.y,p.w,p.h);
+    ctx.fillStyle='#ffffff';ctx.font='bold '+Math.min(p.w*0.08,18)+'px Inter,sans-serif';ctx.textBaseline='middle';ctx.textAlign='center';
+    if(p.w>40&&p.h>24){ctx.fillText(p.label,p.x+p.w/2,p.y+p.h/2-6);ctx.font=(Math.min(p.w*0.08,18)*0.7)+'px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText(p.w+'×'+p.h,p.x+p.w/2,p.y+p.h/2+8);}
+  });
+  var link=document.createElement('a');
+  link.download='mapping_'+(new Date().toISOString().slice(0,10))+'.png';
+  link.href=canvas.toDataURL('image/png');link.click();
+  toast('PNG сохранён','success');
+}
+
+function exportCSV(){
+  var lines=['Label,X,Y,W,H,Color'];
+  state.planes.forEach(function(p){lines.push('"'+p.label+'",'+p.x+','+p.y+','+p.w+','+p.h+',"'+p.color+'"');});
+  var csv=lines.join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(csv).then(function(){toast('CSV скопирован','success')}).catch(function(){fallbackCopy(csv)})}else{fallbackCopy(csv)}
+}
+
+function fallbackCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('CSV скопирован','success')}catch(e){toast('Ошибка','error')}document.body.removeChild(ta)}
+
+/* === COLOR PICKER === */
+function initColorPicker(){
+  var wrap=$('#colorOpts');
+  wrap.innerHTML=PLANE_COLORS.map(function(c,i){
+    return '<div class="color-opt'+(i===0?' active':'')+'" data-color="'+c+'" style="color:'+c+';background:'+c+'"></div>';
+  }).join('');
+  wrap.addEventListener('click',function(e){
+    var opt=e.target.closest('.color-opt');if(!opt)return;
+    wrap.querySelectorAll('.color-opt').forEach(function(el){el.classList.toggle('active',el===opt)});
+    $('#planeColor').value=opt.dataset.color;
+  });
+}
+
+/* === EVENTS === */
+function setupEvents(){
+  // Add plane
+  $('#btnAddPlane').addEventListener('click',function(){
+    addPlane(
+      parseInt($('#planeX').value,10)||0,
+      parseInt($('#planeY').value,10)||0,
+      parseInt($('#planeW').value,10)||1920,
+      parseInt($('#planeH').value,10)||1080,
+      $('#planeLabel').value||'Plane',
+      $('#planeColor').value
+    );
+  });
+
+  // Delete selected
+  $('#btnDeleteSel').addEventListener('click',removeSelected);
+  $('#btnClearAll').addEventListener('click',function(){
+    if(state.planes.length===0)return;
+    state.planes=[];state.selected=[];saveState();render();
+    toast('Все плоскости удалены','info');
+  });
+
+  // Canvas presets
+  document.querySelectorAll('.preset-chip').forEach(function(chip){
+    chip.addEventListener('click',function(){
+      $('#canvasW').value=this.dataset.w;$('#canvasH').value=this.dataset.h;
+      readState();renderCanvas();updateToolbar();renderStats();
+      toast('Canvas: '+this.dataset.w+'×'+this.dataset.h,'info');
+    });
+  });
+
+  // Export
+  $('#btnExportPNG').addEventListener('click',exportPNG);
+  $('#btnExportCSV').addEventListener('click',exportCSV);
+
+  // Zoom
+  $('#zoomIn').addEventListener('click',function(){state.zoom*=1.5;applyZoom()});
+  $('#zoomOut').addEventListener('click',function(){state.zoom/=1.5;applyZoom()});
+  $('#zoomFit').addEventListener('click',fitZoom);
+  // Wheel zoom
+  $('#viewer').addEventListener('wheel',function(e){
+    if(e.ctrlKey||e.metaKey){e.preventDefault();state.zoom*=e.deltaY<0?1.1:0.9;applyZoom();}
+  },{passive:false});
+
+  // Auto-recalc on input
+  document.querySelectorAll('#sidebar input, #sidebar select').forEach(function(el){
+    el.addEventListener('input',function(){
+      if(['canvasW','canvasH','gridSize','snapGrid','snapObjects'].indexOf(el.id)>=0){
+        readState();saveState();render();
+      }
+    });
+  });
+
+  // Enter to add
+  $('#planeLabel').addEventListener('keydown',function(e){if(e.key==='Enter')$('#btnAddPlane').click()});
+}
+
+// Ripple
+document.querySelectorAll('.btn').forEach(function(b){
+  b.addEventListener('click',function(e){
+    var r=b.getBoundingClientRect();var s=Math.max(r.width,r.height);
+    var sp=document.createElement('span');sp.className='ripple';
+    sp.style.width=sp.style.height=s+'px';sp.style.left=(e.clientX-r.left-s/2)+'px';sp.style.top=(e.clientY-r.top-s/2)+'px';
+    b.appendChild(sp);sp.addEventListener('animationend',function(){sp.remove()});
+  });
+});
+
+// Init
+document.addEventListener('DOMContentLoaded',function(){
+  loadState();
+  initColorPicker();
+  setupEvents();
+  initCanvasEvents();
+  render();
+  fitZoom();
+  document.body.classList.add('loaded');
+});
+
+})();
+</script>
+</body>
+</html>

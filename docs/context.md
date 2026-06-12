@@ -408,7 +408,93 @@ M[x] = R₁ × x - Σ(Pᵢ × (x - aᵢ)) - q × x²/2
 
 ---
 
-## 7. Общие паттерны
+## 7. Mapping Planner (`tools/mapping-planner/`)
+
+### Назначение
+Раскладка прямоугольных плоскостей на canvas произвольного разрешения: перемещение, выравнивание, привязка, обнаружение пересечений.
+
+### Состояние
+
+```javascript
+state = {
+  canvasW: 3840, canvasH: 1080,  // разрешение canvas
+  gridSize: 32,                  // шаг сетки (px)
+  snapGrid: true,                // привязка к сетке
+  snapObjects: true,             // привязка к объектам
+  planes: [                      // плоскости
+    { id: 1, label: "Screen 1", x: 0, y: 0, w: 1920, h: 1080, color: "#00d4ff" }
+  ],
+  nextId: 1,
+  zoom: 1, panX: 0, panY: 0,
+  selected: [],                  // выделенные плоскости
+  editingId: null                // редактируемая плоскость (в таблице)
+}
+```
+
+### Canvas interactions
+
+Система drag-событий (mousedown/mousemove/mouseup на `#viewer`):
+
+- **mousedown** на плоскости → start move (или resize, если курсор на углу)
+- **mousedown** на пустом месте → start pan
+- **mousemove** → обновление позиции/размера с учётом snap
+- **mouseup** → фиксация, saveState()
+
+**`screenToCanvas(sx, sy)`** — пересчёт экранных координат в canvas-координаты с учётом zoom/pan:
+```
+x = (sx - wrapRect.left) / zoom
+y = (sy - wrapRect.top) / zoom
+```
+
+**`hitTestPlanes(cx, cy)`** — проход по плоскостям сверху вниз, проверка `cx >= p.x && cx <= p.x+p.w`
+
+**`isOnCorner(p, cx, cy)`** — проверка: курсор в пределах 6px от угла плоскости
+
+### Snap to objects
+
+**`getAlignGuides(plane, movingIds)`** — собирает все значимые точки выравнивания:
+- Для каждой НЕ-перемещаемой плоскости: `left, centerX, right, top, centerY, bottom`
+- Для canvas: 0, width/2, width, 0, height/2, height
+
+**`doSnap(plane, movingIds)`** — проверяет все точки плоскости на совпадение с guides (порог 6px):
+- Если совпадение найдено — возвращает dx/dy для корректировки
+- На экран рисуются голубые пунктирные линии в местах совпадения
+
+### Snap to grid
+
+**`snapToGrid(val)`** — `Math.round(val / gridSize) * gridSize`
+
+### Рендер canvas
+
+Функция `renderCanvas()` — 5 слоёв:
+
+1. **Фон** — `#06060a`
+2. **Сетка** — точки с шагом `gridSize × zoom`
+3. **Плоскости** — цветная заливка `color + '4d'`, border, label, размеры, хендлы выделения
+4. **Overlaps** — проверка всех пар плоскостей на пересечение, красная штриховка
+5. **Rulers** — линейки по краям с метками координат
+
+### Редактирование в таблице
+
+- Кнопка ✏️ или двойной клик по строке → `editingId = plane.id`, перерендер таблицы с `<input>`-полями
+- blur на input → сохранение значения, Enter → save + exit, Escape → cancel
+- Клик по другой строке → exit editing
+
+### Snap-настройки
+
+- `gridSize`: 1, 8, 16, 32, 64, 128 px
+- Флаги: snapGrid (к сетке), snapObjects (к объектам)
+
+### Canvas presets
+
+HD (1920×1080), 4K wide (3840×1080), 4K (3840×2160), 8K wide (7680×2160), 8K×2 (15360×4320)
+
+### Экспорт
+
+- **PNG**: offscreen canvas в полном разрешении, плоскости с заливкой и подписями
+- **CSV**: `Label, X, Y, W, H, Color` через буфер обмена
+
+## 8. Общие паттерны
 
 ### Сохранение состояния
 
