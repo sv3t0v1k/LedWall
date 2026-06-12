@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rigging Load Calculator — GenMap Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--bg2:#0e0e16;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);--text:#f0f0f5;--text2:#8a8aa0;--text3:#5a5a72;--cyan:#00d4ff;--purple:#7c3aed;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15);--rs:8px;--rm:12px;--rl:16px;--t:.2s ease;--font:'Inter',-apple-system,sans-serif;--sb:380px}
+html,body{height:100%;overflow:hidden}
+body{opacity:0;transition:opacity .5s ease;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body.loaded{opacity:1}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+#app{display:flex;height:100vh;width:100vw;overflow:hidden}
+#sidebar{width:var(--sb);min-width:var(--sb);height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-header{padding:16px 18px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06))}
+.sidebar-header i{font-size:20px;color:var(--cyan);filter:drop-shadow(0 0 8px rgba(0,212,255,0.3))}
+.sidebar-header h1{font-size:15px;font-weight:700;letter-spacing:-.3px;background:linear-gradient(135deg,#f0f0f5,#8a8aa0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-header h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-scroll{padding:12px 14px 20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--bg-card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--rl);transition:transform var(--t),box-shadow var(--t),border-color var(--t)}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow),var(--glow);border-color:var(--border-hover)}
+.card-header{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);border-bottom:1px solid rgba(255,255,255,0.04)}
+.card-header i{font-size:11px;color:var(--cyan)}
+.card-body{padding:10px 14px 14px}
+.form-group{margin-bottom:8px}
+.form-group:last-child{margin-bottom:0}
+.form-label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--text2);margin-bottom:3px;letter-spacing:.2px}
+.form-label i{font-size:9px;color:var(--cyan);width:12px;text-align:center}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+input[type="number"],input[type="text"],select{width:100%;padding:6px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:12px;transition:border-color var(--t),box-shadow var(--t);outline:none;-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a8aa0'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;font-size:12px}
+select option{background:#14141f;color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 12px;border:none;border-radius:var(--rs);font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;transition:all var(--t);position:relative;overflow:hidden;user-select:none;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0090b3);color:#0a0a0f}
+.btn-primary:hover{box-shadow:0 0 20px rgba(0,212,255,0.3);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);color:var(--text);border-color:var(--border-hover)}
+.btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--red)}
+.btn-danger:hover{background:rgba(239,68,68,0.2)}
+.btn-block{width:100%}
+.btn-sm{padding:5px 8px;font-size:10px}
+.btn-xs{padding:3px 6px;font-size:9px;border-radius:4px}
+.load-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px}
+.load-table th{text-align:center;padding:3px 4px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.load-table td{text-align:center;padding:3px 4px;color:var(--text2);border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px}
+.load-table tr.highlight td{color:var(--cyan);font-weight:600;background:rgba(0,212,255,0.04)}
+/* Loads table */
+.loads-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:10px}
+.loads-table th{text-align:left;padding:4px 5px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.loads-table td{padding:3px 5px;color:var(--text2);border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px;vertical-align:middle}
+.loads-table .actions{display:flex;gap:2px}
+.loads-table .actions button{padding:2px 4px;font-size:8px;border:none;border-radius:3px;cursor:pointer;background:rgba(255,255,255,0.04);color:var(--text3);transition:all var(--t)}
+.loads-table .actions button:hover{background:rgba(0,212,255,0.1);color:var(--cyan)}
+.loads-table .actions .btn-del:hover{background:rgba(239,68,68,0.15);color:var(--red)}
+/* Results */
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.result-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rm);padding:12px;text-align:center;position:relative}
+.result-card .rc-label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.result-card .rc-value{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.result-card .rc-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.result-card.ok .rc-value{color:var(--green)}
+.result-card.warn .rc-value{color:var(--orange)}
+.result-card.fail .rc-value{color:var(--red)}
+.result-card.total .rc-value{background:linear-gradient(135deg,var(--cyan),#0090b3);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+/* Canvas */
+.canvas-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden;margin-bottom:10px}
+.canvas-wrap canvas{display:block;width:100%;height:auto}
+/* Detail table */
+.detail-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:10px}
+.detail-table th{text-align:left;padding:4px 6px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);font-weight:600}
+.detail-table td{padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text2);font-size:10px}
+.detail-table td:last-child{text-align:center;font-weight:600}
+.detail-table .td-ok{color:var(--green)}
+.detail-table .td-warn{color:var(--orange)}
+.detail-table .td-fail{color:var(--red)}
+.detail-table tr.highlight td{background:rgba(0,212,255,0.04)}
+.chip-group{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.chip{padding:3px 8px;font-size:10px;font-weight:500;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text3);cursor:pointer;transition:all var(--t)}
+.chip:hover{background:rgba(0,212,255,0.08);border-color:var(--cyan);color:var(--cyan)}
+.chip.active{background:rgba(0,212,255,0.12);border-color:var(--cyan);color:var(--cyan)}
+/* Toast */
+#toast-container{position:fixed;top:12px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{pointer-events:auto;padding:8px 14px;border-radius:var(--rm);backdrop-filter:blur(16px);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.5);transform:translateX(120%);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);max-width:360px;border:1px solid}
+.toast.show{transform:translateX(0);opacity:1}
+.toast-success{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:var(--green)}
+.toast-error{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:var(--red)}
+.toast-info{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.2);color:var(--cyan)}
+.toast i{font-size:14px}
+.toast .toast-close{margin-left:auto;cursor:pointer;opacity:.5;background:none;border:none;color:inherit;padding:0 4px}
+.toast-close:hover{opacity:1}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+@media(max-width:900px){#sidebar{width:320px;min-width:320px}#viewer{padding:12px}.result-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.result-grid{grid-template-columns:1fr}}
+@media(max-width:480px){#sidebar{max-height:40vh}.sidebar-scroll{padding:8px;gap:6px}.row-2,.row-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;color:var(--text3);text-decoration:none;font-size:10px;margin-right:4px;transition:color .2s" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color=''"><i class="fa-solid fa-arrow-left"></i></a>
+      <i class="fa-solid fa-cube"></i>
+      <h1>Rigging <span>Load</span></h1>
+    </div>
+    <div class="sidebar-scroll">
+
+      <!-- Truss -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-ruler-triangle"></i> Трисс</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-circle"></i> Тип</label>
+            <select id="trussType"></select>
+          </div>
+          <div id="trussTable"></div>
+        </div>
+      </div>
+
+      <!-- Configuration -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-gear"></i> Конфигурация</div>
+        <div class="card-body">
+          <div class="row-2">
+            <div class="form-group">
+              <label class="form-label">Пролёт (м)</label>
+              <input type="number" id="span" value="12" min="4" max="24" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Опоры</label>
+              <select id="supportMode">
+                <option value="2">2 точки</option>
+                <option value="3">3 точки</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-regular fa-motor"></i> Мотор</label>
+            <select id="motorCap">
+              <option value="500">500 кг</option>
+              <option value="1000" selected>1000 кг</option>
+              <option value="2000">2000 кг</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Point loads -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-arrow-down-to-line"></i> Точечные нагрузки</div>
+        <div class="card-body">
+          <div class="row-3">
+            <div class="form-group">
+              <label class="form-label">Поз. (м)</label>
+              <input type="number" id="loadPos" value="0" min="0" max="24" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Вес (кг)</label>
+              <input type="number" id="loadWeight" value="100" min="1" max="50000" step="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Описание</label>
+              <input type="text" id="loadDesc" placeholder="Нагрузка" maxlength="20">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm btn-block" id="btnAddLoad"><i class="fa-regular fa-plus"></i> Добавить</button>
+          <div id="loadsList" style="margin-top:6px"></div>
+        </div>
+      </div>
+
+      <!-- Uniform load -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-grip-lines"></i> Равномерная нагрузка</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">кг/м (кабель, цепи)</label>
+            <input type="number" id="udl" value="10" min="0" max="500" step="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-chart-simple"></i> Результат</div>
+        <div class="card-body">
+          <div id="resultSidebar"></div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="card-body actions" style="display:flex;flex-direction:column;gap:5px">
+          <button class="btn btn-primary btn-sm btn-block" id="btnRefresh"><i class="fa-regular fa-rotate"></i> Рассчитать</button>
+          <button class="btn btn-danger btn-sm btn-block" id="btnReset"><i class="fa-regular fa-trash-can"></i> Сброс</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="viewer">
+      <!-- Results cards -->
+      <div class="result-grid" id="resultGrid"></div>
+
+      <!-- Canvas -->
+      <div class="canvas-wrap"><canvas id="schematic"></canvas></div>
+
+      <!-- Detail table -->
+      <div id="detailTable"></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(function(){
+'use strict';
+
+var G = 9.81;
+var DEF_TRUSSES = [
+  {name:'BT 30×30',section:0.29,weight:8.2,allowable:[{span:8,udl:720},{span:10,udl:520},{span:12,udl:380},{span:14,udl:280},{span:16,udl:200}]},
+  {name:'BT 45°',section:0.40,weight:11.5,allowable:[{span:12,udl:600},{span:14,udl:500},{span:16,udl:400},{span:18,udl:320}]},
+  {name:'BT 52°',section:0.50,weight:14.0,allowable:[{span:14,udl:800},{span:16,udl:650},{span:18,udl:520},{span:20,udl:420}]}
+];
+
+var trussLib = [];
+var state = {
+  trussIdx: 0, span: 12, supportMode: '2', motorCap: 1000,
+  loads: [], nextId: 1, udl: 10
+};
+
+function $(s){return document.querySelector(s)}
+function $$(s){return document.querySelectorAll(s)}
+function deepClone(o){return JSON.parse(JSON.stringify(o))}
+
+function toast(m,t,d){t=t||'info';d=d||2500;var icons={success:'fa-regular fa-circle-check',error:'fa-regular fa-circle-xmark',info:'fa-regular fa-circle-info'};var c=$('#toast-container');var el=document.createElement('div');el.className='toast toast-'+t;el.innerHTML='<i class="'+(icons[t]||icons.info)+'"></i><span>'+m+'</span><button class="toast-close">&times;</button>';c.appendChild(el);requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show')})});var close=function(){el.classList.remove('show');setTimeout(function(){el.remove()},400)};el.querySelector('.toast-close').addEventListener('click',close);setTimeout(close,d)}
+
+function loadLibrary(){
+  fetch('data/truss.json').then(function(r){return r.json()}).then(function(d){
+    trussLib=(d.trusses||[]).slice();
+    if(trussLib.length===0)trussLib=DEF_TRUSSES.slice();
+    renderTrussSelect();
+    render();
+  }).catch(function(){
+    trussLib=DEF_TRUSSES.slice();
+    renderTrussSelect();
+    render();
+  });
+}
+
+function getTruss(){return trussLib[state.trussIdx]||trussLib[0]}
+
+function interpAllowable(truss,span){
+  var al=truss.allowable;
+  if(!al||al.length===0)return null;
+  if(span<=al[0].span)return al[0].udl;
+  if(span>=al[al.length-1].span)return al[al.length-1].udl;
+  for(var i=0;i<al.length-1;i++){
+    if(span>=al[i].span&&span<=al[i+1].span){
+      var f=(span-al[i].span)/(al[i+1].span-al[i].span);
+      return al[i].udl+f*(al[i+1].udl-al[i].udl);
+    }
+  }
+  return al[al.length-1].udl;
+}
+
+/* === BEAM SOLVER === */
+function solveBeam(span, supportMode, loads, udl, truss){
+  var S=100;
+  var dx=span/S;
+  var trussW=truss?truss.weight:0;
+  var totalUDL=udl+trussW;
+
+  // Node coordinates
+  var x=[];
+  for(var i=0;i<=S;i++)x.push(i*dx);
+
+  // Node forces (point loads distributed)
+  var q=new Array(S+1).fill(0);
+  for(var i=0;i<=S;i++)q[i]=totalUDL; // UDL at every node
+
+  // Distribute point loads to nearest nodes
+  loads.forEach(function(ld){
+    var idx=Math.round(ld.pos/dx);
+    if(idx<0)idx=0;if(idx>S)idx=S;
+    q[idx]+=ld.weight/dx;
+  });
+
+  if(supportMode==='2'){
+    return solve2Supports(x,q,loads,totalUDL,truss,span);
+  }else{
+    return solve3Supports(x,q,loads,totalUDL,truss,span);
+  }
+}
+
+function solve2Supports(x,q,loads,totalUDL,truss,span){
+  var S=x.length-1;
+  var dx=span/S;
+  var totalPoint=0;
+  loads.forEach(function(ld){totalPoint+=ld.weight});
+  var totalLoad=totalPoint+totalUDL*span;
+
+  // Reactions (left = R1, right = R2)
+  var sumM=0;
+  loads.forEach(function(ld){sumM+=ld.weight*ld.pos});
+  sumM+=totalUDL*span*span/2;
+
+  var R2=sumM/span;
+  var R1=totalLoad-R2;
+
+  // Shear and moment
+  var V=new Array(S+1).fill(0);
+  var M=new Array(S+1).fill(0);
+  var curV=R1;
+  for(var i=0;i<=S;i++){
+    V[i]=curV;
+    // moment at node i
+    var Mi=R1*x[i];
+    loads.forEach(function(ld){
+      if(x[i]>=ld.pos)Mi-=ld.weight*(x[i]-ld.pos);
+    });
+    Mi-=totalUDL*x[i]*x[i]/2;
+    M[i]=Mi;
+    curV-=q[i]*dx;
+  }
+
+  var Mmax=0;var MmaxPos=0;
+  var Vmax=0;
+  for(var i=0;i<=S;i++){
+    if(Math.abs(M[i])>Mmax){Mmax=Math.abs(M[i]);MmaxPos=x[i];}
+    if(Math.abs(V[i])>Vmax)Vmax=Math.abs(V[i]);
+  }
+
+  // Allowable udl from truss table
+  var udlAllow=interpAllowable(truss,span);
+  // Convert allowable UDL to max total load for comparison
+  var allowTotal=udlAllow;
+  var util=totalLoad/allowTotal*100;
+
+  return {
+    R: [Math.round(R1), Math.round(R2)],
+    Mmax: Math.round(Mmax),
+    MmaxPos: Math.round(MmaxPos*10)/10,
+    Vmax: Math.round(Vmax),
+    totalLoad: Math.round(totalLoad),
+    udlAllow: Math.round(udlAllow),
+    allowTotal: Math.round(allowTotal),
+    util: Math.round(util),
+    ok: util<=100,
+    x:x, M:M, V:V, S:S, dx:dx
+  };
+}
+
+function solve3Supports(x,q,loads,totalUDL,truss,span){
+  var S=x.length-1;
+  var dx=span/S;
+  var totalPoint=0;
+  loads.forEach(function(ld){totalPoint+=ld.weight});
+  var totalLoad=totalPoint+totalUDL*span;
+
+  // For 3 supports at equal spans (L1 = L2 = span/2):
+  // Use 3-moment equation for continuous beam with 2 equal spans
+  // Split loads into left half and right half
+  var hSpan=span/2;
+  var leftLoads=[],rightLoads=[];
+  loads.forEach(function(ld){
+    if(ld.pos<=hSpan)leftLoads.push(ld);
+    else{
+      var rl=deepClone(ld);
+      rl.pos-=hSpan;
+      rightLoads.push(rl);
+    }
+  });
+
+  // Solve each span as simply supported
+  var leftR1=0,leftR2=0;
+  leftLoads.forEach(function(ld){var a=ld.pos,b=hSpan-a;leftR2+=ld.weight*a/hSpan;leftR1+=ld.weight*b/hSpan;});
+  leftR1+=totalUDL*hSpan/2;leftR2+=totalUDL*hSpan/2;
+
+  var rightR1=0,rightR2=0;
+  rightLoads.forEach(function(ld){var a=ld.pos,b=hSpan-a;rightR2+=ld.weight*a/hSpan;rightR1+=ld.weight*b/hSpan;});
+  rightR1+=totalUDL*hSpan/2;rightR2+=totalUDL*hSpan/2;
+
+  // Reactions for 3-support beam
+  // R_left = from left span
+  // R_mid = R2_left + R1_right (sum of inner reactions)
+  // R_right = from right span
+  var R=[Math.round(leftR1), Math.round(leftR2+rightR1), Math.round(rightR2)];
+
+  // Shear and moment - build from left
+  var V=new Array(S+1).fill(0);
+  var M=new Array(S+1).fill(0);
+  var curV=R[0];
+  var Mmid=0; // moment at middle support (calculated from continuity)
+
+  // Actually, for 3 supports with equal spans, use the 3-moment equation:
+  // M_mid = -(totalUDL * hSpan^2) / 4   [for UDL]
+  // For point loads, approximate
+
+  // Simple approach: for each half-span, calculate moment independently
+  // Left half: supports at 0 and hSpan
+  for(var i=0;i<=S;i++){
+    var xi=x[i];
+    V[i]=curV;
+    var Mi=R[0]*xi;
+    loads.forEach(function(ld){
+      if(xi>=ld.pos)Mi-=ld.weight*(xi-ld.pos);
+    });
+    Mi-=totalUDL*xi*xi/2;
+    M[i]=Mi;
+
+    // At middle support (xi == hSpan), force equilibrium
+    if(Math.abs(xi-hSpan)<dx/2)curV=curV+R[1]-q[i]*dx;
+    else curV-=q[i]*dx;
+  }
+
+  var Mmax=0;var MmaxPos=0;
+  for(var i=0;i<=S;i++){
+    if(Math.abs(M[i])>Mmax){Mmax=Math.abs(M[i]);MmaxPos=x[i];}
+  }
+
+  var udlAllow=interpAllowable(truss,span);
+  var allowTotal=udlAllow;
+  var util=totalLoad/allowTotal*100;
+
+  return {
+    R: [R[0], R[1], R[2]],
+    Mmax: Math.round(Mmax),
+    MmaxPos: Math.round(MmaxPos*10)/10,
+    Vmax: 0,
+    totalLoad: Math.round(totalLoad),
+    udlAllow: Math.round(udlAllow),
+    allowTotal: Math.round(allowTotal),
+    util: Math.round(util),
+    ok: util<=100,
+    x:x, M:M, V:V, S:S, dx:dx
+  };
+}
+
+/* === RENDER === */
+function render(){
+  readState();
+  var truss=getTruss();
+  var result=solveBeam(state.span,state.supportMode,state.loads,state.udl,truss);
+
+  renderResultCards(result);
+  renderDetailTable(result,truss);
+  renderSidebarResult(result);
+  renderLoadsList();
+  drawCanvas(result,truss);
+}
+
+function readState(){
+  state.trussIdx=parseInt($('#trussType').value,10)||0;
+  state.span=parseFloat($('#span').value)||12;
+  state.supportMode=$('#supportMode').value;
+  state.motorCap=parseInt($('#motorCap').value,10)||1000;
+  state.udl=parseFloat($('#udl').value)||0;
+}
+
+function renderTrussSelect(){
+  var sel=$('#trussType');
+  sel.innerHTML=trussLib.map(function(t,i){
+    return '<option value="'+i+'"'+(i===state.trussIdx?' selected':'')+'>'+t.name+'</option>';
+  }).join('');
+  renderTrussTable();
+}
+
+function renderTrussTable(){
+  var t=getTruss();
+  var wrap=$('#trussTable');
+  if(!t||!t.allowable)return;
+  var s=state.span;
+  var tbl=t.allowable.map(function(a){
+    var h=a.span===s?' class="highlight"':'';
+    var udl=(a.udl*9.81/1000).toFixed(1);
+    return '<tr'+h+'><td>'+a.span+' м</td><td>'+a.udl+' кг</td><td>'+udl+' kN</td></tr>';
+  }).join('');
+  wrap.innerHTML='<table class="load-table"><thead><tr><th>Пролёт</th><th>Допуст. UDL</th><th>kN</th></tr></thead><tbody>'+tbl+'</tbody></table>';
+}
+
+function renderResultCards(result){
+  var grid=$('#resultGrid');
+  var okClass=result.ok?'ok':'fail';
+  grid.innerHTML=
+    '<div class="result-card total"><div class="rc-label">Общая нагрузка</div><div class="rc-value">'+(result.totalLoad/1000).toFixed(2)+'</div><div class="rc-sub">'+(result.totalLoad)+' кг</div></div>'+
+    '<div class="result-card '+okClass+'"><div class="rc-label">Загрузка</div><div class="rc-value">'+result.util+'</div><div class="rc-sub">% от допустимой</div></div>'+
+    '<div class="result-card '+(result.ok?'ok':'fail')+'"><div class="rc-label">Статус</div><div class="rc-value" style="font-size:16px">'+(result.ok?'✅ Допустимо':'✗ Перегруз')+'</div><div class="rc-sub">'+(result.ok?'Запас '+(100-result.util)+'%':'Превышение '+(result.util-100)+'%')+'</div></div>';
+}
+
+function renderDetailTable(result,truss){
+  var wrap=$('#detailTable');
+  var n=result.R.length;
+  var rRows='';
+  for(var i=0;i<n;i++){
+    var rc=result.R[i];
+    var ok=rc<=state.motorCap?'<span class="td-ok">✅</span>':'<span class="td-fail">✗</span>';
+    rRows+='<tr><td>R'+(i+1)+'</td><td>'+rc+' кг</td><td>'+state.motorCap+' кг</td><td>'+(rc/state.motorCap*100).toFixed(0)+'%</td><td>'+ok+'</td></tr>';
+  }
+  var udlAllow=result.udlAllow;
+  var udlGreen=result.totalLoad<=result.allowTotal;
+  var rkN=(result.Mmax*G/1000).toFixed(1);
+  wrap.innerHTML='<table class="detail-table"><thead><tr><th>Параметр</th><th>Значение</th><th>Допустимо</th><th>Загр.</th><th></th></tr></thead><tbody>'+
+    rRows+
+    '<tr><td>Момент Mmax</td><td>'+result.Mmax+' кг·м ('+rkN+' kN·м)</td><td colspan="3">в сечении '+result.MmaxPos+' м</td></tr>'+
+    '<tr class="highlight"><td>Допуст. UDL</td><td>'+udlAllow+' кг</td><td colspan="3">на пролёте '+state.span+' м</td></tr>'+
+    '</tbody></table>';
+}
+
+function renderSidebarResult(result){
+  var wrap=$('#resultSidebar');
+  var n=result.R.length;
+  var rText=result.R.map(function(r,i){return 'R'+(i+1)+': <strong>'+r+'</strong> кг'+(r>state.motorCap?' <span style="color:var(--red)">✗</span>':'')}).join(' | ');
+  wrap.innerHTML='<div style="font-size:11px;color:var(--text2);line-height:1.6">'+
+    rText+'<br>'+
+    'Всего: <strong>'+(result.totalLoad)+' кг</strong><br>'+
+    'Загрузка: <strong style="color:'+(result.ok?'var(--green)':'var(--red)')+'">'+result.util+'%</strong></div>';
+}
+
+function renderLoadsList(){
+  var wrap=$('#loadsList');
+  if(state.loads.length===0){wrap.innerHTML='<div style="font-size:10px;color:var(--text3);padding:4px 0">Нет нагрузок</div>';return;}
+  wrap.innerHTML='<table class="loads-table"><thead><tr><th>#</th><th>Поз.</th><th>Описание</th><th>Вес</th><th></th></tr></thead><tbody>'+
+    state.loads.map(function(ld,i){
+      return '<tr><td>'+(i+1)+'</td><td>'+ld.pos+' м</td><td>'+ld.desc+'</td><td>'+ld.weight+' кг</td><td class="actions"><button class="btn-del" data-id="'+ld.id+'" title="Удалить"><i class="fa-solid fa-xmark"></i></button></td></tr>';
+    }).join('')+'</tbody></table>';
+  wrap.querySelectorAll('.btn-del').forEach(function(b){
+    b.addEventListener('click',function(){
+      state.loads=state.loads.filter(function(l){return l.id!==parseInt(this.dataset.id,10)});
+      render();
+    });
+  });
+}
+
+/* === CANVAS === */
+function drawCanvas(result,truss){
+  var canvas=$('#schematic');
+  if(!canvas)return;
+  var wrap=canvas.parentElement;
+  var rect=wrap.getBoundingClientRect();
+  var W=Math.min(rect.width-4,900);
+  var H=280;
+  var dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+
+  var padL=60,padR=40,padT=30,padB=60;
+  var plotW=W-padL-padR;
+  var plotH=H-padT-padB;
+  var span=state.span;
+  var sx=plotW/span;
+
+  // Ground line
+  var groundY=padT+plotH;
+  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(padL,groundY);ctx.lineTo(padL+plotW,groundY);ctx.stroke();
+
+  // Truss body
+  var trussH=Math.max(10,truss.section*sx*10);
+  var trussY=groundY-trussH-10;
+  ctx.fillStyle='rgba(0,212,255,0.06)';ctx.strokeStyle='rgba(0,212,255,0.2)';ctx.lineWidth=1;
+  ctx.fillRect(padL,trussY,plotW,trussH);
+  ctx.strokeRect(padL,trussY,plotW,trussH);
+
+  // Supports
+  var supportPositions;
+  if(state.supportMode==='2'){
+    supportPositions=[0,span];
+  }else{
+    supportPositions=[0,span/2,span];
+  }
+
+  supportPositions.forEach(function(sp){
+    var xp=padL+sp*sx;
+    ctx.fillStyle='rgba(255,255,255,0.15)';ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(xp-8,groundY);ctx.lineTo(xp,groundY-14);ctx.lineTo(xp+8,groundY);ctx.closePath();ctx.fill();ctx.stroke();
+  });
+
+  // Loads
+  var maxLoad=1;
+  state.loads.forEach(function(ld){if(ld.weight>maxLoad)maxLoad=ld.weight});
+  var arrowScale=Math.min(plotH*0.25/maxLoad,0.3);
+
+  state.loads.forEach(function(ld){
+    var xp=padL+ld.pos*sx;
+    var arrowH=Math.max(10,ld.weight*arrowScale);
+    var yTop=trussY-arrowH-4;
+
+    // Arrow line
+    ctx.strokeStyle='var(--orange)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(xp,trussY);ctx.lineTo(xp,yTop);ctx.stroke();
+
+    // Arrow head
+    ctx.fillStyle='var(--orange)';
+    ctx.beginPath();ctx.moveTo(xp,yTop-6);ctx.lineTo(xp-4,yTop);ctx.lineTo(xp+4,yTop);ctx.closePath();ctx.fill();
+
+    // Label
+    ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='8px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText(ld.desc+' ('+ld.weight+' кг)',xp,yTop-8);
+
+    // Position marker
+    ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='7px Inter,sans-serif';ctx.textBaseline='top';
+    ctx.fillText(ld.pos+'м',xp,groundY+4);
+  });
+
+  // Moment diagram
+  var Mmax=Math.max(result.Mmax,1);
+  var momentScale=plotH*0.35/Mmax;
+  ctx.strokeStyle='rgba(0,212,255,0.5)';ctx.lineWidth=2;
+  ctx.beginPath();
+  var momentY0=groundY+20;
+  var first=true;
+  for(var i=0;i<=result.S;i++){
+    var xi=result.x[i];
+    var xp=padL+xi*sx;
+    var mi=Math.abs(result.M[i]);
+    var yp=momentY0+mi*momentScale;
+    if(first){ctx.moveTo(xp,yp);first=false;}else ctx.lineTo(xp,yp);
+  }
+  ctx.stroke();
+
+  // Moment fill
+  ctx.fillStyle='rgba(0,212,255,0.04)';
+  ctx.beginPath();ctx.moveTo(padL,momentY0);
+  for(var i=0;i<=result.S;i++){
+    var xi=result.x[i];var xp=padL+xi*sx;
+    var mi=Math.abs(result.M[i]);var yp=momentY0+mi*momentScale;
+    ctx.lineTo(xp,yp);
+  }
+  ctx.lineTo(padL+plotW,momentY0);ctx.closePath();ctx.fill();
+
+  // Moment label
+  ctx.fillStyle='rgba(0,212,255,0.6)';ctx.font='8px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText('Mmax = '+result.Mmax+' кг·м @ '+result.MmaxPos+'м',padL+4,momentY0-12);
+
+  // Scale line
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  for(var m=0;m<=Math.ceil(span);m+=1){
+    var xp=padL+m*sx;
+    ctx.beginPath();ctx.moveTo(xp,groundY+14);ctx.lineTo(xp,groundY+20);ctx.stroke();
+    if(m%2===0){
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.font='7px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(m+'м',xp,groundY+20);
+    }
+  }
+
+  // Reaction labels
+  ctx.font='bold 8px Inter,sans-serif';
+  result.R.forEach(function(r,i){
+    var sp=supportPositions[i];
+    var xp=padL+sp*sx;
+    ctx.fillStyle=r>state.motorCap?'var(--red)':'var(--green)';ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('R'+(i+1)+'='+r+'кг',xp,trussY-8);
+  });
+
+  // Title
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='8px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='bottom';
+  ctx.fillText((truss?truss.name:'—')+' | '+state.span+' м | '+(state.supportMode==='2'?'2 опоры':'3 опоры')+' | Загрузка '+result.util+'%',padL,padT-2);
+}
+
+/* === EVENTS === */
+document.querySelectorAll('#sidebar input, #sidebar select').forEach(function(el){
+  el.addEventListener('input',function(){
+    if(el.id==='trussType'){state.trussIdx=parseInt(el.value,10);renderTrussTable();}
+    render();
+  });
+  el.addEventListener('change',render);
+});
+
+$('#btnAddLoad').addEventListener('click',function(){
+  var pos=parseFloat($('#loadPos').value);
+  var weight=parseFloat($('#loadWeight').value);
+  var desc=$('#loadDesc').value.trim()||'Load';
+  if(isNaN(pos)||pos<0||pos>state.span){toast('Некорректная позиция','error');return;}
+  if(isNaN(weight)||weight<1){toast('Некорректный вес','error');return;}
+  state.loads.push({id:state.nextId++,pos:pos,weight:weight,desc:desc});
+  render();
+  toast('Добавлено','success');
+});
+
+$('#btnRefresh').addEventListener('click',render);
+
+$('#btnReset').addEventListener('click',function(){
+  state.loads=[];state.nextId=1;state.udl=10;
+  $('#loadDesc').value='';
+  render();
+  toast('Сброшено','info');
+});
+
+// Enter to add load
+$('#loadDesc').addEventListener('keydown',function(e){if(e.key==='Enter')$('#btnAddLoad').click()});
+$('#loadWeight').addEventListener('keydown',function(e){if(e.key==='Enter')$('#btnAddLoad').click()});
+
+// Ripple
+document.querySelectorAll('.btn').forEach(function(b){
+  b.addEventListener('click',function(e){
+    var r=b.getBoundingClientRect();var s=Math.max(r.width,r.height);
+    var sp=document.createElement('span');sp.className='ripple';
+    sp.style.width=sp.style.height=s+'px';sp.style.left=(e.clientX-r.left-s/2)+'px';sp.style.top=(e.clientY-r.top-s/2)+'px';
+    b.appendChild(sp);sp.addEventListener('animationend',function(){sp.remove()});
+  });
+});
+
+// Init
+document.addEventListener('DOMContentLoaded',function(){
+  loadLibrary();
+  document.body.classList.add('loaded');
+});
+
+})();
+</script>
+</body>
+</html>

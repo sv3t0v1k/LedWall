@@ -27,6 +27,7 @@ GenMap/
 | DMX Universe Calculator | ✅ Готов | Расчёт DMX-вселенных, адресация, коллизии, DMX-карта |
 | Power Budget | ✅ Готов | Расчёт электропитания: фазы L1/L2/L3, кабель, генератор |
 | Delay & Array Calculator | ✅ Готов | Задержки, Line Array, Subwoofer-конфигурации |
+| Rigging Load Calculator | ✅ Готов | Нагрузки на трисс BT, 2/3 опоры, эпюра моментов |
 | Cable Manager | 🚧 В разработке | Учёт кабельного парка |
 | Stage Geometry | 🚧 В разработке | Планирование сцены |
 

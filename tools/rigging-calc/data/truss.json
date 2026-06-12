@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "Truss load tables",
+    "updated": "2026-06-12"
+  },
+  "trusses": [
+    {
+      "name": "BT 30×30",
+      "section": 0.29,
+      "weight": 8.2,
+      "allowable": [
+        { "span": 8,  "udl": 720 },
+        { "span": 10, "udl": 520 },
+        { "span": 12, "udl": 380 },
+        { "span": 14, "udl": 280 },
+        { "span": 16, "udl": 200 }
+      ]
+    },
+    {
+      "name": "BT 45°",
+      "section": 0.40,
+      "weight": 11.5,
+      "allowable": [
+        { "span": 12, "udl": 600 },
+        { "span": 14, "udl": 500 },
+        { "span": 16, "udl": 400 },
+        { "span": 18, "udl": 320 }
+      ]
+    },
+    {
+      "name": "BT 52°",
+      "section": 0.50,
+      "weight": 14.0,
+      "allowable": [
+        { "span": 14, "udl": 800 },
+        { "span": 16, "udl": 650 },
+        { "span": 18, "udl": 520 },
+        { "span": 20, "udl": 420 }
+      ]
+    }
+  ]
+}
