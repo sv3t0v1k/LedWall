@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "DMX fixture library",
+    "updated": "2026-06-12"
+  },
+  "presets": [
+    { "name": "Mac Aura",          "channels": 18, "cat": "mover" },
+    { "name": "Mac Viper",         "channels": 32, "cat": "mover" },
+    { "name": "Mac Quantum",       "channels": 28, "cat": "mover" },
+    { "name": "Chauvet Rogue R2",  "channels": 18, "cat": "mover" },
+    { "name": "Chauvet Rogue R1",  "channels": 13, "cat": "mover" },
+    { "name": "Martin ERA 600",    "channels": 18, "cat": "mover" },
+    { "name": "LED Wash 7×10W",    "channels": 10, "cat": "wash" },
+    { "name": "LED Par 54",        "channels": 8,  "cat": "wash" },
+    { "name": "Blinder 4-lite",    "channels": 6,  "cat": "effect" },
+    { "name": "Atomic Strobe 3000","channels": 5,  "cat": "effect" },
+    { "name": "Hazer Unique 2.1",  "channels": 4,  "cat": "fx" },
+    { "name": "Smoke Machine",     "channels": 2,  "cat": "fx" },
+    { "name": "Laser RGB Full",    "channels": 12, "cat": "effect" },
+    { "name": "Pixel Bar 16ch",    "channels": 50, "cat": "pixel" },
+    { "name": "Moving Head Beam",  "channels": 16, "cat": "mover" },
+    { "name": "FollowSpot",        "channels": 8,  "cat": "mover" }
+  ],
+  "custom": []
+}
