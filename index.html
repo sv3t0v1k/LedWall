@@ -455,7 +455,8 @@ input::placeholder{color:var(--text-muted);font-size:12px}
         <button class="zoom-btn" id="zoomIn" title="Приблизить"><i class="fa-solid fa-plus"></i></button>
         <div class="zoom-level" id="zoomLevel">100%</div>
         <button class="zoom-btn" id="zoomOut" title="Отдалить"><i class="fa-solid fa-minus"></i></button>
-        <button class="zoom-btn" id="zoomReset" title="Сбросить" style="font-size:10px"><i class="fa-solid fa-expand"></i></button>
+        <button class="zoom-btn" id="zoomFit" title="Fit to screen" style="font-size:10px"><i class="fa-solid fa-expand"></i></button>
+        <button class="zoom-btn" id="zoomReset" title="Сбросить" style="font-size:8px;padding:0"><i class="fa-solid fa-rotate-left"></i></button>
       </div>
     </div>
   </main>
@@ -617,7 +618,7 @@ function cacheDOM(){
   dom.btnResetRotation=$('#btnResetRotation');dom.btnRotateM90=$('#btnRotateM90');dom.btnRotateP90=$('#btnRotateP90');
   dom.screenRotation=$('#screenRotation');dom.screenRotationRange=$('#screenRotationRange');
   dom.offsetX=$('#offsetX');dom.offsetY=$('#offsetY');dom.offsetXRange=$('#offsetXRange');dom.offsetYRange=$('#offsetYRange');
-  dom.zoomIn=$('#zoomIn');dom.zoomOut=$('#zoomOut');dom.zoomReset=$('#zoomReset');dom.zoomLevel=$('#zoomLevel');
+  dom.zoomIn=$('#zoomIn');dom.zoomOut=$('#zoomOut');dom.zoomReset=$('#zoomReset');dom.zoomFit=$('#zoomFit');dom.zoomLevel=$('#zoomLevel');
   dom.hotspotTooltip=$('#hotspot-tooltip');
 }
 cacheDOM();
@@ -833,7 +834,8 @@ function getBBox(sw,sh,deg){
   return{w:sw*c+sh*s,h:sw*s+sh*c};
 }
 
-function getCombinedDims(){
+function getViewDims(){
+  // Screen view: unrotated layout, shifted to keep negative content visible, NO padding.
   var screens=state.screens;
   if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0,shiftY:0};
   var dims=screens.map(getScreenDims);
@@ -841,12 +843,35 @@ function getCombinedDims(){
   var baseW=0,maxH=0;
   for(var i=0;i<dims.length;i++){baseW+=dims[i].totalPxW;maxH=Math.max(maxH,dims[i].totalPxH);}
   baseW+=gapPx*(screens.length-1);
-  // Add padding to cover rotation anti-aliasing edges.
-  // 13% of the largest screen dimension is enough to cover any rotation anti-aliasing.
-  var maxDim=0;
-  for(var i=0;i<dims.length;i++){maxDim=Math.max(maxDim,dims[i].totalPxW,dims[i].totalPxH);}
-  var pad=Math.round(maxDim*0.2);
-  return{totalPxW:baseW+pad*2,totalPxH:maxH+pad*2,screens:dims,gapPx:gapPx,gapPy:0,shiftX:pad,shiftY:pad};
+  var minLeft=0,minTop=0;
+  var ox=0;
+  for(var i=0;i<dims.length;i++){
+    var d=dims[i],s=screens[i],rot=s.rotation||0,ox2=s.offsetX||0,oy=s.offsetY||0;
+    if(rot){var bb=getBBox(d.totalPxW,d.totalPxH,rot);var cx=ox+d.totalPxW/2+ox2;var cy=d.totalPxH/2+oy;var l=cx-bb.w/2,t=cy-bb.h/2;if(l<minLeft)minLeft=l;if(t<minTop)minTop=t;}
+    ox+=d.totalPxW+gapPx;
+  }
+  return{totalPxW:baseW+(minLeft<0?-minLeft:0),totalPxH:maxH+(minTop<0?-minTop:0),screens:dims,gapPx:gapPx,gapPy:0,shiftX:(minLeft<0?-minLeft:0),shiftY:(minTop<0?-minTop:0)};
+}
+
+function getExportDims(){
+  // Export: exact bounding box of ALL content (with rotation bbox) + 5px margin.
+  var screens=state.screens;
+  if(!screens.length)return{totalPxW:0,totalPxH:0,gapPx:0,gapPy:0,shiftX:0,shiftY:0};
+  var dims=screens.map(getScreenDims);
+  var gapPx=state.gapX/(dims[0]&&dims[0].pitch||1);
+  var minL=Infinity,maxR=-Infinity,minT=Infinity,maxB=-Infinity;
+  var ox=0;
+  for(var i=0;i<dims.length;i++){
+    var d=dims[i],s=screens[i],rot=s.rotation||0,ox2=s.offsetX||0,oy=s.offsetY||0;
+    var bb=getBBox(d.totalPxW,d.totalPxH,rot);
+    var cx=ox+d.totalPxW/2+ox2;
+    var cy=d.totalPxH/2+oy;
+    var l=cx-bb.w/2,r=cx+bb.w/2,t=cy-bb.h/2,b=cy+bb.h/2;
+    if(l<minL)minL=l;if(r>maxR)maxR=r;if(t<minT)minT=t;if(b>maxB)maxB=b;
+    ox+=d.totalPxW+gapPx;
+  }
+  var m=5; // 5px safety margin
+  return{totalPxW:maxR-minL+m*2,totalPxH:maxB-minT+m*2,screens:dims,gapPx:gapPx,gapPy:0,shiftX:-(minL-m),shiftY:-(minT-m)};
 }
 
 function getCanvasScale(dims){
@@ -1027,10 +1052,12 @@ function drawCanvas(){
   if(!screens.length)return;
 
   var dimsArr=screens.map(getScreenDims);
-  var combined=getCombinedDims();
-  var scale=getCanvasScale(combined);
-  var cw=Math.round(combined.totalPxW*scale);
-  var ch=Math.round(combined.totalPxH*scale);
+  var view=getViewDims();
+  var scale=getCanvasScale(view);
+  var maxC=getMaxCanvasSize();
+  if(view.totalPxW*scale>maxC||view.totalPxH*scale>maxC){var s2=Math.min(maxC/view.totalPxW,maxC/view.totalPxH);scale=Math.max(s2,0.05);}
+  var cw=Math.round(view.totalPxW*scale);
+  var ch=Math.round(view.totalPxH*scale);
 
 
 
@@ -1043,9 +1070,9 @@ function drawCanvas(){
 
   ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,cw,ch);
 
-  var shiftX=combined.shiftX*scale;
-  var shiftY=combined.shiftY*scale;
-  var gapPx=combined.gapPx*scale;
+  var shiftX=view.shiftX*scale;
+  var shiftY=view.shiftY*scale;
+  var gapPx=view.gapPx*scale;
   var ox=0;
   for(var i=0;i<screens.length;i++){
     var ss=screens[i],d=dimsArr[i];
@@ -1056,7 +1083,7 @@ function drawCanvas(){
     drawOneScreen(ctx,scale,d,sx,sy,ss);
     ox+=sw+gapPx;
   }
-  drawGapLabels(ctx,scale,combined,dimsArr);
+  drawGapLabels(ctx,scale,view,dimsArr);
 
   // Annotations
   if(state.layers.annotations&&state.annotations.length){
@@ -1086,7 +1113,7 @@ function drawCanvas(){
   }
 
   // Rulers
-  if(state.layers.rulers) drawRulers(ctx,scale,combined,cw,ch);
+  if(state.layers.rulers) drawRulers(ctx,scale,view,cw,ch);
 
   dom.canvasSizeInfo.textContent=Math.round(cw)+'×'+Math.round(ch)+' px | '+screens.length+' экран(ов) | '+Math.round(state.zoom*100)+'%';
 }
@@ -1170,7 +1197,7 @@ function render(){readInputs();updateInfo();drawCanvas();}
 /* ====== DOWNLOAD PNG ====== */
 function downloadPNG(){
   var screens=state.screens;if(!screens.length)return;
-  var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
+  var dimsArr=screens.map(getScreenDims);var combined=getExportDims();
   var MAX=16384;var s=1;
   if(combined.totalPxW>MAX||combined.totalPxH>MAX){s=Math.min(MAX/combined.totalPxW,MAX/combined.totalPxH);toast('PNG будет масштабирован ('+Math.round(s*100)+'%)','info',5000);}
   var c=document.createElement('canvas');var ctx=c.getContext('2d');
@@ -1216,7 +1243,7 @@ function darkenHex(hex,f){var c=hexToRgb(hex);return'#'+[c.r,c.g,c.b].map(functi
 
 function generateSVGString(){
   var screens=state.screens;if(!screens.length)return'';
-  var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
+  var dimsArr=screens.map(getScreenDims);var combined=getExportDims();
   var w=Math.round(combined.totalPxW),h=Math.round(combined.totalPxH);
   var l=[];function p(s){l.push(s)}
   p('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" font-family="Inter,sans-serif">');
@@ -1352,6 +1379,11 @@ function applyZoom(){
 dom.zoomIn.addEventListener('click',function(){state.zoom=Math.min(5,state.zoom*1.3);applyZoom();});
 dom.zoomOut.addEventListener('click',function(){state.zoom=Math.max(0.1,state.zoom/1.3);applyZoom();});
 dom.zoomReset.addEventListener('click',function(){state.zoom=1;state.panX=0;state.panY=0;applyZoom();});
+dom.zoomFit.addEventListener('click',function(){
+  var exp=getExportDims();var maxC=getMaxCanvasSize();
+  var s=Math.min(maxC/exp.totalPxW,maxC/exp.totalPxH,1);
+  if(s>0.05){state.zoom=s;state.panX=0;state.panY=0;applyZoom();toast('Fit: '+Math.round(s*100)+'%','info');}
+});
 
 dom.canvasWrap.addEventListener('wheel',function(e){
   if(e.ctrlKey||e.metaKey){e.preventDefault();var delta=-e.deltaY*0.001;state.zoom=Math.max(0.1,Math.min(5,state.zoom*(1+delta)));applyZoom();}
@@ -1383,9 +1415,9 @@ dom.canvasWrap.addEventListener('click',function(e){
   dom.hotspotTooltip.classList.remove('visible');
   if(dom.hotspotTooltip._hideTimer)clearTimeout(dom.hotspotTooltip._hideTimer);
   var coords=toWallCoords(e);
-  var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
-  coords.x-=combined.shiftX;coords.y-=combined.shiftY;
-  var gapX=combined.gapPx;var ox=0;
+  var screens=state.screens;var dimsArr=screens.map(getScreenDims);var view=getViewDims();
+  coords.x-=view.shiftX;coords.y-=view.shiftY;
+  var gapX=view.gapPx;var ox=0;
   for(var i=0;i<screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
@@ -1482,9 +1514,9 @@ dom.btnToggleRotate.addEventListener('click',function(){
 // Rotate module on click (in rotate mode)
 dom.canvasWrap.addEventListener('click',function(e){
   if(!state.rotateMode)return;
-  var coords=toWallCoords(e);var screens=state.screens;var dimsArr=screens.map(getScreenDims);var combined=getCombinedDims();
-  coords.x-=combined.shiftX;coords.y-=combined.shiftY;
-  var gapX=combined.gapPx;var ox=0;
+  var coords=toWallCoords(e);var screens=state.screens;var dimsArr=screens.map(getScreenDims);var view=getViewDims();
+  coords.x-=view.shiftX;coords.y-=view.shiftY;
+  var gapX=view.gapPx;var ox=0;
   for(var i=0;i<screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
@@ -1564,9 +1596,9 @@ dom.btnResetScreenPos.addEventListener('click',function(){
 // Move screen by dragging (in move mode)
 dom.canvasWrap.addEventListener('mousedown',function(e){
   if(!state.moveMode||e.button!==0)return;
-  var coords=toWallCoords(e);var dimsArr=state.screens.map(getScreenDims);var combined=getCombinedDims();
-  coords.x-=combined.shiftX;coords.y-=combined.shiftY;
-  var gapX=combined.gapPx;var ox=0;
+  var coords=toWallCoords(e);var dimsArr=state.screens.map(getScreenDims);var view=getViewDims();
+  coords.x-=view.shiftX;coords.y-=view.shiftY;
+  var gapX=view.gapPx;var ox=0;
   for(var i=0;i<state.screens.length;i++){
     var d=dimsArr[i],sw=d.totalPxW;
     var col=Math.floor((coords.x-ox)/d.mw);var row=Math.floor(coords.y/d.mh);
