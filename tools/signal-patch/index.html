@@ -151,32 +151,54 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 'use strict';
 
 var BLOCK_PRESETS = [
-  {cat:'Входы',blocks:[
-    {name:'Mic',signal:'audio',icon:'fa-solid fa-microphone',outPorts:['Out']},
-    {name:'DI Box',signal:'audio',icon:'fa-solid fa-guitar',outPorts:['Out']},
-    {name:'Wireless RX',signal:'audio',icon:'fa-solid fa-wifi',outPorts:['Out']},
-    {name:'Playback',signal:'audio',icon:'fa-solid fa-laptop',outPorts:['L','R']},
-    {name:'Camera',signal:'sdi',icon:'fa-solid fa-video',outPorts:['Out']},
-    {name:'DMX Console',signal:'dmx',icon:'fa-solid fa-sliders',outPorts:['Univ 1','Univ 2']},
-    {name:'Network Switch',signal:'net',icon:'fa-solid fa-network-wired',outPorts:['Port 1','Port 2']}
+  {cat:'Входы (Audio)',blocks:[
+    {name:'Mic',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'DI Box',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'Wireless RX',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'Playback L+R',signal:'audio',inPorts:[],outPorts:['L','R']},
+    {name:'Keyboard/Synth',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'Drum Machine',signal:'audio',inPorts:[],outPorts:['L','R']},
+    {name:'CD/Turntable',signal:'audio',inPorts:[],outPorts:['L','R']},
+    {name:'Ambient Mic',signal:'audio',inPorts:[],outPorts:['Out']}
   ]},
-  {cat:'Обработка',blocks:[
-    {name:'Preamp',signal:'audio',icon:'fa-solid fa-waveform',inPorts:['In'],outPorts:['Out']},
-    {name:'EQ',signal:'audio',icon:'fa-solid fa-chart-line',inPorts:['In'],outPorts:['Out']},
-    {name:'Compressor',signal:'audio',icon:'fa-solid fa-compress',inPorts:['In'],outPorts:['Out']},
-    {name:'Gate',signal:'audio',icon:'fa-solid fa-door-open',inPorts:['In'],outPorts:['Out']},
-    {name:'Splitter',signal:'audio',icon:'fa-solid fa-code-branch',inPorts:['In'],outPorts:['A','B']},
-    {name:'DMX Split',signal:'dmx',icon:'fa-solid fa-code-branch',inPorts:['In'],outPorts:['A','B']},
-    {name:'SDI DA',signal:'sdi',icon:'fa-solid fa-code-branch',inPorts:['In'],outPorts:['A','B']}
+  {cat:'Входы (DMX/Video/Network)',blocks:[
+    {name:'DMX Console',signal:'dmx',inPorts:[],outPorts:['Univ 1','Univ 2']},
+    {name:'Camera SDI',signal:'sdi',inPorts:[],outPorts:['Out']},
+    {name:'Media Server',signal:'sdi',inPorts:[],outPorts:['HDMI 1','SDI 1']},
+    {name:'Network Switch',signal:'net',inPorts:[],outPorts:['Port 1','Port 2','Port 3']}
+  ]},
+  {cat:'Обработка (Audio)',blocks:[
+    {name:'Preamp',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'EQ Graphic',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'EQ Parametric',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Compressor',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Gate',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Limiter',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'De-esser',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Reverb',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Delay FX',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Crossover',signal:'audio',inPorts:['In'],outPorts:['Hi','Lo','Sub']},
+    {name:'Splitter',signal:'audio',inPorts:['In'],outPorts:['A','B','C']}
+  ]},
+  {cat:'Обработка (Video/DMX/Network)',blocks:[
+    {name:'DMX Splitter',signal:'dmx',inPorts:['In'],outPorts:['A','B','C']},
+    {name:'DMX Merge',signal:'dmx',inPorts:['A','B'],outPorts:['Out']},
+    {name:'SDI Distributor',signal:'sdi',inPorts:['In'],outPorts:['A','B','C']},
+    {name:'SDI Matrix',signal:'sdi',inPorts:['In 1','In 2'],outPorts:['Out 1','Out 2']},
+    {name:'Network Router',signal:'net',inPorts:['WAN'],outPorts:['LAN 1','LAN 2','LAN 3']}
   ]},
   {cat:'Выходы',blocks:[
-    {name:'Main LR',signal:'audio',icon:'fa-solid fa-speaker',inPorts:['L','R']},
-    {name:'Monitor',signal:'audio',icon:'fa-solid fa-ear',inPorts:['In']},
-    {name:'Aux Send',signal:'audio',icon:'fa-solid fa-share',inPorts:['In']},
-    {name:'Recording',signal:'audio',icon:'fa-solid fa-compact-disc',inPorts:['L','R']},
-    {name:'LED Wall',signal:'sdi',icon:'fa-solid fa-table-cells',inPorts:['In']},
-    {name:'Projector',signal:'sdi',icon:'fa-solid fa-projector',inPorts:['In']},
-    {name:'Stream',signal:'net',icon:'fa-solid fa-upload',inPorts:['In']}
+    {name:'Main LR',signal:'audio',inPorts:['L','R'],outPorts:[]},
+    {name:'Monitor Wedge',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'IEM Mix',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Aux Send',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Matrix Out',signal:'audio',inPorts:['L','R'],outPorts:[]},
+    {name:'Recording',signal:'audio',inPorts:['L','R'],outPorts:[]},
+    {name:'Broadcast',signal:'audio',inPorts:['L','R'],outPorts:[]},
+    {name:'Subwoofer',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'LED Wall',signal:'sdi',inPorts:['In'],outPorts:[]},
+    {name:'Projector',signal:'sdi',inPorts:['In'],outPorts:[]},
+    {name:'Video Stream',signal:'net',inPorts:['In'],outPorts:[]}
   ]}
 ];
 
@@ -184,7 +206,7 @@ var SIG_COLORS={audio:'#00d4ff',dmx:'#22c55e',sdi:'#ef4444',net:'#f59e0b'};
 var SIG_NAMES={audio:'Audio',dmx:'DMX',sdi:'SDI',net:'Network'};
 
 var state={nodes:[],connections:[],nextId:1,selectedNodeId:null,selectedConnId:null,zoom:1,panX:0,panY:0};
-var drag=null,connectDrag=null;
+var drag=null,connectDrag=null,connectMode=null;
 var BLOCK_W=140,BLOCK_H=44,PORT_R=5,PORT_GAP=3;
 
 function $(s){return document.querySelector(s)}
@@ -344,12 +366,20 @@ function renderCanvas(){
     ctx.stroke();
   });
 
-  // Temp connection
-  if(connectDrag){
-    ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
-    ctx.beginPath();ctx.moveTo(connectDrag.x,connectDrag.y);
-    ctx.lineTo(connectDrag.cx,connectDrag.cy);
+  // Connection mode guide
+  if(connectMode){
+    ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    // Draw a horizontal guide from the source port to the right edge of the viewport
+    ctx.beginPath();ctx.moveTo(connectMode.startX,connectMode.startY);
+    ctx.lineTo(connectMode.startX+200,connectMode.startY);
     ctx.stroke();ctx.setLineDash([]);
+    // Label
+    var srcNode=state.nodes.find(function(n){return n.id===connectMode.nodeId});
+    if(srcNode){
+      ctx.fillStyle='rgba(0,212,255,0.4)';ctx.font='9px Inter,sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText('Click target in-port to connect',connectMode.startX+100,connectMode.startY-4);
+    }
   }
 
   // Nodes
@@ -379,13 +409,18 @@ function renderCanvas(){
     ctx.fillText(n.name,nx+22,ny+nh/2);
 
     // Ports
+    var portR=connectMode?4:2.5;
     n.inPorts.forEach(function(port,i){
       var px=nx,py=ny+nh/(n.inPorts.length+1)*(i+1);
-      ctx.fillStyle=SIG_COLORS[n.signal];ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
+      var isTarget=connectMode&&connectMode.signal===n.signal;
+      ctx.fillStyle=isTarget?'rgba(0,212,255,0.6)' : SIG_COLORS[n.signal];
+      ctx.beginPath();ctx.arc(px,py,portR,0,Math.PI*2);ctx.fill();
+      if(isTarget){ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py,8,0,Math.PI*2);ctx.stroke();}
     });
     n.outPorts.forEach(function(port,i){
       var px=nx+nw,py=ny+nh/(n.outPorts.length+1)*(i+1);
-      ctx.fillStyle=SIG_COLORS[n.signal];ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=SIG_COLORS[n.signal];
+      ctx.beginPath();ctx.arc(px,py,portR,0,Math.PI*2);ctx.fill();
     });
   });
 
@@ -455,11 +490,31 @@ function initCanvasEvents(){
   canvas.addEventListener('mousedown',function(e){
     if(e.button!==0)return;
     var c=screenToCanvas(e.clientX,e.clientY);
+
+    // Connection mode: click on out-port
     var portHit=hitPort(c.x,c.y);
     if(portHit&&portHit.side==='out'){
-      connectDrag={fromNode:portHit.node.id,fromPort:portHit.port,x:portHit.pos.x,y:portHit.pos.y,cx:c.x,cy:c.y};
-      return;
+      // Enter connection mode
+      var node=state.nodes.find(function(n){return n.id===portHit.node.id});
+      if(node){
+        connectMode={nodeId:portHit.node.id,portId:portHit.port,signal:node.signal,
+          startX:portHit.pos.x,startY:portHit.pos.y};
+        renderCanvas();
+        return;
+      }
     }
+    if(connectMode){
+      // In connection mode: click on in-port → create connection
+      if(portHit&&portHit.side==='in'){
+        var ok=addConnection(connectMode.nodeId,connectMode.portId,portHit.node.id,portHit.port);
+        if(!ok)toast('Соединение не удалось','error');
+        connectMode=null;renderCanvas();return;
+      }
+      // Click elsewhere → cancel connection mode
+      connectMode=null;renderCanvas();
+      // Fall through to node/pan handling
+    }
+
     var nodeHit=hitNode(c.x,c.y);
     if(nodeHit){
       state.selectedNodeId=nodeHit.id;
@@ -470,25 +525,19 @@ function initCanvasEvents(){
     }
     var connHit=hitConnection(c.x,c.y);
     if(connHit){
-      state.selectedConnId=connHit.id;
-      state.selectedNodeId=null;
+      state.selectedConnId=connHit.id;state.selectedNodeId=null;
       $('#propsCard').style.display='none';
-      // Delete on click
-      setTimeout(function(){removeConnection(state.selectedConnId);toast('Соединение удалено','info')},100);
+      removeConnection(state.selectedConnId);
+      toast('Соединение удалено','info');
       return;
     }
     state.selectedNodeId=null;state.selectedConnId=null;
+    connectMode=null;
     renderProps();renderCanvas();
     drag={type:'pan',startX:e.clientX,startY:e.clientY,origPX:state.panX,origPY:state.panY};
   });
 
   canvas.addEventListener('mousemove',function(e){
-    if(connectDrag){
-      var c=screenToCanvas(e.clientX,e.clientY);
-      connectDrag.cx=c.x;connectDrag.cy=c.y;
-      renderCanvas();
-      return;
-    }
     if(!drag)return;
     if(drag.type==='pan'){
       state.panX=drag.origPX+(e.clientX-drag.startX);
@@ -497,26 +546,25 @@ function initCanvasEvents(){
     }
     if(drag.type==='node'){
       var dx=(e.clientX-drag.startX)/state.zoom,dy=(e.clientY-drag.startY)/state.zoom;
-      // Snap to grid
       var gs=40;
-      drag.node.x=Math.round((drag.origX+dx)/gs)*gs;
-      drag.node.y=Math.round((drag.origY+dy)/gs)*gs;
+      var newX=Math.round((drag.origX+dx)/gs)*gs;
+      var newY=Math.round((drag.origY+dy)/gs)*gs;
+      // Snap to other nodes
+      if(e.shiftKey){
+        state.nodes.forEach(function(on){
+          if(on.id===drag.node.id)return;
+          if(Math.abs(newX-on.x+on.w)<8){newX=on.x+on.w;}
+          if(Math.abs(newX+drag.node.w-on.x)<8){newX=on.x-drag.node.w;}
+          if(Math.abs(newY-on.y+on.h)<8){newY=on.y+on.h;}
+          if(Math.abs(newY+drag.node.h-on.y)<8){newY=on.y-drag.node.h;}
+        });
+      }
+      drag.node.x=newX;drag.node.y=newY;
       renderCanvas();
     }
   });
 
   canvas.addEventListener('mouseup',function(e){
-    if(connectDrag){
-      var c=screenToCanvas(e.clientX,e.clientY);
-      var portHit=hitPort(c.x,c.y);
-      if(portHit&&portHit.side==='in'){
-        var ok=addConnection(connectDrag.fromNode,connectDrag.fromPort,portHit.node.id,portHit.port);
-        if(!ok)toast('Соединение уже существует','error');
-      }
-      connectDrag=null;
-      renderCanvas();
-      return;
-    }
     if(drag&&drag.type==='node'){saveState();}
     drag=null;
   });
