@@ -1,0 +1,41 @@
+name: Deploy GenMap
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & push Docker image
+        run: |
+          docker build -t ghcr.io/sv3t0v1k/genmap:latest .
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/sv3t0v1k/genmap:latest
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -e
+            mkdir -p /home/hs/genmap
+
+            # Download compose & Caddyfile from repo
+            curl -sL -o /home/hs/genmap/docker-compose.yml \
+              https://raw.githubusercontent.com/sv3t0v1k/LedWall/main/docker-compose.yml
+            curl -sL -o /home/hs/genmap/Caddyfile \
+              https://raw.githubusercontent.com/sv3t0v1k/LedWall/main/Caddyfile
+
+            cd /home/hs/genmap
+
+            # Login to ghcr.io
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            docker compose pull
+            docker compose up -d
