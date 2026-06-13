@@ -1,9 +1,9 @@
 (function(){
 'use strict';
 
-/* ===== CANVAS BG: STAGE ROOF ===== */
+/* ===== CANVAS BG: ATMOSPHERIC LIGHT ===== */
 var canvas,ctx,W,H,animId;
-var stage={},fixtures=[],waveforms=[],scanY=0,scanDir=1;
+var lights=[],particles=[],scanY=0,scanDir=1;
 
 function initCanvas(){
   canvas=document.getElementById('bgCanvas');
@@ -11,9 +11,8 @@ function initCanvas(){
   ctx=canvas.getContext('2d');
   resize();
   window.addEventListener('resize',debounce(resize,200));
-  buildStage();
-  buildFixtures();
-  buildWaveforms();
+  createLights();
+  createParticles();
   animate();
 }
 
@@ -25,91 +24,42 @@ function resize(){
 
 function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn,ms)}}
 
-/* --- Build stage roof structure --- */
-function buildStage(){
-  var roofH=Math.min(H*0.25,150);
-  var roofW=W;
-  var trussRows=4;
-  var trussCols=6;
-  var colSpacing=roofW/(trussCols+1);
-  var rowSpacing=roofH/(trussRows+1);
-
-  stage={x:0,y:0,w:roofW,h:roofH,trussRows:trussRows,trussCols:trussCols,colSpacing:colSpacing,rowSpacing:rowSpacing,
-    nodes:[],segments:[],verticalSegments:[]};
-
-  // Create grid nodes
-  for(var r=0;r<=trussRows;r++){
-    for(var c=0;c<=trussCols;c++){
-      var nx=c*colSpacing,ny=r*rowSpacing;
-      stage.nodes.push({x:nx,y:ny,row:r,col:c});
-    }
-  }
-
-  // Horizontal truss segments
-  for(var hr=0;hr<=trussRows;hr++){
-    for(var hc=0;hc<trussCols;hc++){
-      stage.segments.push({
-        x1:hc*colSpacing,y1:hr*rowSpacing,
-        x2:(hc+1)*colSpacing,y2:hr*rowSpacing
-      });
-    }
-  }
-
-  // Vertical truss segments (cross members)
-  for(var vc=0;vc<=trussCols;vc++){
-    for(var vr=0;vr<trussRows;vr++){
-      stage.segments.push({
-        x1:vc*colSpacing,y1:vr*rowSpacing,
-        x2:vc*colSpacing,y2:(vr+1)*rowSpacing
-      });
-    }
-  }
-
-  // Vertical support trusses (downstage legs)
-  stage.verticalSegments=[];
-  for(var sc=0;sc<=trussCols;sc+=2){
-    var sx=sc*colSpacing;
-    var topY=roofH;
-    var botY=H*0.7+Math.random()*H*0.1;
-    stage.verticalSegments.push({x:sx,y1:topY,y2:botY});
-  }
-}
-
-/* --- Mount fixtures on truss --- */
-function buildFixtures(){
-  fixtures=[];
-  var colors=['rgba(0,212,255','rgba(124,58,237','rgba(245,158,11','rgba(16,185,129','rgba(239,68,68','rgba(236,72,153'];
-  var mountPoints=[
-    {col:1,row:0},{col:2,row:0},{col:3,row:0},{col:4,row:0},{col:5,row:0},
-    {col:1,row:1},{col:3,row:1},{col:5,row:1}
+function createLights(){
+  lights=[];
+  var configs=[
+    {x:0.2,y:0.1,color:[0,212,255],width:0.15,angle:0.6},
+    {x:0.8,y:0.15,color:[124,58,237],width:0.12,angle:-0.5},
+    {x:0.5,y:-0.05,color:[245,158,11],width:0.08,angle:0.1},
+    {x:0.1,y:0.3,color:[16,185,129],width:0.1,angle:0.8},
+    {x:0.9,y:0.25,color:[239,68,68],width:0.07,angle:-0.7},
+    {x:0.3,y:0.05,color:[0,212,255],width:0.06,angle:0.3}
   ];
-  for(var i=0;i<mountPoints.length;i++){
-    var mp=mountPoints[i];
-    var fx=mp.col*stage.colSpacing;
-    var fy=mp.row*stage.rowSpacing;
-    fixtures.push({
-      x:fx,y:fy,
-      angle:-Math.PI/4+Math.random()*Math.PI/2,
-      targetAngle:-Math.PI/4+Math.random()*Math.PI/2,
-      pivotTimer:Math.random()*5,
-      color:colors[i%colors.length],
-      intensity:0.9+Math.random()*0.3,
-      beamWidth:0.03+Math.random()*0.02,
-      row:mp.row,col:mp.col
+  for(var i=0;i<configs.length;i++){
+    var c=configs[i];
+    lights.push({
+      x:W*c.x,y:H*c.y,
+      tx:W*c.x,ty:H*c.y,
+      color:c.color,
+      width:c.width*Math.min(W,H),
+      angle:c.angle,
+      speed:0.002+Math.random()*0.003,
+      phase:Math.random()*Math.PI*2,
+      intensity:0.5+Math.random()*0.5
     });
   }
 }
 
-/* --- Sound wave oscillators --- */
-function buildWaveforms(){
-  waveforms=[];
-  for(var i=0;i<2;i++){
-    waveforms.push({
-      y:H*(0.55+i*0.2),
-      speed:25+Math.random()*20,
-      amp:18+Math.random()*20,
-      freq:0.006+Math.random()*0.004,
-      color:i===0?'rgba(0,212,255':'rgba(124,58,237'
+function createParticles(){
+  particles=[];
+  for(var i=0;i<80;i++){
+    particles.push({
+      x:Math.random()*W*1.2-W*0.1,
+      y:Math.random()*H*1.2-H*0.1,
+      size:0.5+Math.random()*1.5,
+      speedX:(Math.random()-0.5)*0.15,
+      speedY:-0.05-Math.random()*0.1,
+      phase:Math.random()*Math.PI*2,
+      alpha:0.1+Math.random()*0.4
     });
   }
 }
@@ -118,224 +68,112 @@ function animate(){
   var t=Date.now()/1000;
   ctx.clearRect(0,0,W,H);
 
-  drawPerspectiveGrid(t);
-  drawStageRoof(t);
-  drawLightBeams(t);
-  drawWaveforms(t);
+  // 1. Deep background gradient
+  var bg=ctx.createRadialGradient(W/2,H*0.3,0,W/2,H*0.3,H);
+  bg.addColorStop(0,'#0a0a1a');
+  bg.addColorStop(0.5,'#0a0a10');
+  bg.addColorStop(1,'#050508');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,H);
+
+  // 2. Volumetric light beams
+  drawLights(t);
+
+  // 3. Floating haze particles
+  drawParticles(t);
+
+  // 4. Scan line
   drawScanLine(t);
 
   animId=requestAnimationFrame(animate);
 }
 
-/* ===== 1. PERSPECTIVE GRID ===== */
-function drawPerspectiveGrid(t){
-  var cx=W/2,cy=H/3;
-  ctx.lineWidth=0.5;
-  for(var i=-35;i<=35;i++){
-    var angle=i*0.04+Math.sin(t*0.015)*0.005;
-    var dx=Math.cos(angle+Math.PI/2)*W*0.7;
-    var dy=Math.sin(angle+Math.PI/2)*W*0.5;
-    var a=0.02+0.01*Math.sin(t*0.1+i*0.3);
-    ctx.strokeStyle='rgba(255,255,255,'+a+')';
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx,cy+dy);ctx.stroke();
-  }
-  for(var j=1;j<25;j++){
-    var f=j/25;
-    var yPos=cy+(H-cy)*f*f;
-    var a=0.01+f*0.025;
-    ctx.strokeStyle='rgba(255,255,255,'+a+')';ctx.lineWidth=0.5+f*0.3;
-    ctx.beginPath();ctx.moveTo(0,yPos);ctx.lineTo(W,yPos);ctx.stroke();
-  }
-}
+/* ===== 1. VOLUMETRIC LIGHT BEAMS ===== */
+function drawLights(t){
+  lights.forEach(function(l,i){
+    // Soft drift
+    l.x+=Math.sin(t*0.1+l.phase)*(W*0.001);
+    l.y+=Math.cos(t*0.08+l.phase)*(H*0.0008);
+    l.x+=(l.tx-l.x)*0.001;
+    l.y+=(l.ty-l.y)*0.001;
+    l.angle+=Math.sin(t*0.05+l.phase)*0.002;
 
-/* ===== 2. STAGE ROOF TRUSS ===== */
-function drawStageRoof(t){
-  if(!stage.nodes)return;
-  var cs=8; // chord spacing
-  var ba=30; // bay length
-  var alpha=0.14+0.03*Math.sin(t*0.3);
+    var intensity=l.intensity*(0.7+0.3*Math.sin(t*0.2+i*1.5));
+    var baseAlpha=0.03*intensity;
+    var r=l.color[0],g=l.color[1],b=l.color[2];
 
-  // Draw horizontal truss segments
-  ctx.globalAlpha=alpha;
-  stage.segments.forEach(function(seg){
-    drawTrussSegment(ctx,seg.x1,seg.y1,seg.x2,seg.y2,cs,ba,t);
-  });
+    // Wide volumetric cone
+    var endX=l.x+Math.cos(l.angle)*W*0.8;
+    var endY=l.y+Math.sin(l.angle)*W*0.8;
 
-  // Draw vertical support legs
-  ctx.strokeStyle='rgba(0,212,255,'+(alpha*0.5)+')';ctx.lineWidth=0.6;
-  ctx.globalAlpha=alpha*0.5;
-  stage.verticalSegments.forEach(function(vs){
-    // Parallel chord legs
-    var spread=4+Math.sin(t*0.5+vs.x)*2;
-    ctx.beginPath();ctx.moveTo(vs.x-spread,vs.y1);ctx.lineTo(vs.x-spread,vs.y2);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(vs.x+spread,vs.y1);ctx.lineTo(vs.x+spread,vs.y2);ctx.stroke();
-    // Cross bracing
-    var steps=Math.floor((vs.y2-vs.y1)/25);
-    for(var s=0;s<steps;s++){
-      var f1=s/steps,f2=(s+1)/steps;
-      var y1=vs.y1+(vs.y2-vs.y1)*f1;
-      var y2=vs.y1+(vs.y2-vs.y1)*f2;
-      if(s%2===0){
-        ctx.beginPath();ctx.moveTo(vs.x-spread,y1);ctx.lineTo(vs.x+spread,y2);ctx.stroke();
-      }else{
-        ctx.beginPath();ctx.moveTo(vs.x+spread,y1);ctx.lineTo(vs.x-spread,y2);ctx.stroke();
-      }
-    }
-    // Floor mount
-    ctx.fillStyle='rgba(0,212,255,'+(alpha*0.3)+')';
-    ctx.strokeStyle='rgba(0,212,255,'+(alpha*0.6)+')';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(vs.x-8,vs.y2);ctx.lineTo(vs.x,vs.y2+6);ctx.lineTo(vs.x+8,vs.y2);ctx.closePath();ctx.fill();ctx.stroke();
-  });
-  ctx.globalAlpha=1;
-
-  // Node glow on the grid
-  stage.nodes.forEach(function(n){
-    var pulse=0.5+0.5*Math.sin(t*0.6+n.x*0.01+n.y*0.02);
-    var grd=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,5);
-    grd.addColorStop(0,'rgba(0,212,255,'+(0.12*pulse)+')');
-    grd.addColorStop(1,'rgba(0,212,255,0)');
-    ctx.fillStyle=grd;
-    ctx.beginPath();ctx.arc(n.x,n.y,5,0,Math.PI*2);ctx.fill();
-  });
-}
-
-function drawTrussSegment(ctx,x1,y1,x2,y2,cs,ba,t){
-  var lx=x2-x1,ly=y2-y1;
-  var len=Math.sqrt(lx*lx+ly*ly);
-  if(len<5)return;
-  var nx=-ly/len*cs,ny=lx/len*cs;
-
-  // Two chords
-  ctx.strokeStyle='rgba(0,212,255,0.15)';ctx.lineWidth=0.6;
-  ctx.beginPath();ctx.moveTo(x1+nx,y1+ny);ctx.lineTo(x2+nx,y2+ny);ctx.stroke();
-  ctx.strokeStyle='rgba(124,58,237,0.12)';ctx.lineWidth=0.5;
-  ctx.beginPath();ctx.moveTo(x1-nx,y1-ny);ctx.lineTo(x2-nx,y2-ny);ctx.stroke();
-
-  // Zigzag bracing
-  var bays=Math.max(1,Math.round(len/ba));
-  ctx.strokeStyle='rgba(0,212,255,0.08)';ctx.lineWidth=0.4;
-  for(var b=0;b<bays;b++){
-    var f1=b/bays,f2=(b+1)/bays;
-    var xa=x1+lx*f1,ya=y1+ly*f1;
-    var xb=x1+lx*f2,yb=y1+ly*f2;
-    if(b%2===0){ctx.beginPath();ctx.moveTo(xa+nx,ya+ny);ctx.lineTo(xb-nx,yb-ny);ctx.stroke();}
-    else{ctx.beginPath();ctx.moveTo(xa-nx,ya-ny);ctx.lineTo(xb+nx,yb+ny);ctx.stroke();}
-  }
-
-  // Vertical connectors at joints
-  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
-  ctx.beginPath();ctx.moveTo(x1+nx,y1+ny);ctx.lineTo(x1-nx,y1-ny);ctx.stroke();
-}
-
-/* ===== 3. LIGHT BEAMS FROM TRUSS ===== */
-function drawLightBeams(t){
-  fixtures.forEach(function(f,i){
-    f.pivotTimer+=0.004;
-    if(f.pivotTimer>3+i*0.2){
-      f.targetAngle=-Math.PI/3+Math.random()*Math.PI*2/3;
-      f.pivotTimer=0;
-    }
-    var diff=f.targetAngle-f.angle;
-    while(diff>Math.PI)diff-=Math.PI*2;
-    while(diff<-Math.PI)diff+=Math.PI*2;
-    f.angle+=diff*0.012;
-
-    var intensity=f.intensity*(0.6+0.4*Math.sin(t*0.35+i*1.2));
-
-    var sx=f.x,sy=f.y;
-    var beamLen=W*0.65;
-    var ex=sx+Math.cos(f.angle)*beamLen;
-    var ey=sy+Math.sin(f.angle)*beamLen;
-
-    // Volumetric beam cone
-    var w=f.beamWidth*beamLen*0.3*intensity;
-    var grad=ctx.createRadialGradient(sx,sy,0,sx,sy,beamLen*0.4);
-    grad.addColorStop(0,f.color+','+(0.1*intensity)+')');
-    grad.addColorStop(0.2,f.color+','+(0.05*intensity)+')');
-    grad.addColorStop(0.5,f.color+','+(0.02*intensity)+')');
-    grad.addColorStop(1,f.color+',0)');
+    var grad=ctx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.width*3);
+    grad.addColorStop(0,'rgba('+r+','+g+','+b+','+baseAlpha+')');
+    grad.addColorStop(0.3,'rgba('+r+','+g+','+b+','+(baseAlpha*0.5)+')');
+    grad.addColorStop(0.6,'rgba('+r+','+g+','+b+','+(baseAlpha*0.2)+')');
+    grad.addColorStop(1,'rgba('+r+','+g+','+b+',0)');
     ctx.fillStyle=grad;
-    ctx.beginPath();ctx.moveTo(sx,sy);
-    var spread=0.06*intensity;
-    ctx.lineTo(ex+Math.cos(f.angle+Math.PI/2)*w*spread,ey+Math.sin(f.angle+Math.PI/2)*w*spread);
-    ctx.lineTo(ex-Math.cos(f.angle+Math.PI/2)*w*spread,ey-Math.sin(f.angle+Math.PI/2)*w*spread);
+    ctx.beginPath();ctx.moveTo(l.x,l.y);
+    var spread=0.15*intensity;
+    ctx.lineTo(endX+Math.cos(l.angle+Math.PI/2)*l.width*spread,endY+Math.sin(l.angle+Math.PI/2)*l.width*spread);
+    ctx.lineTo(endX-Math.cos(l.angle+Math.PI/2)*l.width*spread,endY-Math.sin(l.angle+Math.PI/2)*l.width*spread);
     ctx.closePath();ctx.fill();
 
-    // Bright core ray
-    ctx.strokeStyle=f.color+','+(0.08*intensity)+')';ctx.lineWidth=2+3*intensity;
-    ctx.beginPath();ctx.moveTo(sx,sy);
-    var steps=25;
-    for(var si=0;si<=steps;si++){
-      var frac=si/steps;
-      var px=sx+(ex-sx)*frac,py=sy+(ey-sy)*frac;
-      var wb=Math.sin(frac*Math.PI*5+t*1.0+i)*w*0.3;
-      ctx.lineTo(px+wb,py+Math.sin(frac*3+t*0.7+i)*w*0.3);
-    }
-    ctx.stroke();
-
-    // Fixture head glow (mounted on truss)
-    var glowR=10+20*intensity;
-    var sgrd=ctx.createRadialGradient(sx,sy,0,sx,sy,glowR);
-    sgrd.addColorStop(0,'rgba(255,255,255,'+(0.35*intensity)+')');
-    sgrd.addColorStop(0.3,f.color+','+(0.12*intensity)+')');
-    sgrd.addColorStop(1,f.color+',0)');
-    ctx.fillStyle=sgrd;
-    ctx.beginPath();ctx.arc(sx,sy,glowR,0,Math.PI*2);ctx.fill();
-
-    // Short hanging cable from truss
-    ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=0.3;
-    ctx.beginPath();ctx.moveTo(sx,sy-6);ctx.lineTo(sx,sy);ctx.stroke();
+    // Soft core glow
+    var coreGrad=ctx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.width*0.5);
+    coreGrad.addColorStop(0,'rgba('+r+','+g+','+b+','+(baseAlpha*2)+')');
+    coreGrad.addColorStop(0.5,'rgba('+r+','+g+','+b+','+(baseAlpha*0.8)+')');
+    coreGrad.addColorStop(1,'rgba('+r+','+g+','+b+',0)');
+    ctx.fillStyle=coreGrad;
+    ctx.beginPath();ctx.arc(l.x,l.y,l.width*0.5,0,Math.PI*2);ctx.fill();
   });
 }
 
-/* ===== 4. TRAVELING WAVEFORMS ===== */
-function drawWaveforms(t){
-  waveforms.forEach(function(wf){
-    var wfAlpha=wf.color.indexOf('255')>0?0.16:0.12;
-    ctx.strokeStyle=wf.color+','+wfAlpha+')';ctx.lineWidth=1.5;
-    ctx.beginPath();var first=true;
-    for(var x=0;x<=W;x+=2){
-      var y=wf.y+Math.sin(x*wf.freq-t*wf.speed*0.001)*wf.amp
-           +Math.sin(x*wf.freq*2.3-t*wf.speed*0.0017)*wf.amp*0.4
-           +Math.sin(x*wf.freq*0.5-t*wf.speed*0.0006)*wf.amp*0.6
-           +Math.sin(x*wf.freq*3.7-t*wf.speed*0.0023)*wf.amp*0.2;
-      if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
-    }
-    ctx.stroke();
+/* ===== 2. FLOATING PARTICLES (HAZE) ===== */
+function drawParticles(t){
+  particles.forEach(function(p){
+    p.x+=p.speedX;
+    p.y+=p.speedY;
+    if(p.x<0)p.x+=W*1.2;
+    if(p.x>W*1.1)p.x-=W*1.2;
+    if(p.y<-H*0.1)p.y+=H*1.2;
+    if(p.y>H*1.1)p.y-=H*1.2;
 
-    // Fill below
-    ctx.lineTo(W,wf.y+wf.amp);ctx.lineTo(0,wf.y+wf.amp);ctx.closePath();
-    ctx.fillStyle=wf.color+','+(0.02)+')';ctx.fill();
+    var flicker=0.5+0.5*Math.sin(t*0.5+p.phase);
+    var alpha=p.alpha*flicker*0.6;
+    ctx.fillStyle='rgba(200,215,255,'+alpha+')';
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+
+    // Glow
+    var grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*3);
+    grd.addColorStop(0,'rgba(200,215,255,'+(alpha*0.3)+')');
+    grd.addColorStop(1,'rgba(200,215,255,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);ctx.fill();
   });
 }
 
-/* ===== 5. SCAN LINE + HUD ===== */
+/* ===== 3. SCAN LINE + CORNERS ===== */
 function drawScanLine(t){
-  scanY+=0.5*scanDir;
+  scanY+=0.4*scanDir;
   if(scanY>H||scanY<0)scanDir*=-1;
 
-  var alpha=0.03+0.02*Math.sin(t*1.5);
-  ctx.strokeStyle='rgba(0,212,255,'+alpha+')';ctx.lineWidth=1;
+  var alpha=0.02+0.01*Math.sin(t*1.5);
+  ctx.strokeStyle='rgba(100,180,255,'+alpha+')';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(0,scanY);ctx.lineTo(W,scanY);ctx.stroke();
 
-  var grd=ctx.createRadialGradient(W/2,scanY,0,W/2,scanY,60);
-  grd.addColorStop(0,'rgba(0,212,255,'+(alpha*0.2)+')');
-  grd.addColorStop(1,'rgba(0,212,255,0)');
+  var grd=ctx.createRadialGradient(W/2,scanY,0,W/2,scanY,50);
+  grd.addColorStop(0,'rgba(100,180,255,'+(alpha*0.15)+')');
+  grd.addColorStop(1,'rgba(100,180,255,0)');
   ctx.fillStyle=grd;
-  ctx.fillRect(0,scanY-60,W,120);
+  ctx.fillRect(0,scanY-50,W,100);
 
-  // Corners
-  ctx.strokeStyle='rgba(0,212,255,0.06)';ctx.lineWidth=1;
-  var m=20,cs=30;
+  // Corner brackets
+  ctx.strokeStyle='rgba(100,180,255,0.04)';ctx.lineWidth=1;
+  var m=24,cs=24;
   ctx.beginPath();ctx.moveTo(m,m+cs);ctx.lineTo(m,m);ctx.lineTo(m+cs,m);ctx.stroke();
   ctx.beginPath();ctx.moveTo(W-m-cs,m);ctx.lineTo(W-m,m);ctx.lineTo(W-m,m+cs);ctx.stroke();
   ctx.beginPath();ctx.moveTo(m,H-m-cs);ctx.lineTo(m,H-m);ctx.lineTo(m+cs,H-m);ctx.stroke();
   ctx.beginPath();ctx.moveTo(W-m-cs,H-m);ctx.lineTo(W-m,H-m);ctx.lineTo(W-m,H-m-cs);ctx.stroke();
-
-  // HUD text
-  ctx.fillStyle='rgba(0,212,255,0.03)';ctx.font='9px monospace';ctx.textAlign='left';
-  var lines=['SYS>STAGE.LIVE','GRID>ACTIVE','TRUSS>STABLE','DMX>SYNCED'];
-  lines.forEach(function(l,i){ctx.fillText(l,m+cs+8,m+14+i*14);});
 }
 
 /* ===== HORIZONTAL CAROUSEL ===== */
