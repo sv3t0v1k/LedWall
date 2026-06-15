@@ -144,6 +144,14 @@ select option{background:#14141f;color:var(--text)}
 #modal p{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5}
 #modal .btn-row{display:flex;gap:6px;justify-content:flex-end}
 #modal .btn-row .btn{min-width:70px}
+#aaModal{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center}
+#aaModal.open{display:flex}
+#aaModal .aa-box{background:linear-gradient(145deg,#14141f,#1a1a2e);border:1px solid var(--border);border-radius:var(--rl);padding:20px;max-width:420px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.6)}
+#aaModal h3{font-size:15px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+#aaModal p{font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.4}
+#aaModal .aa-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px;border:none;border-radius:var(--rs);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all var(--t);width:100%;text-align:center}
+#aaModal .aa-btn span{font-weight:400;font-size:10px;opacity:0.65}
+#aaModal .aa-btn:hover{transform:translateY(-1px)}
 /* Actions */
 .actions{display:flex;flex-direction:column;gap:5px}
 .actions .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:5px}
@@ -278,6 +286,27 @@ select option{background:#14141f;color:var(--text)}
   </div>
 </div>
 
+<!-- Auto-Assign Modal -->
+<div id="aaModal">
+  <div class="aa-box">
+    <h3><i class="fa-regular fa-wand-magic"></i> Auto-Assign</h3>
+    <p>Выберите режим расстановки приборов:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin:10px 0">
+      <button class="aa-btn btn-primary" id="aaCompact" style="padding:10px">
+        <i class="fa-regular fa-compress" style="font-size:14px"></i> Компактно
+        <span>упаковать в минимальное количество вселенных</span>
+      </button>
+      <button class="aa-btn btn-secondary" id="aaKeep" style="padding:10px">
+        <i class="fa-regular fa-layer-group" style="font-size:14px"></i> По текущим вселенным
+        <span>не менять распределение, только адреса</span>
+      </button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="aaCancel">Отмена</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -393,14 +422,30 @@ function getUniUsage(uni){
   return used;
 }
 
-function autoAssign(){
-  var addr=1,uni=1;
-  state.fixtures.forEach(function(f){
-    if(addr+f.channels-1>UNI_SIZE){addr=1;uni++;}
-    f.address=addr;f.universe=uni;
-    addr+=f.channels;
-  });
-  state.selectedUni=1;
+function autoAssign(mode){
+  if(mode==='keep'){
+    var groups={};
+    state.fixtures.forEach(function(f){
+      if(!groups[f.universe])groups[f.universe]=[];
+      groups[f.universe].push(f);
+    });
+    Object.keys(groups).forEach(function(uni){
+      var addr=1;
+      groups[uni].forEach(function(f){
+        f.address=addr;f.universe=parseInt(uni,10);
+        addr+=f.channels;
+      });
+    });
+    state.selectedUni=parseInt(Object.keys(groups)[0],10)||1;
+  }else{
+    var addr=1,uni=1;
+    state.fixtures.forEach(function(f){
+      if(addr+f.channels-1>UNI_SIZE){addr=1;uni++;}
+      f.address=addr;f.universe=uni;
+      addr+=f.channels;
+    });
+    state.selectedUni=1;
+  }
   saveState();render();
   toast('Auto-Assign завершён','success');
 }
@@ -629,7 +674,24 @@ $('#btnAddFixture').addEventListener('click',function(){
   addFixture($('#fixtureName').value,$('#fixtureCh').value,$('#fixtureAddr').value,$('#fixtureUni').value);
 });
 
-$('#btnAutoAssign').addEventListener('click',autoAssign);
+$('#btnAutoAssign').addEventListener('click',function(){
+  if(state.fixtures.length===0){toast('Нет приборов','error');return;}
+  document.getElementById('aaModal').classList.add('open');
+});
+document.getElementById('aaCompact').addEventListener('click',function(){
+  document.getElementById('aaModal').classList.remove('open');
+  autoAssign('compact');
+});
+document.getElementById('aaKeep').addEventListener('click',function(){
+  document.getElementById('aaModal').classList.remove('open');
+  autoAssign('keep');
+});
+document.getElementById('aaCancel').addEventListener('click',function(){
+  document.getElementById('aaModal').classList.remove('open');
+});
+document.getElementById('aaModal').addEventListener('click',function(e){
+  if(e.target===this)this.classList.remove('open');
+});
 $('#btnRefresh').addEventListener('click',render);
 $('#btnExportCSV').addEventListener('click',exportCSV);
 $('#btnExportJSON').addEventListener('click',exportJSON);
