@@ -494,7 +494,32 @@ HD (1920×1080), 4K wide (3840×1080), 4K (3840×2160), 8K wide (7680×2160), 8K
 - **PNG**: offscreen canvas в полном разрешении, плоскости с заливкой и подписями
 - **CSV**: `Label, X, Y, W, H, Color` через буфер обмена
 
-## 8. Общие паттерны
+---
+
+## 8. Signal Flow Patch Designer (`tools/signal-patch/`)
+
+### Назначение
+Визуальный конструктор сигнальных цепей. Размещение блоков на canvas, соединение выходов со входами для Audio/DMX/SDI/Network.
+
+### Палитра блоков
+36+ типов в 6 категориях: Входы (Audio), Входы (DMX/Video/Net), Обработка (Audio), Обработка (Video/DMX/Net), Выходы.
+
+### Сигналы и цвета
+Audio → `#00d4ff`, DMX → `#22c55e`, SDI → `#ef4444`, Network → `#f59e0b`
+
+### Canvas interactions
+- CSS transform (translate + scale) для zoom/pan
+- Hover: курсор crosshair / copy / move / pointer / grab
+- Клик на out-port → режим соединения → клик на in-port → Безье-кривая
+- Клик на кривой → удаление
+- Drag блоков с snap to grid 40px
+
+### Экспорт
+- **PNG**: offscreen canvas с bounding box всех блоков и соединений
+
+---
+
+## 9. Общие паттерны
 
 ### Сохранение состояния
 

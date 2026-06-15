@@ -29,6 +29,8 @@ GenMap/
 │   │   └── data/truss.json
 │   └── mapping-planner/
 │       └── index.html
+│   └── signal-patch/
+│       └── index.html
 └── docs/
     ├── README.md               — Документация
     ├── context.md              — Описание всех инструментов
@@ -45,6 +47,7 @@ GenMap/
 | Delay & Array Calculator | ✅ | Линии задержки, Line Array, Subwoofer |
 | Rigging Load Calculator | ✅ | Нагрузки на трисс BT, 2/3 опоры, эпюра моментов |
 | Mapping Planner | ✅ | Раскладка плоскостей на canvas, drag, snap, выравнивание |
+| Signal Flow Patch Designer | ✅ | Визуальный конструктор сигнальных цепей Audio/DMX/SDI/Net |
 
 ## Стек
 
