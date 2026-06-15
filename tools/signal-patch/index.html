@@ -457,22 +457,19 @@ function initCanvasEvents(){
   function hitPort(cx,cy){
     for(var i=state.nodes.length-1;i>=0;i--){
       var n=state.nodes[i];
-      // Check out ports
       for(var p=0;p<n.outPorts.length;p++){
         var pos=getPortPos(n,n.outPorts[p].id,'out');
-        if(pos&&Math.abs(cx-pos.x)<8&&Math.abs(cy-pos.y)<8)return{node:n,port:n.outPorts[p].id,side:'out',pos:pos};
+        if(pos&&Math.abs(cx-pos.x)<12&&Math.abs(cy-pos.y)<12)return{node:n,port:n.outPorts[p].id,side:'out',pos:pos};
       }
-      // Check in ports
       for(var pi=0;pi<n.inPorts.length;pi++){
         var pos2=getPortPos(n,n.inPorts[pi].id,'in');
-        if(pos2&&Math.abs(cx-pos2.x)<8&&Math.abs(cy-pos2.y)<8)return{node:n,port:n.inPorts[pi].id,side:'in',pos:pos2};
+        if(pos2&&Math.abs(cx-pos2.x)<12&&Math.abs(cy-pos2.y)<12)return{node:n,port:n.inPorts[pi].id,side:'in',pos:pos2};
       }
     }
     return null;
   }
 
   function hitConnection(cx,cy){
-    // Simple hit test: check distance from bezier midpoint
     for(var ci=0;ci<state.connections.length;ci++){
       var c=state.connections[ci];
       var fn=state.nodes.find(function(n){return n.id===c.from});
@@ -487,84 +484,80 @@ function initCanvasEvents(){
     return null;
   }
 
+  // Hover + drag: combined mousemove
+  canvas.addEventListener('mousemove',function(e){
+    if(drag){
+      // Drag handling
+      if(drag.type==='pan'){
+        state.panX=drag.origPX+(e.clientX-drag.startX);
+        state.panY=drag.origPY+(e.clientY-drag.startY);
+        renderCanvas();return;
+      }
+      if(drag.type==='node'){
+        var dx=(e.clientX-drag.startX)/state.zoom,dy=(e.clientY-drag.startY)/state.zoom;
+        var gs=40;
+        drag.node.x=Math.round((drag.origX+dx)/gs)*gs;
+        drag.node.y=Math.round((drag.origY+dy)/gs)*gs;
+        renderCanvas();return;
+      }
+    }
+    // Hover: change cursor
+    var c=screenToCanvas(e.clientX,e.clientY);
+    var portHit=hitPort(c.x,c.y);
+    if(portHit){canvas.style.cursor=portHit.side==='out'?'crosshair':'copy';return;}
+    var nodeHit=hitNode(c.x,c.y);
+    if(nodeHit){canvas.style.cursor='move';return;}
+    var connHit=hitConnection(c.x,c.y);
+    if(connHit){canvas.style.cursor='pointer';return;}
+    canvas.style.cursor='grab';
+  });
+
+  // mousedown: handle all interactions
   canvas.addEventListener('mousedown',function(e){
     if(e.button!==0)return;
     var c=screenToCanvas(e.clientX,e.clientY);
-
-    // Connection mode: click on out-port
     var portHit=hitPort(c.x,c.y);
-    if(portHit&&portHit.side==='out'){
-      // Enter connection mode
-      var node=state.nodes.find(function(n){return n.id===portHit.node.id});
-      if(node){
-        connectMode={nodeId:portHit.node.id,portId:portHit.port,signal:node.signal,
-          startX:portHit.pos.x,startY:portHit.pos.y};
-        renderCanvas();
-        return;
-      }
-    }
+
+    // If in connection mode, try to complete or cancel
     if(connectMode){
-      // In connection mode: click on in-port → create connection
       if(portHit&&portHit.side==='in'){
-        var ok=addConnection(connectMode.nodeId,connectMode.portId,portHit.node.id,portHit.port);
-        if(!ok)toast('Соединение не удалось','error');
+        var srcNode=state.nodes.find(function(n){return n.id===connectMode.nodeId});
+        if(srcNode&&srcNode.signal===portHit.node.signal){
+          var ok=addConnection(connectMode.nodeId,connectMode.portId,portHit.node.id,portHit.port);
+          if(!ok)toast('Порт уже занят','error');else toast('Соединение создано','success');
+        }else{toast('Тип сигнала не совпадает','error');}
         connectMode=null;renderCanvas();return;
       }
-      // Click elsewhere → cancel connection mode
       connectMode=null;renderCanvas();
-      // Fall through to node/pan handling
     }
 
+    // Click on out-port → start connection mode
+    if(portHit&&portHit.side==='out'){
+      connectMode={nodeId:portHit.node.id,portId:portHit.port,signal:portHit.node.signal,startX:portHit.pos.x,startY:portHit.pos.y};
+      toast('Кликните на вход (левый порт) для подключения','info');
+      renderCanvas();return;
+    }
+
+    // Click on node → select + drag
     var nodeHit=hitNode(c.x,c.y);
     if(nodeHit){
-      state.selectedNodeId=nodeHit.id;
-      renderProps();renderCanvas();
-      var origX=nodeHit.x,origY=nodeHit.y;
+      state.selectedNodeId=nodeHit.id;renderProps();renderCanvas();
       drag={type:'node',node:nodeHit,startX:e.clientX,startY:e.clientY,origX:nodeHit.x,origY:nodeHit.y};
-      return;
+      view.classList.add('dragging');return;
     }
+
+    // Click on connection → delete
     var connHit=hitConnection(c.x,c.y);
-    if(connHit){
-      state.selectedConnId=connHit.id;state.selectedNodeId=null;
-      $('#propsCard').style.display='none';
-      removeConnection(state.selectedConnId);
-      toast('Соединение удалено','info');
-      return;
-    }
-    state.selectedNodeId=null;state.selectedConnId=null;
-    connectMode=null;
+    if(connHit){removeConnection(connHit.id);toast('Соединение удалено','info');return;}
+
+    // Click on empty → deselect + pan
+    state.selectedNodeId=null;state.selectedConnId=null;connectMode=null;
     renderProps();renderCanvas();
     drag={type:'pan',startX:e.clientX,startY:e.clientY,origPX:state.panX,origPY:state.panY};
   });
 
-  canvas.addEventListener('mousemove',function(e){
-    if(!drag)return;
-    if(drag.type==='pan'){
-      state.panX=drag.origPX+(e.clientX-drag.startX);
-      state.panY=drag.origPY+(e.clientY-drag.startY);
-      renderCanvas();return;
-    }
-    if(drag.type==='node'){
-      var dx=(e.clientX-drag.startX)/state.zoom,dy=(e.clientY-drag.startY)/state.zoom;
-      var gs=40;
-      var newX=Math.round((drag.origX+dx)/gs)*gs;
-      var newY=Math.round((drag.origY+dy)/gs)*gs;
-      // Snap to other nodes
-      if(e.shiftKey){
-        state.nodes.forEach(function(on){
-          if(on.id===drag.node.id)return;
-          if(Math.abs(newX-on.x+on.w)<8){newX=on.x+on.w;}
-          if(Math.abs(newX+drag.node.w-on.x)<8){newX=on.x-drag.node.w;}
-          if(Math.abs(newY-on.y+on.h)<8){newY=on.y+on.h;}
-          if(Math.abs(newY+drag.node.h-on.y)<8){newY=on.y-drag.node.h;}
-        });
-      }
-      drag.node.x=newX;drag.node.y=newY;
-      renderCanvas();
-    }
-  });
-
   canvas.addEventListener('mouseup',function(e){
+    view.classList.remove('dragging');
     if(drag&&drag.type==='node'){saveState();}
     drag=null;
   });
