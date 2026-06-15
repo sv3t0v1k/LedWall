@@ -38,7 +38,7 @@ body.loaded{opacity:1}
 .btn-danger:hover{background:rgba(239,68,68,0.2)}
 .btn-block{width:100%}
 .btn-sm{padding:5px 8px;font-size:10px}
-input[type="text"]{width:100%;padding:5px 7px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:11px;transition:border-color var(--t);outline:none}
+input[type="text"],input[type="number"],select{width:100%;padding:5px 7px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:11px;transition:border-color var(--t);outline:none}
 input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 /* Palette */
 .palette-section{margin-bottom:6px}
@@ -50,6 +50,8 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 .palette-chip.dmx{border-left:2px solid var(--sig-dmx)}
 .palette-chip.sdi{border-left:2px solid var(--sig-sdi)}
 .palette-chip.net{border-left:2px solid var(--sig-net)}
+.palette-chip.power{border-left:2px solid var(--sig-audio);border-left-color:#ec4899}
+.chip-del:hover{opacity:1!important}
 /* Node table */
 .node-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px}
 .node-table th{text-align:left;padding:4px 5px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
@@ -101,6 +103,32 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
       <div class="card">
         <div class="card-header"><i class="fa-regular fa-icons"></i> Палитра</div>
         <div class="card-body" id="paletteBody"></div>
+      </div>
+
+      <!-- Custom block -->
+      <div class="card">
+        <div class="card-header"><i class="fa-regular fa-plus-circle"></i> Свой блок</div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Название</label>
+            <input type="text" id="customName" placeholder="Мой прибор" maxlength="30">
+          </div>
+          <div class="row-3">
+            <div class="form-group">
+              <label class="form-label">Сигнал</label>
+              <select id="customSignal"><option value="audio">Audio</option><option value="dmx">DMX</option><option value="sdi">SDI</option><option value="net">Network</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Входов</label>
+              <input type="number" id="customIn" value="1" min="0" max="8">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Выходов</label>
+              <input type="number" id="customOut" value="1" min="0" max="8">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm btn-block" id="btnAddCustom"><i class="fa-regular fa-floppy-disk"></i> Добавить в палитру</button>
+        </div>
       </div>
 
       <!-- Properties -->
@@ -163,12 +191,20 @@ var BLOCK_PRESETS = [
     {name:'Keyboard/Synth',signal:'audio',inPorts:[],outPorts:['Out']},
     {name:'Drum Machine',signal:'audio',inPorts:[],outPorts:['L','R']},
     {name:'CD/Turntable',signal:'audio',inPorts:[],outPorts:['L','R']},
-    {name:'Ambient Mic',signal:'audio',inPorts:[],outPorts:['Out']}
+    {name:'Ambient Mic',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'Talkback Mic',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'Click Track',signal:'audio',inPorts:[],outPorts:['L','R']},
+    {name:'Timecode',signal:'audio',inPorts:[],outPorts:['Out']},
+    {name:'MADI/AES/EBU',signal:'audio',inPorts:[],outPorts:['Ch 1-8','Ch 9-16']},
+    {name:'USB Interface',signal:'audio',inPorts:[],outPorts:['L','R']},
+    {name:'Bluetooth RX',signal:'audio',inPorts:[],outPorts:['L','R']}
   ]},
-  {cat:'Входы (DMX/Video/Network)',blocks:[
+  {cat:'Входы (Video/DMX/Net)',blocks:[
     {name:'DMX Console',signal:'dmx',inPorts:[],outPorts:['Univ 1','Univ 2']},
     {name:'Camera SDI',signal:'sdi',inPorts:[],outPorts:['Out']},
+    {name:'HDMI Source',signal:'sdi',inPorts:[],outPorts:['HDMI Out']},
     {name:'Media Server',signal:'sdi',inPorts:[],outPorts:['HDMI 1','SDI 1']},
+    {name:'NDI Source',signal:'net',inPorts:[],outPorts:['NDI']},
     {name:'Network Switch',signal:'net',inPorts:[],outPorts:['Port 1','Port 2','Port 3']}
   ]},
   {cat:'Обработка (Audio)',blocks:[
@@ -176,20 +212,46 @@ var BLOCK_PRESETS = [
     {name:'EQ Graphic',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'EQ Parametric',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'Compressor',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Multi-Comp',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'Gate',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Noise Gate',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'Limiter',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'De-esser',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Vocal Rider',signal:'audio',inPorts:['In'],outPorts:['Out']},
+    {name:'Transient',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'Reverb',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'Delay FX',signal:'audio',inPorts:['In'],outPorts:['Out']},
     {name:'Crossover',signal:'audio',inPorts:['In'],outPorts:['Hi','Lo','Sub']},
-    {name:'Splitter',signal:'audio',inPorts:['In'],outPorts:['A','B','C']}
+    {name:'Splitter',signal:'audio',inPorts:['In'],outPorts:['A','B','C']},
+    {name:'Patchbay',signal:'audio',inPorts:['1','2','3','4'],outPorts:['1','2','3','4']},
+    {name:'Tone Gen',signal:'audio',inPorts:[],outPorts:['Out']}
   ]},
-  {cat:'Обработка (Video/DMX/Network)',blocks:[
+  {cat:'Обработка (Video/DMX/Net)',blocks:[
     {name:'DMX Splitter',signal:'dmx',inPorts:['In'],outPorts:['A','B','C']},
     {name:'DMX Merge',signal:'dmx',inPorts:['A','B'],outPorts:['Out']},
-    {name:'SDI Distributor',signal:'sdi',inPorts:['In'],outPorts:['A','B','C']},
-    {name:'SDI Matrix',signal:'sdi',inPorts:['In 1','In 2'],outPorts:['Out 1','Out 2']},
-    {name:'Network Router',signal:'net',inPorts:['WAN'],outPorts:['LAN 1','LAN 2','LAN 3']}
+    {name:'Opto Splitter',signal:'dmx',inPorts:['In'],outPorts:['1','2','3','4']},
+    {name:'Art-Net Node',signal:'dmx',inPorts:['Net'],outPorts:['Univ 1','Univ 2','Univ 3','Univ 4']},
+    {name:'sACN Node',signal:'dmx',inPorts:['Net'],outPorts:['Univ 1','Univ 2','Univ 3','Univ 4']},
+    {name:'Wireless DMX TX',signal:'dmx',inPorts:['In'],outPorts:['RF']},
+    {name:'Wireless DMX RX',signal:'dmx',inPorts:['RF'],outPorts:['Out']},
+    {name:'RDM Controller',signal:'dmx',inPorts:['In'],outPorts:['RDM']},
+    {name:'SDI Distributor',signal:'sdi',inPorts:['In'],outPorts:['A','B','C','D']},
+    {name:'SDI Matrix',signal:'sdi',inPorts:['In 1','In 2','In 3','In 4'],outPorts:['Out 1','Out 2']},
+    {name:'HDMI→SDI',signal:'sdi',inPorts:['HDMI'],outPorts:['SDI']},
+    {name:'SDI→HDMI',signal:'sdi',inPorts:['SDI'],outPorts:['HDMI']},
+    {name:'Scan Converter',signal:'sdi',inPorts:['DVI'],outPorts:['SDI']},
+    {name:'Scaler',signal:'sdi',inPorts:['In'],outPorts:['Out']},
+    {name:'Fiber Converter',signal:'sdi',inPorts:['SDI'],outPorts:['Fiber']},
+    {name:'Video Switcher',signal:'sdi',inPorts:['In 1','In 2','In 3','In 4'],outPorts:['PGM','AUX']},
+    {name:'Multi-Viewer',signal:'sdi',inPorts:['In 1','In 2','In 3','In 4'],outPorts:['Out']},
+    {name:'Video Encoder',signal:'sdi',inPorts:['In'],outPorts:['Stream']},
+    {name:'Dimmer Rack',signal:'dmx',inPorts:['DMX'],outPorts:['Ch 1-6']},
+    {name:'LED Driver',signal:'dmx',inPorts:['DMX'],outPorts:['Ch 1-4']},
+    {name:'Network Router',signal:'net',inPorts:['WAN'],outPorts:['LAN 1','LAN 2','LAN 3']},
+    {name:'PoE Switch',signal:'net',inPorts:['Uplink'],outPorts:['Port 1-4','Port 5-8']},
+    {name:'WiFi AP',signal:'net',inPorts:['WAN'],outPorts:['WiFi']},
+    {name:'Media Converter',signal:'net',inPorts:['RJ45'],outPorts:['Fiber']},
+    {name:'Dante Switch',signal:'net',inPorts:['Primary'],outPorts:['Port 1','Port 2','Port 3','Port 4']}
   ]},
   {cat:'Выходы',blocks:[
     {name:'Main LR',signal:'audio',inPorts:['L','R'],outPorts:[]},
@@ -197,17 +259,30 @@ var BLOCK_PRESETS = [
     {name:'IEM Mix',signal:'audio',inPorts:['In'],outPorts:[]},
     {name:'Aux Send',signal:'audio',inPorts:['In'],outPorts:[]},
     {name:'Matrix Out',signal:'audio',inPorts:['L','R'],outPorts:[]},
+    {name:'Center Fill',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Front Fill',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Side Fill',signal:'audio',inPorts:['L','R'],outPorts:[]},
+    {name:'Delay Tower',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Under-balcony',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Backline Amp',signal:'audio',inPorts:['In'],outPorts:[]},
+    {name:'Stage Return',signal:'audio',inPorts:['In'],outPorts:[]},
     {name:'Recording',signal:'audio',inPorts:['L','R'],outPorts:[]},
     {name:'Broadcast',signal:'audio',inPorts:['L','R'],outPorts:[]},
     {name:'Subwoofer',signal:'audio',inPorts:['In'],outPorts:[]},
     {name:'LED Wall',signal:'sdi',inPorts:['In'],outPorts:[]},
     {name:'Projector',signal:'sdi',inPorts:['In'],outPorts:[]},
     {name:'Video Stream',signal:'net',inPorts:['In'],outPorts:[]}
+  ]},
+  {cat:'Питание',signal:'power',blocks:[
+    {name:'Power Distro',signal:'power',inPorts:['L1','L2','L3','N'],outPorts:['Out 1-6']},
+    {name:'UPS',signal:'power',inPorts:['In'],outPorts:['Out']},
+    {name:'Power Conditioner',signal:'power',inPorts:['In'],outPorts:['Out 1-8']},
+    {name:'PDU',signal:'power',inPorts:['In'],outPorts:['Out 1-12']}
   ]}
 ];
 
-var SIG_COLORS={audio:'#00d4ff',dmx:'#22c55e',sdi:'#ef4444',net:'#f59e0b'};
-var SIG_NAMES={audio:'Audio',dmx:'DMX',sdi:'SDI',net:'Network'};
+var SIG_COLORS={audio:'#00d4ff',dmx:'#22c55e',sdi:'#ef4444',net:'#f59e0b',power:'#ec4899'};
+var SIG_NAMES={audio:'Audio',dmx:'DMX',sdi:'SDI',net:'Network',power:'Power'};
 
 var state={nodes:[],connections:[],nextId:1,selectedNodeId:null,selectedConnId:null,zoom:1,panX:0,panY:0};
 var drag=null,connectDrag=null,connectMode=null;
@@ -270,25 +345,57 @@ function removeConnection(id){
 /* === PALETTE === */
 function renderPalette(){
   var body=$('#paletteBody');
-  body.innerHTML=BLOCK_PRESETS.map(function(group){
-    return '<div class="palette-section"><div class="palette-title">'+group.cat+'</div><div class="palette-grid">'+
+  var html='';
+  BLOCK_PRESETS.forEach(function(group){
+    html+='<div class="palette-section"><div class="palette-title">'+group.cat+'</div><div class="palette-grid">'+
       group.blocks.map(function(b){
-        return '<div class="palette-chip '+b.signal+'" data-name="'+b.name+'" data-signal="'+b.signal+'" data-icon="'+(b.icon||'')+'" data-in="'+(b.inPorts?b.inPorts.length:0)+'" data-out="'+(b.outPorts?b.outPorts.length:0)+'" title="'+SIG_NAMES[b.signal]+'">'+b.name+'</div>';
+        return '<div class="palette-chip '+b.signal+'" data-name="'+b.name+'" data-signal="'+b.signal+'" data-icon="" data-in="'+(b.inPorts?b.inPorts.length:0)+'" data-out="'+(b.outPorts?b.outPorts.length:0)+'" title="'+SIG_NAMES[b.signal]+'">'+b.name+'</div>';
       }).join('')+'</div></div>';
-  }).join('');
+  });
+  // Custom blocks from localStorage
+  var custom=loadCustomPresets();
+  if(custom.length>0){
+    html+='<div class="palette-section"><div class="palette-title">Мои блоки</div><div class="palette-grid">'+
+      custom.map(function(b,i){
+        return '<div class="palette-chip '+b.signal+'" data-custom="1" data-idx="'+i+'" data-name="'+b.name+'" data-signal="'+b.signal+'" data-in="'+(b.inPorts.length)+'" data-out="'+(b.outPorts.length)+'" title="'+SIG_NAMES[b.signal]+'">'+b.name+'<span class="chip-del" data-idx="'+i+'" style="margin-left:4px;cursor:pointer;opacity:0.4">&times;</span></div>';
+      }).join('')+'</div></div>';
+  }
+  body.innerHTML=html;
+  // Event: add block to canvas
   body.querySelectorAll('.palette-chip').forEach(function(chip){
-    chip.addEventListener('click',function(){
+    chip.addEventListener('click',function(e){
+      if(e.target.closest('.chip-del'))return;
       var name=this.dataset.name,signal=this.dataset.signal;
-      var icon=this.dataset.icon;
       var inCount=parseInt(this.dataset.in,10)||0,outCount=parseInt(this.dataset.out,10)||0;
       var found=null;
-      BLOCK_PRESETS.some(function(g){return g.blocks.some(function(b){if(b.name===name){found=b;return true}return false})});
+      if(this.dataset.custom){
+        var custom=loadCustomPresets();
+        found=custom[parseInt(this.dataset.idx,10)];
+      }else{
+        BLOCK_PRESETS.some(function(g){return g.blocks.some(function(b){if(b.name===name){found=b;return true}return false})});
+      }
       if(!found)return;
       var cx=(window.innerWidth||document.documentElement.clientWidth)/2;
       var cy=(window.innerHeight||document.documentElement.clientHeight)/2;
       addNode(found,(cx/state.zoom-state.panX/state.zoom-70),(cy/state.zoom-state.panY/state.zoom-22));
     });
   });
+  // Event: delete custom block
+  body.querySelectorAll('.chip-del').forEach(function(el){
+    el.addEventListener('click',function(e){
+      e.stopPropagation();
+      var idx=parseInt(this.dataset.idx,10);
+      var custom=loadCustomPresets();
+      custom.splice(idx,1);
+      try{localStorage.setItem('sf_custom',JSON.stringify(custom))}catch(e2){}
+      renderPalette();
+      toast('Блок удалён','info');
+    });
+  });
+}
+
+function loadCustomPresets(){
+  try{var raw=localStorage.getItem('sf_custom');if(raw){var c=JSON.parse(raw);if(Array.isArray(c))return c;}return[]}catch(e){return[]}
 }
 
 /* === PROPS === */
@@ -657,6 +764,26 @@ function setupEvents(){
   $('#viewer').addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();state.zoom*=e.deltaY<0?1.1:0.9;applyZoom()}},{passive:false});
   $('#btnExportPNG').addEventListener('click',exportPNG);
   $('#btnClear').addEventListener('click',function(){state.nodes=[];state.connections=[];state.selectedNodeId=null;state.selectedConnId=null;saveState();render();toast('Очищено','info')});
+
+  // Custom block: add to palette
+  $('#btnAddCustom').addEventListener('click',function(){
+    var name=$('#customName').value.trim();
+    if(!name){toast('Введите название','error');return;}
+    var signal=$('#customSignal').value;
+    var inCount=parseInt($('#customIn').value,10)||0;
+    var outCount=parseInt($('#customOut').value,10)||0;
+    if(inCount<0||inCount>8||outCount<0||outCount>8){toast('От 0 до 8 портов','error');return;}
+    var inPorts=[],outPorts=[];
+    for(var i=1;i<=inCount;i++)inPorts.push('In '+i);
+    for(var o=1;o<=outCount;o++)outPorts.push('Out '+o);
+    var preset={name:name,signal:signal,inPorts:inPorts,outPorts:outPorts};
+    var custom=loadCustomPresets();
+    custom.push(preset);
+    try{localStorage.setItem('sf_custom',JSON.stringify(custom))}catch(e){}
+    renderPalette();
+    $('#customName').value='';
+    toast('Блок «'+name+'» добавлен в палитру','success');
+  });
 
   // Keyboard: Delete
   document.addEventListener('keydown',function(e){
