@@ -64,6 +64,8 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 #viewer{flex:1;overflow:hidden;position:relative;background:var(--bg);cursor:grab}
 #viewer.dragging{cursor:grabbing}
 #viewer .info-overlay{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);padding:3px 10px;border-radius:10px;font-size:9px;color:var(--text3);border:1px solid var(--border);pointer-events:none;z-index:2}
+#canvas-wrap{position:absolute;top:0;left:0;transform-origin:0 0}
+#canvas{display:block;cursor:grab;background:transparent}
 .zoom-ctrl{display:flex;gap:4px;align-items:center}
 .zoom-btn{width:24px;height:24px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t)}
 .zoom-btn:hover{background:rgba(0,212,255,0.1);color:var(--cyan);border-color:var(--cyan)}
@@ -137,10 +139,12 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
         <button class="zoom-btn" id="zoomFit"><i class="fa-solid fa-expand"></i></button>
       </div>
     </div>
-    <div id="viewer">
-      <canvas id="canvas"></canvas>
-      <div class="info-overlay"><span id="canvasInfo">—</span></div>
-    </div>
+<div id="viewer">
+  <div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div class="info-overlay"><span id="canvasInfo">—</span></div>
+</div>
   </main>
 </div>
 
@@ -332,95 +336,100 @@ function renderCanvas(){
   canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
   ctx.scale(dpr,dpr);
   var z=state.zoom;
-  ctx.setTransform(z,0,0,z,state.panX,state.panY);
-  ctx.clearRect(-state.panX/z,-state.panY/z,W/z,H/z);
+
+  // CSS transform on wrap
+  var wrap=$('#canvas-wrap');
+  wrap.style.transform='translate('+state.panX+'px,'+state.panY+'px) scale('+z+')';
+
+  ctx.clearRect(0,0,W,H);
 
   // Grid
   ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=0.3;
   var gs=40;
-  var startX=-Math.ceil(state.panX/z/gs)*gs,startY=-Math.ceil(state.panY/z/gs)*gs;
-  for(var gx=startX;gx<startX+W/z+gs;gx+=gs){
-    ctx.beginPath();ctx.moveTo(gx,startY);ctx.lineTo(gx,startY+H/z+gs);ctx.stroke();
+  var offX=(-state.panX/z)%gs,offY=(-state.panY/z)%gs;
+  for(var gx=offX;gx<W/z+gs;gx+=gs){
+    ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H/z);ctx.stroke();
   }
-  for(var gy=startY;gy<startY+H/z+gs;gy+=gs){
-    ctx.beginPath();ctx.moveTo(startX,gy);ctx.lineTo(startX+W/z+gs,gy);ctx.stroke();
+  for(var gy=offY;gy<H/z+gs;gy+=gs){
+    ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W/z,gy);ctx.stroke();
   }
 
   // Connections
   state.connections.forEach(function(conn){
-    var fromN=state.nodes.find(function(n){return n.id===conn.from});
-    var toN=state.nodes.find(function(n){return n.id===conn.to});
-    if(!fromN||!toN)return;
-    var fromPos=getPortPos(fromN,conn.fromPort,'out');
-    var toPos=getPortPos(toN,conn.toPort,'in');
-    if(!fromPos||!toPos)return;
-    var cx1=fromPos.x+(toPos.x-fromPos.x)*0.4;
-    var cy1=fromPos.y;
-    var cx2=fromPos.x+(toPos.x-fromPos.x)*0.6;
-    var cy2=toPos.y;
-    var isSelected=state.selectedConnId===conn.id;
-    ctx.strokeStyle=isSelected?'rgba(255,255,255,0.6)':'rgba(0,212,255,0.25)';
-    ctx.lineWidth=isSelected?1.5:1;
-    ctx.beginPath();ctx.moveTo(fromPos.x,fromPos.y);
-    ctx.bezierCurveTo(cx1,cy1,cx2,cy2,toPos.x,toPos.y);
+    var fn=state.nodes.find(function(n){return n.id===conn.from});
+    var tn=state.nodes.find(function(n){return n.id===conn.to});
+    if(!fn||!tn)return;
+    var fp=getPortPos(fn,conn.fromPort,'out');
+    var tp=getPortPos(tn,conn.toPort,'in');
+    if(!fp||!tp)return;
+    ctx.strokeStyle='rgba(0,212,255,0.25)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(fp.x,fp.y);
+    ctx.bezierCurveTo(fp.x+(tp.x-fp.x)*0.4,fp.y,fp.x+(tp.x-fp.x)*0.6,tp.y,tp.x,tp.y);
     ctx.stroke();
   });
 
   // Connection mode guide
   if(connectMode){
     ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
-    // Draw a horizontal guide from the source port to the right edge of the viewport
     ctx.beginPath();ctx.moveTo(connectMode.startX,connectMode.startY);
     ctx.lineTo(connectMode.startX+200,connectMode.startY);
     ctx.stroke();ctx.setLineDash([]);
-    // Label
-    var srcNode=state.nodes.find(function(n){return n.id===connectMode.nodeId});
-    if(srcNode){
-      ctx.fillStyle='rgba(0,212,255,0.4)';ctx.font='9px Inter,sans-serif';
-      ctx.textAlign='center';ctx.textBaseline='bottom';
-      ctx.fillText('Click target in-port to connect',connectMode.startX+100,connectMode.startY-4);
-    }
+    ctx.fillStyle='rgba(0,212,255,0.4)';ctx.font='9px Inter,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('→ Кликните на вход (левый порт)',connectMode.startX+100,connectMode.startY-6);
   }
 
   // Nodes
   state.nodes.forEach(function(n){
-    var nx=n.x,ny=n.y,nw=n.w,nh=n.h;
-    var isSelected=state.selectedNodeId===n.id;
+    var nx=n.x,ny=n.y;
+    var col=SIG_COLORS[n.signal];
+    var sel=state.selectedNodeId===n.id;
+
+    // Shadow
+    ctx.shadowColor='rgba(0,0,0,0.3)';ctx.shadowBlur=8;ctx.shadowOffsetY=2;
 
     // Body
-    var col=SIG_COLORS[n.signal];
-    ctx.fillStyle=isSelected?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)';
-    var r=6;
-    ctx.beginPath();ctx.roundRect(nx,ny,nw,nh,r);ctx.fill();
-    ctx.strokeStyle=isSelected?'#ffffff':col;ctx.lineWidth=isSelected?1.5:0.5;
-    ctx.globalAlpha=isSelected?1:0.6;
-    ctx.beginPath();ctx.roundRect(nx,ny,nw,nh,r);ctx.stroke();
+    ctx.fillStyle='rgba(15,15,25,0.85)';var rr=6;
+    ctx.beginPath();ctx.roundRect(nx,ny,n.w,n.h,rr);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle=sel?'#ffffff':col;ctx.lineWidth=sel?1.5:1;ctx.globalAlpha=sel?1:0.5;
+    ctx.beginPath();ctx.roundRect(nx,ny,n.w,n.h,rr);ctx.stroke();
     ctx.globalAlpha=1;
 
     // Signal stripe
-    ctx.fillStyle=col;ctx.fillRect(nx,ny,3,nh);
+    ctx.fillStyle=col;ctx.fillRect(nx,ny,3,n.h);
 
-    // Icon
-    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='10px \"Font Awesome 6 Free\"';ctx.textAlign='center';ctx.textBaseline='middle';
-    // Use a simple char instead of FA icon on canvas
-    ctx.font='9px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-    ctx.fillStyle=SIG_COLORS[n.signal];ctx.fillText(n.signal==='audio'?'🎤':n.signal==='dmx'?'🎛':n.signal==='sdi'?'📷':'🌐',nx+8,ny+nh/2);
-    ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='bold 9px Inter,sans-serif';
-    ctx.fillText(n.name,nx+22,ny+nh/2);
+    // Name
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold 10px Inter,sans-serif';
+    ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(n.name,nx+10,ny+n.h/2);
 
-    // Ports
-    var portR=connectMode?4:2.5;
+    // Signal type badge
+    ctx.fillStyle=col;ctx.globalAlpha=0.2;
+    ctx.font='7px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='bottom';
+    ctx.fillText(n.signal.toUpperCase(),nx+10,ny+n.h-2);
+    ctx.globalAlpha=1;
+
+    // Ports (big circles, easy to click)
     n.inPorts.forEach(function(port,i){
-      var px=nx,py=ny+nh/(n.inPorts.length+1)*(i+1);
+      var px=nx,py=ny+n.h/(n.inPorts.length+1)*(i+1);
       var isTarget=connectMode&&connectMode.signal===n.signal;
-      ctx.fillStyle=isTarget?'rgba(0,212,255,0.6)' : SIG_COLORS[n.signal];
-      ctx.beginPath();ctx.arc(px,py,portR,0,Math.PI*2);ctx.fill();
-      if(isTarget){ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py,8,0,Math.PI*2);ctx.stroke();}
+      // Glow ring
+      if(isTarget){
+        ctx.strokeStyle='rgba(0,212,255,0.4)';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(px,py,10,0,Math.PI*2);ctx.stroke();
+      }
+      ctx.fillStyle=isTarget?'rgba(0,212,255,0.8)':SIG_COLORS[n.signal];
+      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=0.5;
+      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.stroke();
     });
     n.outPorts.forEach(function(port,i){
-      var px=nx+nw,py=ny+nh/(n.outPorts.length+1)*(i+1);
+      var px=nx+n.w,py=ny+n.h/(n.outPorts.length+1)*(i+1);
       ctx.fillStyle=SIG_COLORS[n.signal];
-      ctx.beginPath();ctx.arc(px,py,portR,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=0.5;
+      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.stroke();
     });
   });
 
