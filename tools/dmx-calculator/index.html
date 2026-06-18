@@ -514,9 +514,8 @@ function renderPlot(){
   var W=Math.max(wr.width-2,100),H=Math.max(wr.height-2,100);
   var dpr=window.devicePixelRatio||1;
   canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
-  ctx.scale(dpr,dpr);
   var z=state.plotZoom;
-  ctx.setTransform(z,0,0,z,state.plotPanX,state.plotPanY);
+  ctx.setTransform(z*dpr,0,0,z*dpr,state.plotPanX*dpr,state.plotPanY*dpr);
   ctx.clearRect(-state.plotPanX/z,-state.plotPanY/z,W/z,H/z);
 
   // Grid
@@ -844,6 +843,19 @@ function initPlotEvents(){
       renderPlot();
       _drag={type:'pan',startX:e.clientX,startY:e.clientY,origPX:state.plotPanX,origPY:state.plotPanY};
       canvas.style.cursor='grabbing';
+    }
+  });
+
+  canvas.addEventListener('dblclick',function(e){
+    var c=toPlot(e.clientX,e.clientY);
+    var hit=hitFixture(c.x,c.y);
+    if(hit){
+      state.plotSelId=hit.id;
+      renderPlot();
+      document.getElementById('propsCard').style.display='';
+      showPlotProps(hit);
+      // Focus the address input
+      setTimeout(function(){var a=$('#plotAddr');if(a)a.focus()},100);
     }
   });
 
