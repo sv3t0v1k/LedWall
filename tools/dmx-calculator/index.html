@@ -847,7 +847,8 @@ function initPlotEvents(){
     }
   });
 
-  canvas.addEventListener('mousemove',function(e){
+  // Use document-level mousemove/mouseup (like Mapping Planner)
+  document.addEventListener('mousemove',function(e){
     if(!_drag)return;
     if(_drag.type==='pan'){
       state.plotPanX=_drag.origPX+(e.clientX-_drag.startX);
@@ -865,9 +866,9 @@ function initPlotEvents(){
     }
   });
 
-  canvas.addEventListener('mouseup',function(){
+  document.addEventListener('mouseup',function(){
     if(_drag&&_drag.type==='move'){saveState();renderFixtureTable();}
-    canvas.style.cursor='grab';
+    if(_drag)canvas.style.cursor='grab';
     _drag=null;
   });
 
