@@ -158,6 +158,19 @@ select option{background:#14141f;color:var(--text)}
 /* Ripple */
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+/* View switcher */
+.view-switcher{display:flex;gap:4px;margin-bottom:10px}
+.view-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid transparent;color:var(--text3);transition:all var(--t)}
+.view-tab:hover{background:rgba(0,212,255,0.06);color:var(--text2)}
+.view-tab.active{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3);color:var(--cyan)}
+/* Plot view */
+.plot-toolbar{display:flex;align-items:center;padding:4px 0;margin-bottom:6px;flex-wrap:wrap}
+.plot-btn{width:24px;height:24px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t)}
+.plot-btn:hover{background:rgba(0,212,255,0.1);color:var(--cyan);border-color:var(--cyan)}
+.plot-zoom-lvl{font-size:9px;color:var(--text3);min-width:28px;text-align:center}
+#plotCanvasWrap{flex:1;border-radius:var(--rs);border:1px solid rgba(255,255,255,0.04);overflow:hidden;position:relative;background:var(--bg);min-height:200px;transform:none!important}
+#plotCanvas{display:block;cursor:grab;width:100%;height:100%;position:absolute;top:0;left:0}
+#plotCanvas.dragging{pointer-events:none}
 /* Responsive */
 @media(max-width:900px){#sidebar{width:300px;min-width:300px}#viewer{padding:12px}}
 @media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.stat-grid{grid-template-columns:1fr 1fr}}
@@ -208,6 +221,12 @@ select option{background:#14141f;color:var(--text)}
         </div>
       </div>
 
+      <!-- Properties (in plot mode) -->
+      <div class="card" id="propsCard" style="display:none">
+        <div class="card-header"><i class="fa-regular fa-gear"></i> Свойства</div>
+        <div class="card-body" id="propsBody"></div>
+      </div>
+
       <!-- Fixture table -->
       <div class="card">
         <div class="card-header"><i class="fa-regular fa-table-list"></i> Список приборов <span id="fixtureCount" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);margin-left:4px"></span></div>
@@ -245,30 +264,53 @@ select option{background:#14141f;color:var(--text)}
 
   <main id="main">
     <div id="viewer">
-      <!-- Universe tabs -->
-      <div class="uni-tabs" id="uniTabs"></div>
+      <!-- View switcher -->
+      <div class="view-switcher">
+        <button class="view-tab active" data-view="bar"><i class="fa-regular fa-chart-bar"></i> DMX Bar</button>
+        <button class="view-tab" data-view="plot"><i class="fa-regular fa-grid"></i> Plot</button>
+      </div>
 
-      <!-- DMX bar -->
-      <div class="dmx-section">
-        <div class="dmx-header">
-          <div class="dmx-header-info" id="dmxHeaderInfo">Universe <span id="dmxUniLabel">1</span> — <span id="dmxUsage">0/512 ch</span></div>
-          <div class="dmx-controls">
-            <button class="dmx-zoom-btn" id="dmxZoomOut"><i class="fa-solid fa-minus"></i></button>
-            <span class="dmx-zoom-lvl" id="dmxZoomLvl">1×</span>
-            <button class="dmx-zoom-btn" id="dmxZoomIn"><i class="fa-solid fa-plus"></i></button>
+      <!-- DMX bar view -->
+      <div id="barView">
+        <div class="uni-tabs" id="uniTabs"></div>
+        <div class="dmx-section">
+          <div class="dmx-header">
+            <div class="dmx-header-info" id="dmxHeaderInfo">Universe <span id="dmxUniLabel">1</span> — <span id="dmxUsage">0/512 ch</span></div>
+            <div class="dmx-controls">
+              <button class="dmx-zoom-btn" id="dmxZoomOut"><i class="fa-solid fa-minus"></i></button>
+              <span class="dmx-zoom-lvl" id="dmxZoomLvl">1×</span>
+              <button class="dmx-zoom-btn" id="dmxZoomIn"><i class="fa-solid fa-plus"></i></button>
+            </div>
+          </div>
+          <div class="dmx-bar-wrap" id="dmxBarWrap">
+            <div class="dmx-bar" id="dmxBar"></div>
+            <div class="dmx-ruler" id="dmxRuler"></div>
           </div>
         </div>
-        <div class="dmx-bar-wrap" id="dmxBarWrap">
-          <div class="dmx-bar" id="dmxBar"></div>
-          <div class="dmx-ruler" id="dmxRuler"></div>
+        <div class="uni-table-wrap">
+          <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Приборы в этой вселенной</div>
+          <div id="uniTableWrap"></div>
         </div>
       </div>
 
-      <!-- Universe fixtures table -->
-      <div class="uni-table-wrap">
-        <div style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Приборы в этой вселенной</div>
-        <div id="uniTableWrap"></div>
+      <!-- Plot view -->
+      <div id="plotView" style="display:none">
+        <div class="plot-toolbar">
+          <span style="font-size:10px;color:var(--text3)">Snap: <strong id="plotSnapLabel">20px</strong></span>
+          <span class="tb-sep" style="width:1px;height:14px;background:var(--border);display:inline-block;vertical-align:middle;margin:0 8px"></span>
+          <button class="plot-btn" id="plotAutoArrange"><i class="fa-regular fa-table-cells-large"></i></button>
+          <button class="plot-btn" id="plotFit"><i class="fa-solid fa-expand"></i></button>
+          <span class="tb-sep" style="width:1px;height:14px;background:var(--border);display:inline-block;vertical-align:middle;margin:0 8px"></span>
+          <button class="plot-btn" id="plotZoomOut"><i class="fa-solid fa-minus"></i></button>
+          <span class="plot-zoom-lvl" id="plotZoomLvl">100%</span>
+          <button class="plot-btn" id="plotZoomIn"><i class="fa-solid fa-plus"></i></button>
+          <span style="margin-left:auto;font-size:10px;color:var(--text3)" id="plotInfo"></span>
+        </div>
+        <div id="plotCanvasWrap">
+          <canvas id="plotCanvas"></canvas>
+        </div>
       </div>
+
     </div>
   </main>
 </div>
@@ -318,7 +360,7 @@ var DEFAULT_PRESETS = [
   {name:'LED WASH 1940 ZR',ch:23,cat:'wash'},{name:'BSW 550',ch:29,cat:'mover'}
 ];
 
-var state = {fixtures:[],nextId:1,selectedUni:1,zoom:1};
+var state = {fixtures:[],nextId:1,selectedUni:1,zoom:1,viewMode:'bar',plotZoom:1,plotPanX:0,plotPanY:0,plotSelId:null};
 var presets = [];
 
 function $(s){return document.querySelector(s)}
@@ -333,8 +375,8 @@ function saveState(){
 }
 
 function loadState(){
-  try{var raw=localStorage.getItem('dmx_state');if(raw){state=Object.assign({fixtures:[],nextId:1,selectedUni:1,zoom:1},JSON.parse(raw));return}}catch(e){}
-  state={fixtures:[],nextId:1,selectedUni:1,zoom:1};
+  try{var raw=localStorage.getItem('dmx_state');if(raw){state=Object.assign({fixtures:[],nextId:1,selectedUni:1,zoom:1,viewMode:'bar',plotZoom:1,plotPanX:0,plotPanY:0,plotSelId:null},JSON.parse(raw));return}}catch(e){}
+  state={fixtures:[],nextId:1,selectedUni:1,zoom:1,viewMode:'bar',plotZoom:1,plotPanX:0,plotPanY:0,plotSelId:null};
 }
 
 function loadLibrary(){
@@ -353,7 +395,8 @@ function addFixture(name,ch,addr,uni){
   if(!name||!ch||!addr||!uni){toast('Заполните все поля','error');return null;}
   ch=parseInt(ch,10);addr=parseInt(addr,10);uni=parseInt(uni,10);
   if(ch<1||ch>UNI_SIZE||addr<1||addr>UNI_SIZE||uni<1){toast('Некорректные значения','error');return null;}
-  var f={id:state.nextId++,name:name,channels:ch,address:addr,universe:uni,color:getColor(state.fixtures.length)};
+  var cnt=state.fixtures.length;
+  var f={id:state.nextId++,name:name,channels:ch,address:addr,universe:uni,color:getColor(cnt),plotX:40+(cnt%6)*150,plotY:40+Math.floor(cnt/6)*110};
   state.fixtures.push(f);
   saveState();render();
   toast('Добавлен: '+name,'success');
@@ -453,6 +496,75 @@ function render(){
   renderFixtureTable();
   var cnt=state.fixtures.length;
   $('#fixtureCount').textContent=cnt?'('+cnt+')':'';
+  // View switcher
+  document.querySelectorAll('.view-tab').forEach(function(t){
+    t.classList.toggle('active',t.dataset.view===state.viewMode);
+  });
+  document.getElementById('barView').style.display=state.viewMode==='bar'?'':'none';
+  document.getElementById('plotView').style.display=state.viewMode==='plot'?'':'none';
+  document.getElementById('propsCard').style.display=state.viewMode==='plot'&&state.plotSelId!==null?'':'none';
+  if(state.viewMode==='plot')renderPlot();
+}
+
+function renderPlot(){
+  var canvas=$('#plotCanvas');if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var wrap=$('#plotCanvasWrap');
+  var wr=wrap.getBoundingClientRect();
+  var W=Math.max(wr.width-2,100),H=Math.max(wr.height-2,100);
+  var dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.scale(dpr,dpr);
+  var z=state.plotZoom;
+  wrap.style.transform='translate('+state.plotPanX+'px,'+state.plotPanY+'px)';
+  ctx.clearRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=0.3;
+  var gs=40;var offX=(-state.plotPanX/z)%gs;var offY=(-state.plotPanY/z)%gs;
+  for(var gx=offX;gx<W/z+gs;gx+=gs){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H/z);ctx.stroke();}
+  for(var gy=offY;gy<H/z+gs;gy+=gs){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W/z,gy);ctx.stroke();}
+  // Fixtures
+  state.fixtures.forEach(function(f){
+    var fx=f.plotX*z,fy=f.plotY*z,fw=130*z,fh=65*z;
+    var sel=state.plotSelId===f.id;
+    var col=f.color;
+    // Shadow
+    ctx.shadowColor='rgba(0,0,0,0.3)';ctx.shadowBlur=6;ctx.shadowOffsetY=1;
+    ctx.fillStyle=sel?'rgba(255,255,255,0.04)':'rgba(10,10,15,0.85)';
+    ctx.beginPath();ctx.roundRect(fx,fy,fw,fh,5);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle=sel?'#ffffff':col;ctx.lineWidth=sel?1.5:0.8;
+    ctx.globalAlpha=sel?1:0.5;
+    ctx.beginPath();ctx.roundRect(fx,fy,fw,fh,5);ctx.stroke();
+    ctx.globalAlpha=1;
+    // Color stripe
+    ctx.fillStyle=col;ctx.fillRect(fx,fy,3,fh);
+    // Name
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='top';
+    var nm=f.name.length>12?f.name.slice(0,12)+'…':f.name;
+    ctx.fillText(nm,fx+8,fy+5);
+    // Info
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='8px Inter,sans-serif';
+    ctx.fillText('Addr: '+f.address+' | Uni: '+f.universe,fx+8,fy+22);
+    ctx.fillText('Ch: '+f.channels,fx+8,fy+34);
+    // Sel handles
+    if(sel){
+      ctx.fillStyle='#ffffff';
+      [[fx,fy],[fx+fw,fy],[fx,fy+fh],[fx+fw,fy+fh]].forEach(function(p){ctx.fillRect(p[0]-3,p[1]-3,6,6);});
+    }
+  });
+  document.getElementById('plotInfo').textContent=state.fixtures.length+' fixtures';
+  document.getElementById('plotZoomLvl').textContent=Math.round(state.plotZoom*100)+'%';
+}
+
+function autoLayoutPlot(){
+  var cols=Math.max(1,Math.ceil(Math.sqrt(state.fixtures.length*1.5)));
+  state.fixtures.forEach(function(f,i){
+    f.plotX=30+(i%cols)*145;
+    f.plotY=30+Math.floor(i/cols)*105;
+  });
+  saveState();render();
+  toast('Плот размещён','success');
 }
 
 function renderStats(){
@@ -694,6 +806,103 @@ $('#btnExportJSON').addEventListener('click',exportJSON);
 // DMX zoom
 $('#dmxZoomIn').addEventListener('click',function(){state.zoom=Math.min(20,state.zoom*1.5);render()});
 $('#dmxZoomOut').addEventListener('click',function(){state.zoom=Math.max(0.25,state.zoom/1.5);render()});
+
+/* === PLOT VIEW === */
+var plotInitialized=false;
+function initPlotEvents(){
+  if(plotInitialized)return;
+  plotInitialized=true;
+  var wrap=$('#plotCanvasWrap');
+  var canvas=$('#plotCanvas');
+  var _drag=null;
+
+  function toPlot(sx,sy){
+    var r=wrap.getBoundingClientRect();
+    return{x:(sx-r.left-state.plotPanX)/state.plotZoom,y:(sy-r.top-state.plotPanY)/state.plotZoom};
+  }
+
+  function hitFixture(cx,cy){
+    for(var i=state.fixtures.length-1;i>=0;i--){
+      var f=state.fixtures[i];
+      var fx=f.plotX,fy=f.plotY,fw=130,fh=65;
+      if(cx>=fx&&cx<=fx+fw&&cy>=fy&&cy<=fy+fh)return f;
+    }
+    return null;
+  }
+
+  canvas.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    var c=toPlot(e.clientX,e.clientY);
+    var hit=hitFixture(c.x,c.y);
+    if(hit){
+      state.plotSelId=hit.id;
+      render();
+      _drag={type:'move',id:hit.id,startX:e.clientX,startY:e.clientY,origX:hit.plotX,origY:hit.plotY};
+      canvas.classList.add('dragging');
+      // Show props in sidebar
+      showPlotProps(hit);
+    }else{
+      state.plotSelId=null;render();
+      _drag={type:'pan',startX:e.clientX,startY:e.clientY,origPX:state.plotPanX,origPY:state.plotPanY};
+    }
+  });
+
+  canvas.addEventListener('mousemove',function(e){
+    if(!_drag)return;
+    if(_drag.type==='pan'){
+      state.plotPanX=_drag.origPX+(e.clientX-_drag.startX);
+      state.plotPanY=_drag.origPY+(e.clientY-_drag.startY);
+      renderPlot();return;
+    }
+    if(_drag.type==='move'){
+      var dx=(e.clientX-_drag.startX)/state.plotZoom,dy=(e.clientY-_drag.startY)/state.plotZoom;
+      var f=state.fixtures.find(function(x){return x.id===_drag.id});
+      if(f){
+        f.plotX=Math.round((_drag.origX+dx)/20)*20;
+        f.plotY=Math.round((_drag.origY+dy)/20)*20;
+        renderPlot();
+      }
+    }
+  });
+
+  canvas.addEventListener('mouseup',function(){
+    if(_drag&&_drag.type==='move')saveState();
+    canvas.classList.remove('dragging');
+    _drag=null;
+  });
+
+  // Wheel zoom
+  wrap.addEventListener('wheel',function(e){
+    if(e.ctrlKey||e.metaKey){e.preventDefault();state.plotZoom*=e.deltaY<0?1.1:0.9;state.plotZoom=Math.max(0.1,Math.min(5,state.plotZoom));renderPlot();}
+  },{passive:false});
+}
+
+function showPlotProps(f){
+  var card=$('#propsCard');
+  if(!card)return;
+  card.style.display='';
+  var body=$('#propsBody');
+  body.innerHTML='<div style="font-size:11px;font-weight:600;margin-bottom:6px">'+f.name+'</div>'+
+    '<div class="form-group"><label style="font-size:9px;color:var(--text3)">Адрес</label><input type="number" id="plotAddr" value="'+f.address+'" min="1" max="512"></div>'+
+    '<div class="form-group"><label style="font-size:9px;color:var(--text3)">Universe</label><input type="number" id="plotUni" value="'+f.universe+'" min="1"></div>'+
+    '<div style="font-size:9px;color:var(--text2)">Каналов: '+f.channels+'</div>';
+  var inpAddr=$('#plotAddr'),inpUni=$('#plotUni');
+  if(inpAddr)inpAddr.addEventListener('input',function(){var v=parseInt(this.value,10);if(v>0&&v<=512){f.address=v;saveState();}});
+  if(inpUni)inpUni.addEventListener('input',function(){var v=parseInt(this.value,10);if(v>0){f.universe=v;saveState();}});
+}
+
+// View switcher
+document.querySelectorAll('.view-tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    state.viewMode=this.dataset.view;
+    if(state.viewMode==='plot')initPlotEvents();
+    render();
+  });
+});
+$('#plotAutoArrange').addEventListener('click',autoLayoutPlot);
+$('#plotFit').addEventListener('click',function(){state.plotPanX=0;state.plotPanY=0;state.plotZoom=1;renderPlot()});
+$('#plotZoomIn').addEventListener('click',function(){state.plotZoom*=1.3;state.plotZoom=Math.min(5,state.plotZoom);renderPlot()});
+$('#plotZoomOut').addEventListener('click',function(){state.plotZoom/=1.3;state.plotZoom=Math.max(0.1,state.plotZoom);renderPlot()});
 
 // Init
 document.addEventListener('DOMContentLoaded',function(){
