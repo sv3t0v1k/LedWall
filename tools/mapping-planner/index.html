@@ -219,7 +219,8 @@ select option{background:#14141f;color:var(--text)}
       <!-- Actions -->
       <div class="card">
         <div class="card-body">
-          <div class="btn-row" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <button class="btn btn-primary btn-sm btn-block" id="btnImportImage"><i class="fa-regular fa-image"></i> Импорт тест-карты</button>
+          <div class="btn-row" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
             <button class="btn btn-secondary btn-sm" id="btnExportPNG"><i class="fa-regular fa-download"></i> PNG</button>
             <button class="btn btn-secondary btn-sm" id="btnExportSVG"><i class="fa-regular fa-file-lines"></i> SVG</button>
           </div>
@@ -253,6 +254,7 @@ select option{background:#14141f;color:var(--text)}
   </main>
 </div>
 
+<input type="file" id="importImageFile" accept="image/*" style="display:none">
 <div id="toast-container"></div>
 
 <style>
@@ -279,16 +281,31 @@ var state = {
 
 var drag = null; // { type, planeIds, startMX, startMY, origX, origY, origW, origH, mode, corner }
 var alignGuides = [];
+var planeImages = {}; // cache of loaded Image objects by plane id
 
 function $(s){return document.querySelector(s)}
 function deepClone(o){return JSON.parse(JSON.stringify(o))}
 
 function toast(m,t,d){t=t||'success';d=d||2500;var icons={success:'fa-regular fa-circle-check',error:'fa-regular fa-circle-xmark',info:'fa-regular fa-circle-info'};var c=$('#toast-container');var el=document.createElement('div');el.className='toast toast-'+t;el.innerHTML='<i class="'+(icons[t]||icons.info)+'"></i><span>'+m+'</span><button class="toast-close">&times;</button>';c.appendChild(el);requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('show')})});var close=function(){el.classList.remove('show');setTimeout(function(){el.remove()},400)};el.querySelector('.toast-close').addEventListener('click',close);setTimeout(close,d)}
 
-function saveState(){try{localStorage.setItem('mp_state',JSON.stringify(state))}catch(e){}}
+function saveState(){
+  try{localStorage.setItem('mp_state',JSON.stringify(state))}catch(e){
+    // If localStorage fails (e.g. image too large), save without images
+    var clean=JSON.parse(JSON.stringify(state));
+    clean.planes.forEach(function(p){delete p.img});
+    try{localStorage.setItem('mp_state',JSON.stringify(clean))}catch(e2){}
+    toast('Изображения не сохранены (превышен лимит)','error');
+  }
+}
 
 function loadState(){
-  try{var raw=localStorage.getItem('mp_state');if(raw){state=Object.assign({canvasW:3840,canvasH:1080,gridSize:32,snapGrid:true,snapObjects:true,planes:[],nextId:1,zoom:1,panX:0,panY:0,selected:[],editingId:null},JSON.parse(raw));state.editingId=null;return}}catch(e){}
+  try{var raw=localStorage.getItem('mp_state');if(raw){state=Object.assign({canvasW:3840,canvasH:1080,gridSize:32,snapGrid:true,snapObjects:true,planes:[],nextId:1,zoom:1,panX:0,panY:0,selected:[],editingId:null},JSON.parse(raw));state.editingId=null;reloadImages();return}}catch(e){}
+}
+
+function reloadImages(){
+  state.planes.forEach(function(p){
+    if(p.img){var img=new Image();img.src=p.img;planeImages[p.id]=img;}
+  });
 }
 
 function readState(){
@@ -300,10 +317,10 @@ function readState(){
 }
 
 /* === PLANE CRUD === */
-function addPlane(x,y,w,h,label,color){
+function addPlane(x,y,w,h,label,color,img){
   if(w<1||h<1){toast('Некорректные размеры','error');return null;}
   x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));
-  var p={id:state.nextId++,label:label||'Plane '+state.nextId,x:x,y:y,w:Math.round(w),h:Math.round(h),color:color||PLANE_COLORS[state.planes.length%PLANE_COLORS.length]};
+  var p={id:state.nextId++,label:label||'Plane '+state.nextId,x:x,y:y,w:Math.round(w),h:Math.round(h),color:color||PLANE_COLORS[state.planes.length%PLANE_COLORS.length],img:img||null};
   state.planes.push(p);
   state.selected=[p.id];
   saveState();render();
@@ -491,7 +508,20 @@ function renderCanvas(){
   state.planes.forEach(function(p){
     var px=p.x*z,py=p.y*z,pw=p.w*z,ph=p.h*z;
     var sel=state.selected.indexOf(p.id)>=0;
-    ctx.fillStyle=p.color+'4d';ctx.fillRect(px,py,pw,ph);
+
+    // Draw image if present
+    if(p.img){
+      var imgObj=planeImages[p.id];
+      if(imgObj){
+        ctx.save();
+        ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
+        ctx.drawImage(imgObj,px,py,pw,ph);
+        ctx.restore();
+      }
+    }else{
+      ctx.fillStyle=p.color+'4d';ctx.fillRect(px,py,pw,ph);
+    }
+
     ctx.strokeStyle=sel?'#ffffff':p.color;ctx.lineWidth=sel?2:1;
     ctx.strokeRect(px,py,pw,ph);
     // Label
@@ -783,7 +813,12 @@ function exportPNG(){
   canvas.width=cw;canvas.height=ch;ctx.imageSmoothingEnabled=false;
   ctx.fillStyle='#06060a';ctx.fillRect(0,0,cw,ch);
   state.planes.forEach(function(p){
-    ctx.fillStyle=p.color+'80';ctx.fillRect(p.x,p.y,p.w,p.h);
+    if(p.img){
+      var imgObj=planeImages[p.id];
+      if(imgObj){ctx.drawImage(imgObj,p.x,p.y,p.w,p.h);}
+    }else{
+      ctx.fillStyle=p.color+'80';ctx.fillRect(p.x,p.y,p.w,p.h);
+    }
     ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.strokeRect(p.x,p.y,p.w,p.h);
     ctx.fillStyle='#ffffff';ctx.font='bold '+Math.min(p.w*0.08,18)+'px Inter,sans-serif';ctx.textBaseline='middle';ctx.textAlign='center';
     if(p.w>40&&p.h>24){ctx.fillText(p.label,p.x+p.w/2,p.y+p.h/2-6);ctx.font=(Math.min(p.w*0.08,18)*0.7)+'px Inter,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText(p.w+'×'+p.h,p.x+p.w/2,p.y+p.h/2+8);}
@@ -859,6 +894,36 @@ function setupEvents(){
   // Export
   $('#btnExportPNG').addEventListener('click',exportPNG);
   $('#btnExportSVG').addEventListener('click',exportSVG);
+
+  // Import images
+  $('#btnImportImage').addEventListener('click',function(){
+    $('#importImageFile').click();
+  });
+  $('#importImageFile').addEventListener('change',function(e){
+    if(!this.files||!this.files[0])return;
+    var file=this.files[0];
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var dataUrl=ev.target.result;
+      var img=new Image();
+      img.onload=function(){
+        var w=img.naturalWidth,h=img.naturalHeight;
+        // Center the plane on canvas
+        var x=Math.round((state.canvasW-w)/2);
+        var y=Math.round((state.canvasH-h)/2);
+        var label=file.name.replace(/\.[^/.]+$/,'').slice(0,20);
+        var plane=addPlane(x,y,w,h,label,PLANE_COLORS[state.planes.length%PLANE_COLORS.length],dataUrl);
+        if(plane){
+          planeImages[plane.id]=img;
+          toast('Загружена тест-карта: '+w+'×'+h+' px','success');
+        }
+        render();
+      };
+      img.src=dataUrl;
+    };
+    reader.readAsDataURL(file);
+    this.value='';
+  });
 
   // Zoom
   $('#zoomIn').addEventListener('click',function(){state.zoom*=1.5;applyZoom()});
