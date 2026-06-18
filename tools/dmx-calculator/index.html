@@ -168,9 +168,9 @@ select option{background:#14141f;color:var(--text)}
 .plot-btn{width:24px;height:24px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t)}
 .plot-btn:hover{background:rgba(0,212,255,0.1);color:var(--cyan);border-color:var(--cyan)}
 .plot-zoom-lvl{font-size:9px;color:var(--text3);min-width:28px;text-align:center}
-#plotCanvasWrap{flex:1;border-radius:var(--rs);border:1px solid rgba(255,255,255,0.04);overflow:hidden;position:relative;background:var(--bg);min-height:200px;transform:none!important}
-#plotCanvas{display:block;cursor:grab;width:100%;height:100%;position:absolute;top:0;left:0}
-#plotCanvas.dragging{pointer-events:none}
+#plotCanvasWrap{flex:1;border-radius:var(--rs);border:1px solid rgba(255,255,255,0.04);overflow:hidden;position:relative;background:var(--bg);min-height:200px}
+#plotCanvasWrap canvas{display:block;cursor:grab;width:100%;height:100%}
+#plotCanvasWrap canvas.dragging{cursor:grabbing}
 /* Responsive */
 @media(max-width:900px){#sidebar{width:300px;min-width:300px}#viewer{padding:12px}}
 @media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.stat-grid{grid-template-columns:1fr 1fr}}
@@ -516,19 +516,20 @@ function renderPlot(){
   canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
   ctx.scale(dpr,dpr);
   var z=state.plotZoom;
-  wrap.style.transform='translate('+state.plotPanX+'px,'+state.plotPanY+'px)';
-  ctx.clearRect(0,0,W,H);
+  ctx.setTransform(z,0,0,z,state.plotPanX,state.plotPanY);
+  ctx.clearRect(-state.plotPanX/z,-state.plotPanY/z,W/z,H/z);
+
   // Grid
   ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=0.3;
   var gs=40;var offX=(-state.plotPanX/z)%gs;var offY=(-state.plotPanY/z)%gs;
   for(var gx=offX;gx<W/z+gs;gx+=gs){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H/z);ctx.stroke();}
   for(var gy=offY;gy<H/z+gs;gy+=gs){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W/z,gy);ctx.stroke();}
+
   // Fixtures
   state.fixtures.forEach(function(f){
-    var fx=f.plotX*z,fy=f.plotY*z,fw=130*z,fh=65*z;
+    var fx=f.plotX,fy=f.plotY,fw=130,fh=65;
     var sel=state.plotSelId===f.id;
     var col=f.color;
-    // Shadow
     ctx.shadowColor='rgba(0,0,0,0.3)';ctx.shadowBlur=6;ctx.shadowOffsetY=1;
     ctx.fillStyle=sel?'rgba(255,255,255,0.04)':'rgba(10,10,15,0.85)';
     ctx.beginPath();ctx.roundRect(fx,fy,fw,fh,5);ctx.fill();
@@ -537,17 +538,13 @@ function renderPlot(){
     ctx.globalAlpha=sel?1:0.5;
     ctx.beginPath();ctx.roundRect(fx,fy,fw,fh,5);ctx.stroke();
     ctx.globalAlpha=1;
-    // Color stripe
     ctx.fillStyle=col;ctx.fillRect(fx,fy,3,fh);
-    // Name
     ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='left';ctx.textBaseline='top';
     var nm=f.name.length>12?f.name.slice(0,12)+'…':f.name;
     ctx.fillText(nm,fx+8,fy+5);
-    // Info
     ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='8px Inter,sans-serif';
     ctx.fillText('Addr: '+f.address+' | Uni: '+f.universe,fx+8,fy+22);
     ctx.fillText('Ch: '+f.channels,fx+8,fy+34);
-    // Sel handles
     if(sel){
       ctx.fillStyle='#ffffff';
       [[fx,fy],[fx+fw,fy],[fx,fy+fh],[fx+fw,fy+fh]].forEach(function(p){ctx.fillRect(p[0]-3,p[1]-3,6,6);});
@@ -817,7 +814,7 @@ function initPlotEvents(){
   var _drag=null;
 
   function toPlot(sx,sy){
-    var r=wrap.getBoundingClientRect();
+    var r=canvas.getBoundingClientRect();
     return{x:(sx-r.left-state.plotPanX)/state.plotZoom,y:(sy-r.top-state.plotPanY)/state.plotZoom};
   }
 
@@ -836,14 +833,17 @@ function initPlotEvents(){
     var hit=hitFixture(c.x,c.y);
     if(hit){
       state.plotSelId=hit.id;
-      render();
-      _drag={type:'move',id:hit.id,startX:e.clientX,startY:e.clientY,origX:hit.plotX,origY:hit.plotY};
-      canvas.classList.add('dragging');
-      // Show props in sidebar
+      renderPlot();
+      document.getElementById('propsCard').style.display='';
       showPlotProps(hit);
+      _drag={type:'move',id:hit.id,startX:e.clientX,startY:e.clientY,origX:hit.plotX,origY:hit.plotY};
+      canvas.style.cursor='grabbing';
     }else{
-      state.plotSelId=null;render();
+      state.plotSelId=null;
+      document.getElementById('propsCard').style.display='none';
+      renderPlot();
       _drag={type:'pan',startX:e.clientX,startY:e.clientY,origPX:state.plotPanX,origPY:state.plotPanY};
+      canvas.style.cursor='grabbing';
     }
   });
 
@@ -866,8 +866,8 @@ function initPlotEvents(){
   });
 
   canvas.addEventListener('mouseup',function(){
-    if(_drag&&_drag.type==='move')saveState();
-    canvas.classList.remove('dragging');
+    if(_drag&&_drag.type==='move'){saveState();renderFixtureTable();}
+    canvas.style.cursor='grab';
     _drag=null;
   });
 
