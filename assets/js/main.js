@@ -11,9 +11,25 @@ function initCanvas(){
   ctx=canvas.getContext('2d');
   resize();
   window.addEventListener('resize',debounce(resize,200));
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced){drawStaticBg();return;}
   createLights();
   createParticles();
   animate();
+}
+
+function drawStaticBg(){
+  var grd=ctx.createRadialGradient(W/2,H*0.3,0,W/2,H*0.3,H);
+  grd.addColorStop(0,'#0a0a1a');grd.addColorStop(0.5,'#0a0a10');grd.addColorStop(1,'#050508');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+  // Corner brackets
+  ctx.strokeStyle='rgba(100,180,255,0.04)';ctx.lineWidth=1;
+  var m=24,cs=24;
+  ctx.beginPath();ctx.moveTo(m,m+cs);ctx.lineTo(m,m);ctx.lineTo(m+cs,m);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W-m-cs,m);ctx.lineTo(W-m,m);ctx.lineTo(W-m,m+cs);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(m,H-m-cs);ctx.lineTo(m,H-m);ctx.lineTo(m+cs,H-m);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W-m-cs,H-m);ctx.lineTo(W-m,H-m);ctx.lineTo(W-m,H-m-cs);ctx.stroke();
+  cancelAnimationFrame(animId);
 }
 
 function resize(){
@@ -26,7 +42,12 @@ function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn
 
 function createLights(){
   lights=[];
-  var configs=[
+  var isMobile=W<700;
+  var configs=isMobile?[
+    {x:0.2,y:0.1,color:[0,212,255],width:0.15,angle:0.6},
+    {x:0.8,y:0.15,color:[124,58,237],width:0.12,angle:-0.5},
+    {x:0.5,y:-0.05,color:[245,158,11],width:0.08,angle:0.1}
+  ]:[
     {x:0.2,y:0.1,color:[0,212,255],width:0.15,angle:0.6},
     {x:0.8,y:0.15,color:[124,58,237],width:0.12,angle:-0.5},
     {x:0.5,y:-0.05,color:[245,158,11],width:0.08,angle:0.1},
@@ -51,7 +72,9 @@ function createLights(){
 
 function createParticles(){
   particles=[];
-  for(var i=0;i<80;i++){
+  var isMobile=W<700;
+  var count=isMobile?15:80;
+  for(var i=0;i<count;i++){
     particles.push({
       x:Math.random()*W*1.2-W*0.1,
       y:Math.random()*H*1.2-H*0.1,
@@ -264,6 +287,21 @@ function initCarousel(){
     }
   });
   document.addEventListener('mouseup',function(){if(isDragging){isDragging=false;viewport.style.cursor=''}});
+
+  // Touch swipe
+  var touchStartX=0,touchStartIdx=0;
+  viewport.addEventListener('touchstart',function(e){
+    if(e.target.closest('.tool-card-action'))return;
+    touchStartX=e.touches[0].clientX;
+    touchStartIdx=cardIndex;
+  },{passive:true});
+  viewport.addEventListener('touchmove',function(e){
+    var diff=(touchStartX-e.touches[0].clientX)/viewport.offsetWidth;
+    if(Math.abs(diff)>0.15){
+      if(diff>0)goTo(touchStartIdx+1);
+      else goTo(touchStartIdx-1);
+    }
+  },{passive:true});
 }
 
 function goTo(idx){
@@ -342,6 +380,16 @@ document.addEventListener('DOMContentLoaded',function(){
       if(target)target.scrollIntoView({behavior:'smooth'});
     });
   });
+
+  // Nav toggle
+  var navToggle=document.getElementById('navToggle');
+  var navLinks=document.querySelector('.nav-links');
+  if(navToggle&&navLinks){
+    navToggle.addEventListener('click',function(){navLinks.classList.toggle('open')});
+    navLinks.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click',function(){navLinks.classList.remove('open')});
+    });
+  }
 });
 
 })();

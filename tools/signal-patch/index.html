@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--bg2:#0e0e16;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);--text:#f0f0f5;--text2:#8a8aa0;--text3:#5a5a72;--cyan:#00d4ff;--purple:#7c3aed;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--sig-audio:#00d4ff;--sig-dmx:#22c55e;--sig-sdi:#ef4444;--sig-net:#f59e0b;--shadow:0 8px 32px rgba(0,0,0,0.4);--rs:8px;--rm:12px;--rl:16px;--t:.2s ease;--font:'Inter',-apple-system,sans-serif;--sb:340px}
+:root{--bg:#0a0a0f;--bg2:#0e0e16;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);--text:#f0f0f5;--text2:#8a8aa0;--text3:#5a5a72;--cyan:#00d4ff;--purple:#7c3aed;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--sig-audio:#00d4ff;--sig-dmx:#22c55e;--sig-sdi:#ef4444;--sig-net:#f59e0b;--shadow:0 8px 32px rgba(0,0,0,0.4);--rs:8px;--rm:12px;--rl:16px;--t:.2s ease;--font:'Inter',-apple-system,sans-serif;--sb:360px}
 html,body{height:100%;overflow:hidden}
 body{opacity:0;transition:opacity .5s ease;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
 body.loaded{opacity:1}
@@ -63,11 +63,11 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 #main{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 #toolbar{display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;font-size:10px;color:var(--text2);flex-wrap:wrap}
 #toolbar .tb-sep{width:1px;height:16px;background:var(--border)}
-#viewer{flex:1;overflow:hidden;position:relative;background:var(--bg);cursor:grab}
+#viewer{flex:1;overflow:hidden;position:relative;background:var(--bg);cursor:grab;touch-action:none}
 #viewer.dragging{cursor:grabbing}
 #viewer .info-overlay{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);padding:3px 10px;border-radius:10px;font-size:9px;color:var(--text3);border:1px solid var(--border);pointer-events:none;z-index:2}
-#canvas-wrap{position:absolute;top:0;left:0;transform-origin:0 0}
-#canvas{display:block;cursor:grab;background:transparent}
+#canvas-wrap{position:absolute;top:0;left:0;transform-origin:0 0;touch-action:none}
+#canvas{display:block;cursor:grab;background:transparent;touch-action:none}
 .zoom-ctrl{display:flex;gap:4px;align-items:center}
 .zoom-btn{width:24px;height:24px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t)}
 .zoom-btn:hover{background:rgba(0,212,255,0.1);color:var(--cyan);border-color:var(--cyan)}
@@ -85,8 +85,8 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
 @media(max-width:900px){#sidebar{width:300px;min-width:300px}}
-@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:60vh}#toolbar{font-size:9px}}
-@media(max-width:480px){#sidebar{max-height:35vh}.sidebar-scroll{padding:8px;gap:6px}}
+@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:60vh}#toolbar{font-size:9px}.btn{min-height:44px}input[type="number"],input[type="text"],select{min-height:44px}.card-header{cursor:pointer;user-select:none}.card-header::after{content:'\f078';font-family:'Font Awesome 6 Free';font-weight:900;font-size:9px;color:var(--text3);margin-left:auto;transition:transform .2s}.card-header.collapsed::after{transform:rotate(-90deg)}.card-header.collapsed+.card-body{display:none}}
+@media(max-width:480px){#sidebar{max-height:35vh}.sidebar-scroll{padding:8px;gap:6px}.row-2,.row-3{grid-template-columns:1fr}#toast-container{top:auto;bottom:12px;right:12px;left:12px}.toast{max-width:100%}}
 </style>
 </head>
 <body>
@@ -603,7 +603,6 @@ function initCanvasEvents(){
   // Hover + drag: combined mousemove
   canvas.addEventListener('mousemove',function(e){
     if(drag){
-      // Drag handling
       if(drag.type==='pan'){
         state.panX=drag.origPX+(e.clientX-drag.startX);
         state.panY=drag.origPY+(e.clientY-drag.startY);
@@ -617,7 +616,6 @@ function initCanvasEvents(){
         renderCanvas();return;
       }
     }
-    // Hover: change cursor
     var c=screenToCanvas(e.clientX,e.clientY);
     var portHit=hitPort(c.x,c.y);
     if(portHit){canvas.style.cursor=portHit.side==='out'?'crosshair':'copy';return;}
@@ -628,13 +626,9 @@ function initCanvasEvents(){
     canvas.style.cursor='grab';
   });
 
-  // mousedown: handle all interactions
-  canvas.addEventListener('mousedown',function(e){
-    if(e.button!==0)return;
-    var c=screenToCanvas(e.clientX,e.clientY);
+  function onPointerDown(cx,cy){
+    var c=screenToCanvas(cx,cy);
     var portHit=hitPort(c.x,c.y);
-
-    // If in connection mode, try to complete or cancel
     if(connectMode){
       if(portHit&&portHit.side==='in'){
         var srcNode=state.nodes.find(function(n){return n.id===connectMode.nodeId});
@@ -646,36 +640,84 @@ function initCanvasEvents(){
       }
       connectMode=null;renderCanvas();
     }
-
-    // Click on out-port → start connection mode
     if(portHit&&portHit.side==='out'){
       connectMode={nodeId:portHit.node.id,portId:portHit.port,signal:portHit.node.signal,startX:portHit.pos.x,startY:portHit.pos.y};
       toast('Кликните на вход (левый порт) для подключения','info');
       renderCanvas();return;
     }
-
-    // Click on node → select + drag
     var nodeHit=hitNode(c.x,c.y);
     if(nodeHit){
       state.selectedNodeId=nodeHit.id;renderProps();renderCanvas();
-      drag={type:'node',node:nodeHit,startX:e.clientX,startY:e.clientY,origX:nodeHit.x,origY:nodeHit.y};
+      drag={type:'node',node:nodeHit,startX:cx,startY:cy,origX:nodeHit.x,origY:nodeHit.y};
       view.classList.add('dragging');return;
     }
-
-    // Click on connection → delete
     var connHit=hitConnection(c.x,c.y);
     if(connHit){removeConnection(connHit.id);toast('Соединение удалено','info');return;}
-
-    // Click on empty → deselect + pan
     state.selectedNodeId=null;state.selectedConnId=null;connectMode=null;
     renderProps();renderCanvas();
-    drag={type:'pan',startX:e.clientX,startY:e.clientY,origPX:state.panX,origPY:state.panY};
+    drag={type:'pan',startX:cx,startY:cy,origPX:state.panX,origPY:state.panY};
+  }
+
+  function onPointerMove(cx,cy){
+    if(!drag)return;
+    if(drag.type==='pan'){
+      state.panX=drag.origPX+(cx-drag.startX);
+      state.panY=drag.origPY+(cy-drag.startY);
+      renderCanvas();return;
+    }
+    if(drag.type==='node'){
+      var dx=(cx-drag.startX)/state.zoom,dy=(cy-drag.startY)/state.zoom;
+      var gs=40;
+      drag.node.x=Math.round((drag.origX+dx)/gs)*gs;
+      drag.node.y=Math.round((drag.origY+dy)/gs)*gs;
+      renderCanvas();
+    }
+  }
+
+  function onPointerUp(){
+    view.classList.remove('dragging');
+    if(drag&&drag.type==='node')saveState();
+    drag=null;
+  }
+
+  canvas.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    onPointerDown(e.clientX,e.clientY);
   });
 
-  canvas.addEventListener('mouseup',function(e){
-    view.classList.remove('dragging');
-    if(drag&&drag.type==='node'){saveState();}
-    drag=null;
+  canvas.addEventListener('mouseup',onPointerUp);
+
+  // Touch events
+  var touchId2=null,pinchDist2=null,pinchZoom2=null;
+  canvas.addEventListener('touchstart',function(e){
+    if(e.touches.length===1){
+      e.preventDefault();
+      touchId2=e.touches[0].identifier;
+      onPointerDown(e.touches[0].clientX,e.touches[0].clientY);
+    }else if(e.touches.length===2){
+      e.preventDefault();
+      var t=e.touches;
+      pinchDist2=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      pinchZoom2=state.zoom;drag=null;
+    }
+  },{passive:false});
+  canvas.addEventListener('touchmove',function(e){
+    if(e.touches.length===1&&touchId2!==null){
+      e.preventDefault();
+      onPointerMove(e.touches[0].clientX,e.touches[0].clientY);
+    }else if(e.touches.length===2&&pinchDist2!==null){
+      e.preventDefault();
+      var t=e.touches;
+      var dist=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      state.zoom=Math.max(0.05,Math.min(100,pinchZoom2*(dist/pinchDist2)));
+      applyZoom();
+    }
+  },{passive:false});
+  canvas.addEventListener('touchend',function(e){
+    for(var i=0;i<e.changedTouches.length;i++){
+      if(e.changedTouches[i].identifier===touchId2){touchId2=null;onPointerUp();break;}
+    }
+    if(e.touches.length<2)pinchDist2=null;
   });
 }
 
@@ -809,11 +851,19 @@ document.querySelectorAll('.btn').forEach(function(b){
   });
 });
 
+function initCollapse(){
+  if(window.innerWidth>=700)return;
+  document.querySelectorAll('.card-header').forEach(function(h){
+    h.addEventListener('click',function(){h.classList.toggle('collapsed')});
+  });
+}
+
 // Init
 document.addEventListener('DOMContentLoaded',function(){
   loadState();
   initCanvasEvents();
   setupEvents();
+  initCollapse();
   render();
   fitZoom();
   document.body.classList.add('loaded');

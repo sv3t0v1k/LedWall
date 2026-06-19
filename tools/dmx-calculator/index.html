@@ -168,13 +168,14 @@ select option{background:#14141f;color:var(--text)}
 .plot-btn{width:24px;height:24px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t)}
 .plot-btn:hover{background:rgba(0,212,255,0.1);color:var(--cyan);border-color:var(--cyan)}
 .plot-zoom-lvl{font-size:9px;color:var(--text3);min-width:28px;text-align:center}
-#plotCanvasWrap{flex:1;border-radius:var(--rs);border:1px solid rgba(255,255,255,0.04);overflow:hidden;position:relative;background:var(--bg);min-height:200px}
-#plotCanvasWrap canvas{display:block;cursor:grab;width:100%;height:100%}
+#plotCanvasWrap{flex:1;border-radius:var(--rs);border:1px solid rgba(255,255,255,0.04);overflow:hidden;position:relative;background:var(--bg);min-height:200px;touch-action:none}
+#plotCanvasWrap canvas{display:block;cursor:grab;width:100%;height:100%;touch-action:none}
 #plotCanvasWrap canvas.dragging{cursor:grabbing}
+#plotCanvas{touch-action:none}
 /* Responsive */
 @media(max-width:900px){#sidebar{width:300px;min-width:300px}#viewer{padding:12px}}
-@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.stat-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){#sidebar{max-height:40vh}.sidebar-scroll{padding:8px;gap:6px}.row-2,.row-3{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr}.fixture-table{font-size:10px}}
+@media(max-width:700px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}.sidebar-header{padding:12px 14px}.sidebar-header h1{font-size:14px}.sidebar-scroll{padding:10px;gap:8px}#main{height:55vh}#viewer{padding:10px}.stat-grid{grid-template-columns:1fr 1fr}.btn{min-height:44px}input[type="number"],input[type="text"],select{min-height:44px}.card-header{cursor:pointer;user-select:none}.card-header::after{content:'\f078';font-family:'Font Awesome 6 Free';font-weight:900;font-size:9px;color:var(--text3);margin-left:auto;transition:transform .2s}.card-header.collapsed::after{transform:rotate(-90deg)}.card-header.collapsed+.card-body{display:none}}
+@media(max-width:480px){#sidebar{max-height:40vh}.sidebar-scroll{padding:8px;gap:6px}.row-2,.row-3{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr}.fixture-table{font-size:10px}#toast-container{top:auto;bottom:12px;right:12px;left:12px}.toast{max-width:100%}}
 </style>
 </head>
 <body>
@@ -854,21 +855,38 @@ function initPlotEvents(){
       renderPlot();
       document.getElementById('propsCard').style.display='';
       showPlotProps(hit);
-      // Focus the address input
       setTimeout(function(){var a=$('#plotAddr');if(a)a.focus()},100);
     }
   });
 
-  // Use document-level mousemove/mouseup (like Mapping Planner)
-  document.addEventListener('mousemove',function(e){
+  function onPlotDown(cx,cy){
+    var c=toPlot(cx,cy);
+    var hit=hitFixture(c.x,c.y);
+    if(hit){
+      state.plotSelId=hit.id;
+      renderPlot();
+      document.getElementById('propsCard').style.display='';
+      showPlotProps(hit);
+      _drag={type:'move',id:hit.id,startX:cx,startY:cy,origX:hit.plotX,origY:hit.plotY};
+      canvas.style.cursor='grabbing';
+    }else{
+      state.plotSelId=null;
+      document.getElementById('propsCard').style.display='none';
+      renderPlot();
+      _drag={type:'pan',startX:cx,startY:cy,origPX:state.plotPanX,origPY:state.plotPanY};
+      canvas.style.cursor='grabbing';
+    }
+  }
+
+  function onPlotMove(cx,cy){
     if(!_drag)return;
     if(_drag.type==='pan'){
-      state.plotPanX=_drag.origPX+(e.clientX-_drag.startX);
-      state.plotPanY=_drag.origPY+(e.clientY-_drag.startY);
+      state.plotPanX=_drag.origPX+(cx-_drag.startX);
+      state.plotPanY=_drag.origPY+(cy-_drag.startY);
       renderPlot();return;
     }
     if(_drag.type==='move'){
-      var dx=(e.clientX-_drag.startX)/state.plotZoom,dy=(e.clientY-_drag.startY)/state.plotZoom;
+      var dx=(cx-_drag.startX)/state.plotZoom,dy=(cy-_drag.startY)/state.plotZoom;
       var f=state.fixtures.find(function(x){return x.id===_drag.id});
       if(f){
         f.plotX=Math.round((_drag.origX+dx)/20)*20;
@@ -876,12 +894,55 @@ function initPlotEvents(){
         renderPlot();
       }
     }
-  });
+  }
 
-  document.addEventListener('mouseup',function(){
+  function onPlotUp(){
     if(_drag&&_drag.type==='move'){saveState();renderFixtureTable();}
     if(_drag)canvas.style.cursor='grab';
     _drag=null;
+  }
+
+  canvas.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    onPlotDown(e.clientX,e.clientY);
+  });
+
+  document.addEventListener('mousemove',function(e){onPlotMove(e.clientX,e.clientY)});
+  document.addEventListener('mouseup',onPlotUp);
+
+  // Touch events
+  var plotTouchId=null,plotPinchDist=null,plotPinchZoom=null;
+  canvas.addEventListener('touchstart',function(e){
+    if(e.touches.length===1){
+      e.preventDefault();
+      plotTouchId=e.touches[0].identifier;
+      onPlotDown(e.touches[0].clientX,e.touches[0].clientY);
+    }else if(e.touches.length===2){
+      e.preventDefault();_drag=null;
+      var t=e.touches;
+      plotPinchDist=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      plotPinchZoom=state.plotZoom;
+    }
+  },{passive:false});
+
+  document.addEventListener('touchmove',function(e){
+    if(e.touches.length===1&&plotTouchId!==null){
+      e.preventDefault();
+      onPlotMove(e.touches[0].clientX,e.touches[0].clientY);
+    }else if(e.touches.length===2&&plotPinchDist!==null){
+      e.preventDefault();
+      var t=e.touches;
+      var dist=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      state.plotZoom=Math.max(0.05,Math.min(100,plotPinchZoom*(dist/plotPinchDist)));
+      renderPlot();
+    }
+  },{passive:false});
+
+  document.addEventListener('touchend',function(e){
+    for(var i=0;i<e.changedTouches.length;i++){
+      if(e.changedTouches[i].identifier===plotTouchId){plotTouchId=null;onPlotUp();break;}
+    }
+    if(e.touches.length<2)plotPinchDist=null;
   });
 
   // Wheel zoom
@@ -917,11 +978,19 @@ $('#plotFit').addEventListener('click',function(){state.plotPanX=0;state.plotPan
 $('#plotZoomIn').addEventListener('click',function(){state.plotZoom*=1.3;state.plotZoom=Math.min(5,state.plotZoom);renderPlot()});
 $('#plotZoomOut').addEventListener('click',function(){state.plotZoom/=1.3;state.plotZoom=Math.max(0.1,state.plotZoom);renderPlot()});
 
+function initCollapse(){
+  if(window.innerWidth>=700)return;
+  document.querySelectorAll('.card-header').forEach(function(h){
+    h.addEventListener('click',function(){h.classList.toggle('collapsed')});
+  });
+}
+
 // Init
 document.addEventListener('DOMContentLoaded',function(){
   loadState();
   loadLibrary();
   render();
+  initCollapse();
   document.body.classList.add('loaded');
 });
 
