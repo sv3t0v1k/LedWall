@@ -1,6 +1,8 @@
-# GenMap Toolkit — контекст проекта
+# S.T.A.G.E. PRO ToolKit — контекст проекта
 
 Полное описание всех инструментов, алгоритмов, архитектуры и визуальных решений.
+
+**Live:** [pd.f50a44.ru](https://pd.f50a44.ru) · **GitHub:** [github.com/sv3t0v1k/LedWall](https://github.com/sv3t0v1k/LedWall)
 
 ---
 
@@ -10,28 +12,33 @@
 
 Файл: `assets/js/main.js`
 
-Анимированные геометрические линии в стиле «технический блюпринт»:
+Анимированная атмосферная подсветка в стиле концертного света:
 
-- **Узлы** — сетка точек с шагом `max(80px, 12% от min(W,H))`. Каждая имеет случайный офсет, фазу и скорость
-- **Соединения** — линии между узлами на расстоянии < 200px с прозрачностью, затухающей от расстояния
-- **Структурные волны** — 6 горизонтальных волнообразных линий (синус)
-- **Световые лучи** — 3 медленно вращающихся луча с градиентом прозрачности и синусоидальным искажением
-- **Светящиеся узлы** — радиальные градиенты на каждой точке, пульсирующие
-- **Угловые маркеры** — 4 уголка (blueprint style)
-- **Штрихи** — 20 меток по краям (имитация линейки)
+- **Световые лучи** — 6 объёмных конусов (на мобиле 3) с цветами: cyan, purple, amber, green, red. Каждый имеет медленный дрифт и пульсацию интенсивности
+- **Частицы haze** — 80 плавающих частиц (на мобиле 15) с мерцанием и glow-эффектом, имитация дым-машины
+- **Scan-линия** — горизонтальная полоса с мерцанием, движется сверху вниз
+- **Угловые маркеры** — 4 уголка в стиле blueprint
 
-Рендер: `requestAnimationFrame`, `Date.now()/1000` для времени
+Оптимизация:
+- Мобильные устройства (<700px): 15 частиц вместо 80, 3 луча вместо 6
+- `prefers-reduced-motion`: статичный градиент без анимации, canvas скрыт через CSS
 
 ### Карусель инструментов
 
 Файл: `assets/js/main.js`, функция `initCarousel()`
 
 - Горизонтальный `flex`-трек с `transform: translateX`
-- Snap по карточкам: при клике на точку/стрелку вычисляется offset из суммы ширин предыдущих карточек + gap 24px
-- Управление: стрелки, колёсико мыши (горизонтальное), drag, клавиатура ← →
+- Snap по карточкам: offset из суммы ширин предыдущих карточек + gap 24px
+- Управление: стрелки, колёсико мыши (горизонтальное), drag, клавиатура ← →, touch-swipe
 - Dots + счётчик (`1 / N`)
 - `isScrolling` — флаг блокировки на 700ms во время анимации
 - Resize: пересчёт позиции с debounce 200ms
+
+### Навигация
+
+- Фиксированный navbar с логотипом и ссылками (Инструменты, О проекте)
+- На мобильных (<768px): гамбургер-меню, `.nav-links` выезжают сверху
+- Закрытие по клику на ссылку
 
 ---
 
@@ -44,54 +51,31 @@
 
 ```javascript
 state = {
-  pixelPitch: 2.6,             // шаг пикселя (мм)
-  moduleW: 128, moduleH: 128,  // размер модуля в px
-  moduleWmm: 320, moduleHmm: 320, // физ. размер модуля (мм)
-  gridCols: 4, gridRows: 3,    // сетка модулей
-  markerColor: '#ff3344',      // цвет разметки
-  markers: { cross: true, plus: false, circle: false, ... },
+  pixelPitch: 2.6,
+  moduleW: 128, moduleH: 128,
+  moduleWmm: 320, moduleHmm: 320,
+  gridCols: 4, gridRows: 3,
+  markerColor: '#ff3344',
+  markers: { cross: true, plus: false, circle: false ... },
   identification: 'alpha-numeric',
   startId: 'top-left',
   testPattern: 'none',
-  moduleBorder: true,
-  borderWidth: 1,
-  borderColor: '#ffffff',
+  moduleBorder: true, borderWidth: 1, borderColor: '#ffffff',
   chessColor1: '#ffffff', chessColor2: '#555555',
-  sizeLock: true,              // авто-расчёт px из мм
+  sizeLock: true,
   screenName: '', showInfoLabel: true,
-  screenNameColor: '#ffffff',
-  screenNameBg: '#000000',
-  screenNameOpacity: 50,
+  screenNameColor: '#ffffff', screenNameBg: '#000000', screenNameOpacity: 50,
   zoom: 1, panX: 0, panY: 0
 }
 ```
 
-### Вычисления
-
-- **`getWallDims()`** — возвращает { cols, rows, mw, mh, mmw, mmh, pitch, totalPxW, totalPxH, totalMmW, totalMmH }
-- **`recalcModulePx()`** — `moduleW = math.round(moduleWmm / pixelPitch)`, если `sizeLock`
-- **`getCanvasScale()`** — масштаб для вписывания стены в viewport: `min(maxC/width, maxC/height, 1)`
-
-### Рендер
-
-Функция `drawCanvas()`:
-
-1. Очистка canvas, заливка `#0a0a0f`
-2. Сетка (полупрозрачные линии по границам модулей)
-3. Для каждого модуля (r,c):
-   - `drawPattern()` — шахматка / полосы
-   - border (если включён)
-   - маркеры (cross, plus, circle) пропорционально размеру модуля
-   - текст идентификации (alpha-numeric / numeric)
-4. Полноэкранные маркеры (диагонали, окружность)
-5. Название экрана (по центру с фоном)
-6. Info-лейбл (физический размер, разрешение, модули, pitch)
+### Canvas interactions
+- **Pan** — mousedown + mousemove + mouseup на `#canvas-wrap` + touch-эквиваленты
+- **Pinch-to-zoom** — 2 пальца
+- Zoom колесом (Ctrl/Meta)
 
 ### Экспорт
-
-- **PNG**: создаётся offscreen canvas в полном разрешении (max 16384px, с масштабированием при превышении)
-- **SVG**: генерация строки SVG с теми же элементами
-- **PDF**: SVG, обёрнутый в HTML с `window.print()`
+- **PNG**, **SVG**, **PDF** (window.print)
 
 ---
 
@@ -101,58 +85,43 @@ state = {
 Калькулятор DMX-вселенных: адресация приборов, коллизии, авто-расстановка.
 
 ### Данные
-
-Файл: `data/fixtures.json`
-
-```json
-{
-  "presets": [
-    { "name": "Mac Aura", "channels": 18, "cat": "mover" },
-    ...
-  ],
-  "custom": []
-}
-```
-
-Загружается через `fetch()`. Если файла нет — используются встроенные DEFAULT_PRESETS.
+Файл: `data/fixtures.json`. Fallback — встроенный DEFAULT_PRESETS.
 
 ### Состояние
 
 ```javascript
 state = {
-  fixtures: [
-    { id: 1, name: "Mac Aura", channels: 18, address: 1, universe: 1, color: "#ff3344" }
-  ],
+  fixtures: [{ id, name, channels, address, universe, color }],
   nextId: 2,
   selectedUni: 1,
-  zoom: 1
+  zoom: 1,
+  plotZoom: 1, plotPanX: 0, plotPanY: 0,
+  plotSelId: null
 }
 ```
 
 ### Вычисления
 
-- **`buildBitmap(uni)`** — массив `bitmap[513]` (1-indexed). Каждый канал хранит ссылку на прибор. Если два прибора занимают один канал — `collision = true`
-- **`autoAssign()`** — последовательная расстановка: каждый прибор получает следующий свободный адрес, при переполнении (512) — переход на следующую вселенную
+- **`buildBitmap(uni)`** — bitmap[513] (1-indexed), каналы с коллизиями
+- **`autoAssign()`** — последовательная расстановка с переходом на следующую вселенную при переполнении
+- Авто-расстановка через модалку: Compact (все в одну вселенную) / Keep (заполнять существующие)
 
 ### Рендер
 
-- **`renderStats()`** — количество приборов, каналов, вселенных, свободных каналов
-- **`renderTabs()`** — вкладки Universe 1, 2, 3... с количеством занятых каналов
-- **`renderDMXBar()`** — визуальная полоса 512 каналов:
-  - Строятся сегменты: для каждого прибора — цветной блок шириной `channels × zoom`
-  - Между приборами — gap (свободные каналы)
-  - Коллизии — красная штриховка
-  - При наведении — тултип с деталями
-  - Линейка снизу с адресами (1, 65, 129, ... 512)
-- **`renderFixtureTable()`** — таблица в сайдбаре с inline-редактированием (input на каждое поле, изменения сохраняются по blur/Enter)
-- **`renderUniTable()`** — read-only таблица приборов выбранной вселенной
+- DMX-бар 512 каналов с зумом, тултипами, коллизиями (красная штриховка)
+- Plot view — canvas с перетаскиваемыми блоками приборов (drag на canvas + touch)
+- Таблица приборов с inline-редактированием
+- Вкладки Universe 1, 2, 3... с количеством занятых каналов
 
-### Особенности
+### Canvas interactions (Plot view)
+- **Drag** — клик на блоке → перемещение с snap-to-grid 20px (mousedown + mousemove + mouseup на document + touch)
+- **Pan** — клик на пустом месте → панорамирование
+- **Pinch-to-zoom** — 2 пальца
+- **dblclick** — открыть свойства прибора
+- Zoom колесом (Ctrl/Meta)
 
-- Все приборы имеют цвет из палитры `COLORS[8]` (циклически)
-- Экспорт CSV — через `navigator.clipboard.writeText()`, fallback на `execCommand('copy')`
-- Экспорт JSON — скачивание `fixtures.json` обновлённого файла
-- Сохранение сессии в `localStorage` (ключ `dmx_state`)
+### Экспорт
+- CSV (буфер обмена), JSON (скачать)
 
 ---
 
@@ -162,78 +131,40 @@ state = {
 Расчёт электропитания: распределение по фазам L1/L2/L3, кабель, генератор.
 
 ### Данные
-
-Файл: `data/equipment.json`
-
-```json
-{
-  "presets": [
-    { "name": "Moving Head Beam", "power": 350, "cat": "light", "pf": 0.9 },
-    ...
-  ],
-  "custom": []
-}
-```
+Файл: `data/equipment.json`. Fallback — DEFAULT_PRESETS.
 
 ### Состояние
 
 ```javascript
 state = {
-  devices: [
-    { id: 1, name: "Blinder 4-lite", power: 800, qty: 8, phase: "auto", pf: 1, cat: "light" }
-  ],
-  nextId: 1,
-  cableDist: 50,
-  cableDrop: 3
+  devices: [{ id, name, power, qty, phase, pf, cat }],
+  nextId: 1, cableDist: 50, cableDrop: 3
 }
 ```
 
 ### Вычисления
 
 **Базовые формулы:**
-- Мощность устройства: `P = power × qty`
+- Мощность: `P = power × qty`
 - Ток фазы (230V): `I = P / (230 × PF)`
 - Полная мощность: `S = P / PF` (kVA)
-- Рекомендация генератора: `gen = ceil(apparentPower × 1.25 / 5) × 5`
+- Рекомендация генератора: `gen = ceil(S × 1.25 / 5) × 5`
 
 **Auto-Balance:**
-1. Каждый прибор из строки обрабатывается поштучно (qty раз)
-2. Каждая единица назначается на наименее загруженную фазу
-3. Одинаковые приборы на одной фазе группируются в одну строку
+1. Каждый прибор поштучно назначается на наименее загруженную фазу
+2. Одинаковые приборы на одной фазе группируются
 
-**Дисбаланс:**
-- `avg = totalPower / 3`
-- `deviation% = (phasePower - avg) / maxPhasePower × 100`
+**Дисбаланс:** `deviation% = (phasePower - avg) / maxPhasePower × 100`
 
-**Кабель (ПУЭ, медь):**
-
-Таблица сечения:
-| мм² | A |
-|---|---|
-| 1.5 | 10 |
-| 2.5 | 16 |
-| 4 | 25 |
-| 6 | 32 |
-| 10 | 42 |
-| 16 | 63 |
-| 25 | 80 |
-| 35 | 100 |
-| 50 | 125 |
-| 70 | 160 |
-| 95 | 200 |
-
-Падение напряжения (однофазное, 230V):
-```
-ΔU% = (2 × I × L × PF × 100) / (γ × S × 230)
-где γ = 57 (медь при 50°C), S — сечение в мм²
-```
+**Кабель (ПУЭ, медь, 50°C):**
+- Таблица сечений 1.5–95 мм² с допустимым током
+- Падение: `ΔU% = (2 × I × L × PF × 100) / (γ × S × 230)`, γ = 57
 
 ### Рендер
-
-- **`renderStats()`** — итоги в сайдбаре + бары L1/L2/L3 с процентами
-- **`renderSummary()`** — 3 карточки: общая нагрузка (kW), макс. фаза (kW + A), рекомендация генератора (kVA)
-- **`renderPhases()`** — цветные горизонтальные бары для L1/L2/L3 с сегментами по категориям (light=yellow, sound=blue, video=red, fx=purple, rig=orange)
-- **`renderCableCalc()`** — калькулятор сечения кабеля + таблица всех сечений с падением напряжения
+- Карточки: общая нагрузка, макс. фаза, рекомендация генератора
+- Фазовые бары L1/L2/L3 с сегментами по категориям
+- Калькулятор кабеля с таблицей сечений
+- Таблицы с `overflow-x: auto` на мобильных
 
 ---
 
@@ -246,273 +177,132 @@ state = {
 
 ```javascript
 state = {
-  temp: 20,                     // температура (°C)
-  paDist: 10, paHeight: 8,     // координаты PA
-  delayDist: 25, delayHeight: 8, // координаты Delay
-  directDist: 15,               // прямое расстояние (альтернатива)
-  useCoords: true,              // режим координат / прямое расстояние
-  arrayCount: 8,                // количество элементов Line Array
-  cabHeight: 0.37,              // высота кабинета (м)
-  splayStr: '0.5, 1, 1, 2, 2, 3, 4', // углы между элементами
-  arrayBottom: 2,               // высота нижнего элемента (м)
-  subConfig: 'none',            // none / endfire / gradient / left-right
+  temp: 20, paDist: 10, paHeight: 8,
+  delayDist: 25, delayHeight: 8,
+  directDist: 15, useCoords: true,
+  arrayCount: 8, cabHeight: 0.37,
+  splayStr: '0.5, 1, 1, 2, 2, 3, 4',
+  arrayBottom: 2,
+  subConfig: 'none',
   subCount: 4, subSpacing: 1.0
 }
 ```
 
 ### Вычисления
 
-Скорость звука:
-```
-c = 331 + 0.6 × T
-```
+Скорость звука: `c = 331 + 0.6 × T`
 
-Расстояние между PA и Delay:
-```
-d = √((delayDist - paDist)² + (delayHeight - paHeight)²)
-```
+Задержка: `Δt = d / c × 1000` (мс), сэмплы @ 48/96 кГц
 
-Задержка:
-```
-Δt = d / c × 1000   (мс)
-samples48 = round(Δt × 48)   (сэмплы @ 48 кГц)
-samples96 = round(Δt × 96)   (сэмплы @ 96 кГц)
-```
+Line Array: splay-углы из строки, общий угол, покрытие
 
-Длина волны:
-```
-λ = c / f   (для f = 100 Гц, 1 кГц)
-```
-
-Line Array:
-- **Splay-углы:** парсятся из строки, для count-1 элементов
-- **Общий угол:** сумма всех splay
-- **Покрытие:** `top = bottom + cos(totalAngle°) × count × cabHeight`
-- **Таблица:** для каждого элемента — угол раскрыва и накопленный угол
-
-Subwoofer:
-- **End-Fire:** длина массива = (count-1) × spacing. Макс. подавление = spacing/c × 1000 мс
-- **Gradient:** тыловые колонки инвертированы по полярности, задержка = spacing/c × 1000
-- **Left/Right:** половина колонок на сторону
+Subwoofer: End-Fire / Gradient / Left-Right
 
 ### Canvas
-
-Функция `drawSchematic()`:
-- Горизонтальная ось — дистанция от сцены (м), вертикальная — высота (м)
-- Stage — вертикальная линия слева
-- PA — точка с меткой
-- Delay — точка с меткой
-- Пунктирная линия между ними с подписью расстояния и времени
-- Легенда: скорость звука, сэмплы
-
-### UI
-
-- Переключение режимов: координаты / прямое расстояние (toggle)
-- Subwoofer config: при выборе отличного от none — появляются параметры
-- Все расчёты в реальном времени (input → render)
+Функция `drawSchematic()` — схема расположения PA и Delay с легендой.
 
 ---
 
 ## 6. Rigging Load Calculator (`tools/rigging-calc/`)
 
 ### Назначение
-Расчёт нагрузок на триссовые конструкции: реакции опор, момент, загрузка.
+Расчёт нагрузок на триссовые конструкции.
 
 ### Данные
-
-Файл: `data/truss.json`
-
-```json
-{
-  "trusses": [
-    {
-      "name": "BT 30×30",
-      "section": 0.29,
-      "weight": 8.2,
-      "allowable": [
-        { "span": 8, "udl": 720 },
-        { "span": 10, "udl": 520 },
-        ...
-      ]
-    }
-  ]
-}
-```
-
-- `weight` — собственный вес трисса (кг/м)
-- `udl` — допустимая равномерная нагрузка (кг, total на данный пролёт)
+Файл: `data/truss.json` (BT 30×30, BT 45°, BT 52° с таблицами допустимых нагрузок).
 
 ### Состояние
 
 ```javascript
 state = {
-  trussIdx: 0,                  // выбранный трисс
-  span: 12,                     // пролёт (м)
-  supportMode: '2',             // '2' или '3'
-  motorCap: 1000,               // грузоподъёмность мотора (кг)
-  loads: [                      // точечные нагрузки
-    { id: 1, pos: 3, weight: 500, desc: "LED Wall" }
-  ],
-  nextId: 1,
-  udl: 10                       // равномерная нагрузка (кг/м)
+  trussIdx: 0, span: 12,
+  supportMode: '2', motorCap: 1000,
+  loads: [{ id, pos, weight, desc }],
+  nextId: 1, udl: 10
 }
 ```
 
 ### Вычисления
 
-**Интерполяция `interpAllowable(truss, span)`:**
-- Если span меньше минимального в таблице — возвращает минимальный
-- Если больше максимального — максимальный
-- Иначе — линейная интерполяция между ближайшими значениями
+**Интерполяция**: линейная интерполяция udl по span из таблицы трисса
 
-**Численный решатель балки:**
+**Численный решатель** (100 сегментов):
+- Нагрузка = UDL + собственный вес + точечные нагрузки
+- Shear и Moment последовательным интегрированием
 
-Балка делится на 100 сегментов. Для каждого сегмента:
-1. Нагрузка = UDL + собственный вес + точечные нагрузки (распределённые на ближайшие узлы)
-2. Shear и Moment — последовательным интегрированием
-
-**2 опоры (статически определимая):**
-```
-R₂ = [Σ(Pᵢ × aᵢ) + (selfWeight + udl) × span²/2] / span
-R₁ = ΣPᵢ + (selfWeight + udl) × span - R₂
-M[x] = R₁ × x - Σ(Pᵢ × (x - aᵢ)) - q × x²/2
-```
-
-**3 опоры (2 равных пролёта):**
-- Разделение нагрузок на левую и правую половины
-- Каждая половина решается как отдельная simply supported балка
-- R₁ = реакция левой половины
-- R₃ = реакция правой половины
-- R₂ = R₂_left + R₁_right (сумма внутренних реакций)
-
-**Проверки:**
-- Каждая реакция ≤ motorCapacity (✅/✗)
-- Общая нагрузка ≤ udlAllowable (из таблицы трисса) → util = totalLoad / udlAllow × 100%
-
-### Рендер
-
-- **`renderTrussTable()`** — таблица допустимых нагрузок для выбранного трисса
-- **`renderResultCards()`** — 3 карточки: общая нагрузка (т), загрузка (%), статус (✅/✗)
-- **`renderDetailTable()`** — реакции R1/R2/(R3) с загрузкой мотора, Mmax, удл. нагрузка
-- **`renderLoadsList()`** — таблица точечных нагрузок с удалением
+**2 опоры**: статически определимая балка
+**3 опоры**: разделение на 2 равных пролёта
 
 ### Canvas
-
-Функция `drawCanvas()`:
-1. Трисс — прямоугольник высотой пропорционально `section`
-2. Опоры — треугольники (2 или 3)
-3. Нагрузки — стрелки с подписями (оранжевый)
-4. Эпюра моментов — синяя линия под триссом, заливка полупрозрачная
-5. Размерная шкала — метки в метрах
-6. Подписи реакций — R1=xxx кг (зелёный или красный)
+Функция `drawCanvas()`: трисс, опоры, нагрузки, эпюра моментов.
 
 ---
 
 ## 7. Mapping Planner (`tools/mapping-planner/`)
 
 ### Назначение
-Раскладка прямоугольных плоскостей на canvas произвольного разрешения: перемещение, выравнивание, привязка, обнаружение пересечений.
+Раскладка прямоугольных плоскостей на canvas произвольного разрешения.
 
 ### Состояние
 
 ```javascript
 state = {
-  canvasW: 3840, canvasH: 1080,  // разрешение canvas
-  gridSize: 32,                  // шаг сетки (px)
-  snapGrid: true,                // привязка к сетке
-  snapObjects: true,             // привязка к объектам
-  planes: [                      // плоскости
-    { id: 1, label: "Screen 1", x: 0, y: 0, w: 1920, h: 1080, color: "#00d4ff" }
-  ],
+  canvasW: 3840, canvasH: 1080,
+  gridSize: 32,
+  snapGrid: true, snapObjects: true,
+  planes: [{ id, label, x, y, w, h, color, img? }],
   nextId: 1,
   zoom: 1, panX: 0, panY: 0,
-  selected: [],                  // выделенные плоскости
-  editingId: null                // редактируемая плоскость (в таблице)
+  selected: [], editingId: null
 }
 ```
 
 ### Canvas interactions
+- **Move** — mousedown на плоскости → mousemove/mouseup на document + touch
+- **Resize** — mousedown на углу(6px) → resize
+- **Pan** — mousedown на пустом месте
+- **Pinch-to-zoom** — 2 пальца
+- **Multi-select** — Shift+клик
+- **Zoom** — Ctrl+колесо, кнопки, fit
+- **Coord display** — текущие canvas-координаты курсора
 
-Система drag-событий (mousedown/mousemove/mouseup на `#viewer`):
+### Snap
+- **Snap to grid**: `Math.round(val / gridSize) * gridSize`
+- **Snap to objects**: align-гайды (центры, края плоскостей и canvas), порог 6px
 
-- **mousedown** на плоскости → start move (или resize, если курсор на углу)
-- **mousedown** на пустом месте → start pan
-- **mousemove** → обновление позиции/размера с учётом snap
-- **mouseup** → фиксация, saveState()
-
-**`screenToCanvas(sx, sy)`** — пересчёт экранных координат в canvas-координаты с учётом zoom/pan:
-```
-x = (sx - wrapRect.left) / zoom
-y = (sy - wrapRect.top) / zoom
-```
-
-**`hitTestPlanes(cx, cy)`** — проход по плоскостям сверху вниз, проверка `cx >= p.x && cx <= p.x+p.w`
-
-**`isOnCorner(p, cx, cy)`** — проверка: курсор в пределах 6px от угла плоскости
-
-### Snap to objects
-
-**`getAlignGuides(plane, movingIds)`** — собирает все значимые точки выравнивания:
-- Для каждой НЕ-перемещаемой плоскости: `left, centerX, right, top, centerY, bottom`
-- Для canvas: 0, width/2, width, 0, height/2, height
-
-**`doSnap(plane, movingIds)`** — проверяет все точки плоскости на совпадение с guides (порог 6px):
-- Если совпадение найдено — возвращает dx/dy для корректировки
-- На экран рисуются голубые пунктирные линии в местах совпадения
-
-### Snap to grid
-
-**`snapToGrid(val)`** — `Math.round(val / gridSize) * gridSize`
+### Импорт изображений
+- Кнопка «Импорт тест-карты» → file dialog → создание плоскости с разрешением изображения
+- Изображение отображается внутри плоскости (clip-маска)
+- PNG-экспорт включает изображения
 
 ### Рендер canvas
-
-Функция `renderCanvas()` — 5 слоёв:
-
-1. **Фон** — `#06060a`
-2. **Сетка** — точки с шагом `gridSize × zoom`
-3. **Плоскости** — цветная заливка `color + '4d'`, border, label, размеры, хендлы выделения
-4. **Overlaps** — проверка всех пар плоскостей на пересечение, красная штриховка
-5. **Rulers** — линейки по краям с метками координат
-
-### Редактирование в таблице
-
-- Кнопка ✏️ или двойной клик по строке → `editingId = plane.id`, перерендер таблицы с `<input>`-полями
-- blur на input → сохранение значения, Enter → save + exit, Escape → cancel
-- Клик по другой строке → exit editing
-
-### Snap-настройки
-
-- `gridSize`: 1, 8, 16, 32, 64, 128 px
-- Флаги: snapGrid (к сетке), snapObjects (к объектам)
-
-### Canvas presets
-
-HD (1920×1080), 4K wide (3840×1080), 4K (3840×2160), 8K wide (7680×2160), 8K×2 (15360×4320)
+5 слоёв: фон → сетка → плоскости (с изображениями) → overlaps → rulers
 
 ### Экспорт
-
-- **PNG**: offscreen canvas в полном разрешении, плоскости с заливкой и подписями
-- **CSV**: `Label, X, Y, W, H, Color` через буфер обмена
+- **PNG**: offscreen canvas в полном разрешении
+- **SVG**: генерация SVG с rect/text
 
 ---
 
 ## 8. Signal Flow Patch Designer (`tools/signal-patch/`)
 
 ### Назначение
-Визуальный конструктор сигнальных цепей. Размещение блоков на canvas, соединение выходов со входами для Audio/DMX/SDI/Network.
+Визуальный конструктор сигнальных цепей: Audio/DMX/SDI/Network.
 
 ### Палитра блоков
-36+ типов в 6 категориях: Входы (Audio), Входы (DMX/Video/Net), Обработка (Audio), Обработка (Video/DMX/Net), Выходы.
+83+ типа в 7 категориях: Audio In, DMX/Video/Net In, Audio Processing, Video/DMX/Net Processing, Audio Out, Video/DMX/Net Out, Custom.
 
 ### Сигналы и цвета
 Audio → `#00d4ff`, DMX → `#22c55e`, SDI → `#ef4444`, Network → `#f59e0b`
 
 ### Canvas interactions
-- CSS transform (translate + scale) для zoom/pan
-- Hover: курсор crosshair / copy / move / pointer / grab
-- Клик на out-port → режим соединения → клик на in-port → Безье-кривая
-- Клик на кривой → удаление
-- Drag блоков с snap to grid 40px
+- **Drag** блоков с snap 40px (mousedown + mousemove + mouseup на canvas + touch)
+- **Pan** — drag по пустому месту
+- **Connection mode** — клик на out-port → режим → клик на in-port → Безье-кривая
+- **Удаление** — клик на кривой, клик на порте в режиме соединения
+- **Hover** — курсор crosshair / copy / move / pointer / grab
+- **Pinch-to-zoom** — 2 пальца
+- **Custom blocks** — сохранение в localStorage
 
 ### Экспорт
 - **PNG**: offscreen canvas с bounding box всех блоков и соединений
@@ -522,36 +312,54 @@ Audio → `#00d4ff`, DMX → `#22c55e`, SDI → `#ef4444`, Network → `#f59e0b`
 ## 9. Общие паттерны
 
 ### Сохранение состояния
-
-Все инструменты используют `localStorage`:
-- Ключи: `ledwall_state`, `dmx_state`, `pw_state`
-- Формат: `JSON.stringify(state)`
-- Загрузка при DOMContentLoaded, сохранение при каждом изменении
+localStorage, ключи: `ledwall_state`, `dmx_state`, `pw_state`, `mp_state`, `sp_state`.
+Загрузка при DOMContentLoaded, сохранение при каждом изменении.
+Mapping Planner: при превышении лимита localStorage изображения исключаются.
 
 ### Toast-уведомления
+Функция `toast(message, type, duration)`.
+На мобильных (<480px): снизу по центру, `max-width: 100%`.
 
-Функция `toast(message, type, duration)`:
-- Типы: `success`, `error`, `info`
-- Анимация: slide-in справа с cubic-bezier, auto-dismiss
-- Иконка из Font Awesome по типу
-
-### Модальное окно (сброс)
-
-- `#modal-overlay` — полупрозрачный фон с backdrop-filter
-- `#modal` — карточка подтверждения
-- Закрытие: кнопка Отмена, клик по оверлею, Escape
+### Модальное окно
+`#modal-overlay` с backdrop-filter + `#modal` карточка.
+Закрытие: кнопка Отмена, клик по оверлею, Escape.
 
 ### Ripple-эффект
+На всех `.btn`: `<span class="ripple">` с scale-анимацией.
 
-На всех кнопках `.btn`: при клике создаётся `<span class="ripple">` с position:absolute, scale-анимацией, удалением после animationend.
+### Collapsible секции
+На мобильных (<700px) все `.card-header` получают `cursor: pointer` + chevron `\f078`.
+Клик → toggle `.collapsed` → скрытие `.card-body`.
+Инициализация: `initCollapse()` в DOMContentLoaded.
+
+### Touch-события
+Единый паттерн для всех canvas:
+1. `touchstart` → сохранение touchId, вызов onPointerDown
+2. `touchmove` → вызов onPointerMove с координатами
+3. `touchend` → очистка touchId, вызов onPointerUp
+4. 2 пальца → pinch-zoom (расстояние → zoom)
+
+`touch-action: none` на всех canvas, canvas-wrap, viewer.
 
 ### Адаптивность
 
-- 900px: сайдбар 320px
-- 700px: сайдбар сверху (45vh), контент снизу
-- 480px: compact отступы, одна колонка в grid
+| Breakpoint | Сайдбар | Viewer | Прочее |
+|---|---|---|---|
+| ≥900px | 360px | — | — |
+| 700–900px | 320px | padding 12px | — |
+| 480–700px | 100% × 40-45vh сверху | 55-60vh | touch-цели 44px, collapse |
+| <480px | 35-40vh | — | 1 колонка, toast снизу |
+
+### prefers-reduced-motion
+- CSS: `animation-duration: 0.01ms`, `.reveal` без анимации, `#bgCanvas` hidden
+- JS: проверка `window.matchMedia('(prefers-reduced-motion: reduce)')` — статичный фон
 
 ### Данные через JSON
+`fetch('data/...json')`, fallback DEFAULT_PRESETS.
+Кастомные добавки в localStorage.
 
-Инструменты с пресетами загружают JSON через `fetch('data/...json')`. При ошибке загрузки — встроенный fallback (DEFAULT_PRESETS).
-Кастомные приборы/оборудование сохраняются в `localStorage` и мержатся с presets при загрузке.
+### Deploy
+- Docker: caddy:alpine, порт 80
+- docker-compose: сеть `npm_proxy-network`
+- Cron: `0 */8 * * *` → `scripts/update-genmap.sh` (git pull → docker compose build → up -d)
+- CI: GitHub Actions (проверка сборки на push в main)
